@@ -1,0 +1,16 @@
+Les fichiers textes qui figurent dans ce répertoire sont des jeux d'essais 
+utilisés par QueryParserTest.php.
+
+Chaque fichier contient une liste de requêtes.
+
+Pour chaque requête, on a trois lignes :
+- une ligne contenant l'équation de recherche à tester
+- une ligne contenant l'équation telle qu'elle doit être interprêtée 
+  (i.e. la vesion "__toString()" de l'objet Query retourné par le Parser
+- une ligne contenant l'équation de recherche après optimisation
+  (i.e. la version "__toString()" de query->optimize()).
+  Si la requête optimisée est identique à la requête non opitmisée, vous
+  pouvez indiquer "%" (ditto) pour éviter de recopier l'équation complète.
+
+Toutes les lignes vides de ce fichier sont ignorées. 
+Les lignes qui commencent par "//" sont des commentaires et sont également ignorées.

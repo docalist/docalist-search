@@ -1,0 +1,14 @@
+Autres analyseurs possibles :
+ReverseWildcard : (inspiré de lucene/solr)
+- prend les termes et les inverse avec un préfixe particulier (par exemple '_R' comme 'reverse')
+- bonjour -> _Rruojnob
+- quand on fait une recherche de la forme *jour, il faut que le query parser le détecte
+  (i.e. * suivi d'une ou plusieurs lettres) et fasse le même traitement -> _Rruoj*
+  (traitement : enlever l'étoile, prendre le mot qui suit, l'inverse, ajouter l'étoile,
+  replacer le résultat dans la requête).
+- utile mais très couteux : ça double le nombre de termes dans l'index
+- je pense qu'il est inutile de stocker des positions dans ce cas. 
+
+Path (http://lucidworks.lucidimagination.com/display/solr/Tokenizers#Tokenizers-PathHierarchyTokenizer)
+- Prend un path et le découpe en morceaux
+- In: "c:\usr\local\apache", Out: "c:", "c:/usr", "c:/usr/local", "c:/usr/local/apache"

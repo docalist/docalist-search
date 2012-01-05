@@ -1,0 +1,28 @@
+// erreurs dans les requêtes qui sont ignorées silencieusement
+(a or b
+(a OR b)
+%
+
+title:(a or b
+(title:a OR title:b)
+%
+
+) a
+a
+%
+
+[
+null
+%
+
+]
+null
+%
+
++
+null
+%
+
+-
+null
+%

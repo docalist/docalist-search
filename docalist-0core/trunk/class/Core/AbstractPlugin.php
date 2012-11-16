@@ -110,25 +110,39 @@ abstract class AbstractPlugin {
      * @return Plugin $this
      */
     protected function setupTaxonomies() {
-        add_filter('piklist_taxonomies', function($taxonomies) {
-            foreach (glob($this->directory . '/parts/taxonomies/*.php') as $file) {
-                // @formatter:off
-                $taxonomy = include ($file);
-                //@formatter:on
-
-                $taxonomy['name'] = self::PREFIX . $taxonomy['name'];
-
-                foreach ($taxonomy['post_type'] as & $post_type) {
-                    $post_type = self::PREFIX . $post_type;
-                }
-
-                $taxonomies[] = $taxonomy;
-            }
-
-            return $taxonomies;
-        });
+        add_filter('piklist_taxonomies', array(
+            $this,
+            'piklistTaxonomies'
+        ));
 
         return $this;
+    }
+
+
+    /**
+     * Fonction de callback interne utilisée par {@link setupTaxonomies}.
+     *
+     * Remarque : dans une version précédente, cette méthode (qui ne devrait
+     * pas être publique) était définie sous forme de closure dans
+     * setupTaxonomies, mais cela ne fonctionne qu'à partir de php 5.4
+     * (utilisation de self et/ou $this dans le code de la closure).
+     */
+    public function piklistTaxonomies($taxonomies) {
+        foreach (glob($this->directory . '/parts/taxonomies/*.php') as $file) {
+            // @formatter:off
+            $taxonomy = include ($file);
+            //@formatter:on
+
+            $taxonomy['name'] = self::PREFIX . $taxonomy['name'];
+
+            foreach ($taxonomy['post_type'] as & $post_type) {
+                $post_type = self::PREFIX . $post_type;
+            }
+
+            $taxonomies[] = $taxonomy;
+        }
+
+        return $taxonomies;
     }
 
 
@@ -144,21 +158,36 @@ abstract class AbstractPlugin {
      * @return $this;
      */
     protected function setupPostTypes() {
-        add_filter('piklist_post_types', function($post_types) {
-            foreach (glob($this->directory . '/parts/post-types/*.php') as $file) {
-                // @formatter:off
-                $type = include ($file);
-                //@formatter:on
-
-                $type['name'] = self::PREFIX . $type['name'];
-
-                $post_types[$type['name']] = $type;
-            }
-
-            return $post_types;
-        });
+        add_filter('piklist_post_types', array(
+            $this,
+            'piklistPostTypes'
+        ));
 
         return $this;
+    }
+
+
+    /**
+     * Fonction de callback interne utilisée par {@link setupPostTypes}.
+     *
+     * Remarque : dans une version précédente, cette méthode (qui ne devrait
+     * pas être publique) était définie sous forme de closure dans
+     * setupPostTypes, mais cela ne fonctionne qu'à partir de php 5.4
+     * (utilisation de self et/ou $this dans le code de la closure).
+     */
+    public function piklistPostTypes($post_types) {
+        foreach (glob($this->directory . '/parts/post-types/*.php') as $file) {
+            // @formatter:off
+            $type = include ($file);
+            //@formatter:on
+
+            $type['name'] = self::PREFIX . $type['name'];
+
+            $post_types[$type['name']] = $type;
+        }
+
+        return $post_types;
+
     }
 
 

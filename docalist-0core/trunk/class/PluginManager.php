@@ -25,7 +25,7 @@ class PluginManager {
      * plugin (tel que passé à {@link load()} et les valeurs contiennent
      * l'instance en cours du plugin.
      */
-    static $plugins = array();
+    public static $plugins = array();
 
     /**
      * Initialise le gestionnaire de plugins.
@@ -100,7 +100,7 @@ class PluginManager {
             $class = strtr($class, '\\', DIRECTORY_SEPARATOR);
 
             // Teste tous les plugins et essaie de charger le fichier
-            foreach (self::$plugins as $directory => $plugin) {
+            foreach (PluginManager::$plugins as $directory => $plugin) {
                 $path = $directory . DIRECTORY_SEPARATOR . $class;
                 if (file_exists($path)) {
                     require_once $path;

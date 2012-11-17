@@ -43,12 +43,12 @@ abstract class AbstractPlugin {
         $this->directory = $directory;
         $this->baseName = basename($directory);
 
-        $this->setupTextDomain()->setupTaxonomies()->setupPostTypes();
-
-        add_action('piklist_admin_pages', array(
-            __CLASS__,
-            'registerPages'
-        ));
+        // @formatter:off
+        $this->setupTextDomain()
+             ->setupTaxonomies()
+             ->setupPostTypes()
+             ->setupAdminPages();
+        // @formatter:on
     }
 
 
@@ -191,32 +191,40 @@ abstract class AbstractPlugin {
     }
 
 
-    public static function registerPages($pages) {
-        $pages[] = array(
-            'page_title' => __('Tools', 'docapress'), // Title of page
-            'menu_title' => __('Tools', 'docapress'), // Title of menu link
-            'sub_menu' => 'edit.php?post_type=docapress_records', // Show this
-            // page under the THEMES menu
-            'capability' => 'manage_options', // Minimum capability to see this
-            // page
-            'menu_slug' => 'docapress-tools', // Menu slug
-            // 'setting'    => 'docapress-tools',        // The settings name
-            'icon' => 'options-general' // Menu/Page Icon
-        );
+    /**
+     * Crée dans Wordpress les pages d'administration définies par le plugin.
+     *
+     * La méthode crée une page pour chacun des fichiers .php présent dans
+     * le répertoire /parts/admin-pages du plugin.
+     *
+     * @return $this;
+     */
+    protected function setupAdminPages() {
+        add_action('piklist_admin_pages', array(
+            $this,
+            'piklistAdminPages'
+        ));
 
-        $pages[] = array(
-            'page_title' => __('Docapresss options', 'docapress'), // Title of
-            // page
-            'menu_title' => __('Options', 'docapress'), // Title of menu link
-            'sub_menu' => 'edit.php?post_type=docapress_records', // Show this
-            // page under the THEMES menu
-            'capability' => 'manage_options', // Minimum capability to see this
-            // page
-            'menu_slug' => 'docapress-options', // Menu slug
-            'setting' => 'docapress-options', // The settings name
-            'icon' => 'tools', // Menu/Page Icon
-            'default_tab' => 'General'
-        );
+        return $this;
+    }
+
+
+    /**
+     * Fonction de callback interne utilisée par {@link setupAdminPages}.
+     *
+     * Remarque : dans une version précédente, cette méthode (qui ne devrait
+     * pas être publique) était définie sous forme de closure dans
+     * setupAdminPages, mais cela ne fonctionne qu'à partir de php 5.4
+     * (utilisation de self et/ou $this dans le code de la closure).
+     */
+    public function piklistAdminPages($pages) {
+        foreach (glob($this->directory . '/parts/admin-pages/*.php') as $file) {
+            // @formatter:off
+            $page = include ($file);
+            //@formatter:on
+
+            $pages[] = $page;
+        }
 
         return $pages;
     }

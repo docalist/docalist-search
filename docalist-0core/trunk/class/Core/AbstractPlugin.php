@@ -218,7 +218,7 @@ abstract class AbstractPlugin {
      * (utilisation de self et/ou $this dans le code de la closure).
      */
     public function piklistAdminPages($pages) {
-        foreach (glob($this->directory . '/parts/admin-pages/*.php') as $file) {
+        foreach (glob($this->directory . '/parts/admin-pages-def/*.php') as $file) {
             // @formatter:off
             $page = include ($file);
             //@formatter:on

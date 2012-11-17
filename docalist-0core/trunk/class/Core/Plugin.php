@@ -6,7 +6,7 @@
  * LICENSE.txt file that was distributed with this source code.
  *
  * @package     Docalist
- * @subpackage  Biblio
+ * @subpackage  Core
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  * @version     SVN: $Id$
  */

@@ -7,6 +7,7 @@
  *
  * Plugin Name: Docalist Core
  * Plugin URI:  http://docalist.org
+ * Plugin Type: Piklist
  * Description: Docalist : socle de base pour les autres plugins Docalist.
  * Version:     0.1
  * Author:      Docalist

@@ -19,7 +19,11 @@
  */
 
 namespace Docalist;
-use \Exception;
 
+// Charge et initialise le PluginManager
+// Comme l'autoload n'est pas encore en place, on le charge "manuellement".
 require_once __DIR__ . '/class/PluginManager.php';
 PluginManager::initialize();
+
+// Demande au PluginManager de nous charger nous-même comme plugin Docalist
+PluginManager::load('Docalist\\Core\\Plugin', __DIR__);

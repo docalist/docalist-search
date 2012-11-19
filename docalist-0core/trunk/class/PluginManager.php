@@ -12,20 +12,29 @@
  */
 
 namespace Docalist;
-use \Exception;
+use Docalist\Core\AbstractPlugin, Exception;
 
 /**
  * Gestionnaire de plugins Docalist.
  */
-class PluginManager {
+final class PluginManager {
     /**
-     * Liste des plugins chargés.
+     * @var array Liste des plugins Docalist actuellement chargés.
      *
-     * @var array() Les clés du tableau contiennent le path du répertoire du
-     * plugin (tel que passé à {@link load()} et les valeurs contiennent
-     * l'instance en cours du plugin.
+     * Les clés du tableau contiennent le nom du plugin (core, biblio, etc.)
+     * et les valeurs contiennent l'instance.
      */
-    public static $plugins = array();
+    protected static $plugins = array();
+
+    /**
+     * @var array Path du répertoire "class" des plugins Docalist actuellement
+     * chargés.
+     *
+     * Les clés du tableau contiennent le nom du plugin (core, biblio, etc.)
+     * et les valeurs contiennent le chemin d'accès absolu au répertoire "class"
+     * du plugin, avec un slash final.
+     */
+    protected static $path = array();
 
     /**
      * Initialise le gestionnaire de plugins.
@@ -48,29 +57,58 @@ class PluginManager {
      * chargé ou si la classe indiquée n'hérite pas de la classe {@link Plugin}.
      */
     public static function load($class, $directory) {
+        // Explose le nom de la classe (0 : docalist, 1 : name, 2 : plugin)
+        $parts = explode('\\', $class, 3);
+
+        // Debug : vérifie que la classe de base est dans le namespace Docalist
+        if (WP_DEBUG && ($parts[0] !== __NAMESPACE__ || count($parts) !== 3)) {
+            $message = __('Class %s must use Docalist namespace.', 'docalist-core');
+            throw new Exception($message);
+        }
+
+        // Détermine le nom de code interne du plugin
+        $name = $parts[1];
+
         // Vérifie que ce plugin n'est pas déjà chargé
-        if (isset(self::$plugins[$directory])) {
+        if (isset(self::$plugins[$name])) {
             $message = __('Plugin %s is already loaded.', 'docalist-core');
-            throw new Exception(sprintf($message, $directory));
+            throw new Exception(sprintf($message, $name));
         }
 
-        // Stocke le répertoire pour que l'autoload trouve la classe
-        self::$plugins[$directory] = null;
-
-        // Détermine le nom complet de la classe et vérifie que c'est un plugin
-        //$class = 'Docalist\\' . $class;
-        if (!class_exists($class)) {
-            $message = __('Plugin class %s not found.', 'docalist-core');
-            throw new Exception(sprintf($message, $class, 'Docalist\\Plugin'));
-        }
-        $baseClass = 'Docalist\\Core\\AbstractPlugin';
-        if (!is_subclass_of($class, $baseClass)) {
-            $message = __('Class %s must inherit from %s.', 'docalist-core');
-            throw new Exception(sprintf($message, $class, $baseClass));
-        }
+        // Indique à l'autoloader le path des classes de ce plugin
+        $classDir = $directory . '/class/' . $parts[1] . '$s'/'';
+        self::$path[$name] = $classDir;
+        
+        // Optimisation : autoload inutile, on connaît le path exact
+        require_once $classDir . $parts[2] . '.php';
 
         // Instancie le plugin demandé
-        self::$plugins[$directory] = new $class($directory);
+        self::$plugins[$name] = new $class($name, $directory);
+
+        // Debug : vérifie que c'est bien un plugin
+        if (WP_DEBUG && !self::$plugins[$name] instanceof AbstractPlugin) {
+            $message = __('%s must inherit from %s.', 'docalist-core');
+            throw new Exception(sprintf($message, $class, 'AbstractPlugin'));
+        }
+    }
+
+
+    /**
+     * Retourne l'instance d'un plugin actuellement chargé.
+     *
+     * @param string $name Le nom du plugin a retourner.
+     *
+     * @return Plugin
+     *
+     * @throws Exception Si le plugin demandé n'est pas chargé.
+     */
+    public function get($name) {
+        if (!isset(self::$plugins[$name])) {
+            $message = __('plugin not found %s', 'docalist-core');
+            throw new Exception(sptrinf($message, $name));
+        }
+
+        return self::$plugins[$name];
     }
 
 
@@ -85,31 +123,20 @@ class PluginManager {
      * doit être stockée dans le fichier /class/Package/Group/class.php du
      * plugin.
      */
-    public static function setupAutoloader() {
-        self::$plugins[dirname(__DIR__)] = null;
-
+    protected static function setupAutoloader() {
         spl_autoload_register(function($class) {
             // Si ce n'est pas une classe Docalist, on ne s'en occupe pas
-            if (strncmp($class, 'Docalist', 8) !== 0)
+            if (strncmp($class, 'Docalist', 8) !== 0) {
                 return;
-
-            // Détermine le path relatif du fichier contenant la classe
-            $class = substr_replace($class, 'class', 0, 8) . '.php';
-
-            // Met le séparateur correct dans le path
-            $class = strtr($class, '\\', DIRECTORY_SEPARATOR);
-
-            // Teste tous les plugins et essaie de charger le fichier
-            foreach (PluginManager::$plugins as $directory => $plugin) {
-                $path = $directory . DIRECTORY_SEPARATOR . $class;
-                if (file_exists($path)) {
-                    require_once $path;
-
-                    return;
-                }
             }
 
-            // Aucun plugin n'a cette classe, laisse php signaler l'erreur
+            // Détermine le path du fichier qui contient cette classe
+            $class = substr($class, 9);
+            $plugin = strtok($class, '\\');
+            $path = self::$path[$plugin] . strtok('¤') . '.php';
+
+            // Charge le fichier
+            require_once $path;
         });
     }
 

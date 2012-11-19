@@ -17,4 +17,27 @@ namespace Docalist\Core;
  * Plugin core de Docalist.
  */
 class Plugin extends AbstractPlugin {
+    /**
+     * {@inheritdoc}
+     */
+    protected function getDefaultOptions() {
+        return array(
+            'core.test' => __('TEST', 'docalist-biblio'),
+            '' => '',
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     * 
+     * Pour qu'il soit chargé en premier, le plugin Docalist-core a un nom de 
+     * répertoire un peu spécial (docalist-0core) et par défaut, c'est ce nom
+     * qui devrait être utilisé comme domaine pour les traductions.
+     * 
+     * En surchargeant cette méthode, on indique le bon domaine : docalist-core.
+     */
+    public function textDomain() {
+        return 'docalist-core';
+    }
+
 }

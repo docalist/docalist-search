@@ -11,8 +11,8 @@
  * @version     SVN: $Id$
  */
 
-namespace Docalist;
-use Docalist\Core\AbstractPlugin, \Exception;
+namespace Docalist\Core;
+use \Exception;
 
 /**
  * Collection de méthodes utilitaires.

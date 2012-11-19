@@ -337,15 +337,11 @@ abstract class AbstractPlugin {
      */
     private function checkOption($option) {
         if (!array_key_exists($option, self::$defaultOptions)) {
-            $message = __('Error in file <code>%s line %d</code>, option 
-            <code>%s</code> is not defined in plugin <code>%s</code>.', 'docalist-core');
-
+            $msg = __('Undefined option %s in %s:%d', 'docalist-core');
+            
             $caller = next(debug_backtrace());
-            $file = $caller['file'];
-            $line = $caller['line'];
-            $class = get_class($this);
-
-            trigger_error(sprintf($message, $file, $line, $option, $class));
+            $msg = sprintf($msg, $option, $caller['file'], $caller['line']);
+            trigger_error($msg);
 
             return false;
         };

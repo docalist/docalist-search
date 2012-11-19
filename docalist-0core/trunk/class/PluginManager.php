@@ -76,7 +76,7 @@ final class PluginManager {
         }
 
         // Indique à l'autoloader le path des classes de ce plugin
-        $classDir = $directory . '/class/' . $parts[1] . '$s'/'';
+        $classDir = $directory . '/class/' . $parts[1] . '/';
         self::$path[$name] = $classDir;
         
         // Optimisation : autoload inutile, on connaît le path exact

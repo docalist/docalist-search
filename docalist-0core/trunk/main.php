@@ -8,11 +8,13 @@
  * Plugin Name: Docalist Core
  * Plugin URI:  http://docalist.org
  * Plugin Type: Piklist
- * Description: Docalist : socle de base pour les autres plugins Docalist.
+ * Description: Docalist: core functionality and utilities for other Docalist plugins.
  * Version:     0.1
  * Author:      Docalist
  * Author URI:  http://docalist.org
- *
+ * Text Domain: docalist-core
+ * Domain Path: /languages
+ *  
  * @package     Docalist
  * @subpackage  Core
  * @author      Daniel Ménard <daniel.menard@laposte.net>

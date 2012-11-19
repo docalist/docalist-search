@@ -104,7 +104,7 @@ final class PluginManager {
      */
     public function get($name) {
         if (!isset(self::$plugins[$name])) {
-            $message = __('plugin not found %s', 'docalist-core');
+            $message = __('Plugin not found: %s', 'docalist-core');
             throw new Exception(sptrinf($message, $name));
         }
 

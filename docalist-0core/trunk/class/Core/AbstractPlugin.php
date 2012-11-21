@@ -52,11 +52,11 @@ abstract class AbstractPlugin {
     /**
      * @var array Valeurs par défaut des options des plugins Docalist.
      *
-     * Tous les plugins Docalist doivent déclarer les options de configuration
-     * dont ils disposent en surchargeant la méthode{@link getDefaultOptions}.
+     * Cette propriété statique contient les options par défaut de tous les
+     * plugins Docalist.
      *
-     * Les options retournées sont stockées, pour l'ensemble des plugins, dans
-     * cette propriété statique.
+     * Les plugins Docalist doivent déclarer les options de configuration
+     * dont ils disposent en surchargeant la méthode{@link defaultOptions}.
      */
     private static $defaultOptions = array();
 
@@ -68,7 +68,7 @@ abstract class AbstractPlugin {
      * - Crée les custom post types du plugin
      * - Déclare dans Wordpress les pages d'administration spécifiques au
      *   plugin.
-     * 
+     *
      * @param string $name nom du plugin.
      *
      * @param string $directory path complet du répertoire du plugin.
@@ -78,7 +78,7 @@ abstract class AbstractPlugin {
         $this->name = $name;
 
         // @formatter:off
-        $this->setupTextDomain()
+        $this->setupDomain()
              ->setupOptions()
              ->setupTaxonomies()
              ->setupPostTypes()
@@ -127,7 +127,7 @@ abstract class AbstractPlugin {
      *
      * (Exemple : {@link Plugin}).
      */
-    public function textDomain() {
+    public function domain() {
         return $this->directory(true);
     }
 
@@ -138,13 +138,13 @@ abstract class AbstractPlugin {
      * Par convention, les fichiers po/mo du plugin sons stockés dans le
      * sous-répertoire 'languages'.
      *
-     * @return Plugin $this
+     * @return AbstractPlugin $this
      */
-    protected function setupTextDomain() {
+    protected function setupDomain() {
         // le path doit être relatif à WP_PLUGIN_DIR
         $path = $this->directory(true) . '/languages';
 
-        load_plugin_textdomain($this->textDomain(), false, $path);
+        load_plugin_textdomain($this->domain(), false, $path);
 
         return $this;
     }
@@ -160,44 +160,32 @@ abstract class AbstractPlugin {
      * sont rattachées sont préfixées avec la chaine indiquée dans la constante
      * {@link PREFIX}.
      *
-     * @return Plugin $this
+     * @return AbstractPlugin $this
      */
     protected function setupTaxonomies() {
-        add_filter('piklist_taxonomies', array(
-            $this,
-            'piklistTaxonomies'
-        ));
+        $mask = $this->directory . '/parts/taxonomies/*.php';
+        $prefix = self::PREFIX;
 
-        return $this;
-    }
+        add_filter('piklist_taxonomies', function($taxonomies) use ($mask, $prefix) {
+            foreach (glob($mask, GLOB_NOSORT) as $file) {
+                // @formatter:off
+                $taxonomy = include ($file);
+                // @formatter:on
 
+                $taxonomy['name'] = $prefix . $taxonomy['name'];
 
-    /**
-     * Fonction de callback interne utilisée par {@link setupTaxonomies}.
-     *
-     * Remarque : dans une version précédente, cette méthode (qui ne devrait
-     * pas être publique) était définie sous forme de closure dans
-     * setupTaxonomies, mais cela ne fonctionne qu'à partir de php 5.4
-     * (utilisation de self et/ou $this dans le code de la closure).
-     * 
-     * @todo Utiliser un FilesystemIterator.
-     */
-    public function piklistTaxonomies($taxonomies) {
-        foreach (glob($this->directory . '/parts/taxonomies/*.php') as $file) {
-            // @formatter:off
-            $taxonomy = include ($file);
-            //@formatter:on
+                foreach ($taxonomy['post_type'] as & $type) {
+                    $type = $prefix . $type;
+                }
 
-            $taxonomy['name'] = self::PREFIX . $taxonomy['name'];
-
-            foreach ($taxonomy['post_type'] as & $post_type) {
-                $post_type = self::PREFIX . $post_type;
+                $taxonomies[] = $taxonomy;
             }
 
-            $taxonomies[] = $taxonomy;
-        }
+            return $taxonomies;
 
-        return $taxonomies;
+        });
+
+        return $this;
     }
 
 
@@ -210,78 +198,41 @@ abstract class AbstractPlugin {
      * Les CPT créés sont préfixés avec la chaine indiquée dans la constante
      * {@link PREFIX}.
      *
-     * @return Plugin $this
+     * @return AbstractPlugin $this
      */
     protected function setupPostTypes() {
-        add_filter('piklist_post_types', array(
-            $this,
-            'piklistPostTypes'
-        ));
+        $mask = $this->directory . '/parts/post-types/*.php';
+        $prefix = self::PREFIX;
+
+        add_filter('piklist_post_types', function($types) use ($mask, $prefix) {
+            foreach (glob($mask, GLOB_NOSORT) as $file) {
+                // @formatter:off
+                $type = include ($file);
+                // @formatter:on
+
+                $type['name'] = $prefix . $type['name'];
+
+                $types[$type['name']] = $type;
+            }
+
+            return $types;
+        });
 
         return $this;
-    }
-
-
-    /**
-     * Fonction de callback interne utilisée par {@link setupPostTypes}.
-     *
-     * Remarque : dans une version précédente, cette méthode (qui ne devrait
-     * pas être publique) était définie sous forme de closure dans
-     * setupPostTypes, mais cela ne fonctionne qu'à partir de php 5.4
-     * (utilisation de self et/ou $this dans le code de la closure).
-     */
-    public function piklistPostTypes($post_types) {
-        foreach (glob($this->directory . '/parts/post-types/*.php') as $file) {
-            // @formatter:off
-            $type = include ($file);
-            //@formatter:on
-
-            $type['name'] = self::PREFIX . $type['name'];
-
-            $post_types[$type['name']] = $type;
-        }
-
-        return $post_types;
-
     }
 
 
     /**
      * Crée dans Wordpress les pages d'administration définies par le plugin.
      *
-     * La méthode crée une page pour chacun des fichiers .php présent dans
-     * le répertoire /parts/admin-pages du plugin.
+     * Par défaut, la méthode ne fait rien mais les classes descendantes
+     * peuvent la surcharger en cas de besoin (voir par exemple ce que fait
+     * {@link Docalist\Core\Plugin::setupAdminPages()}).
      *
-     * @return Plugin $this;
+     * @return AbstractPlugin $this;
      */
     protected function setupAdminPages() {
-        add_action('piklist_admin_pages', array(
-            $this,
-            'piklistAdminPages'
-        ));
-
         return $this;
-    }
-
-
-    /**
-     * Fonction de callback interne utilisée par {@link setupAdminPages}.
-     *
-     * Remarque : dans une version précédente, cette méthode (qui ne devrait
-     * pas être publique) était définie sous forme de closure dans
-     * setupAdminPages, mais cela ne fonctionne qu'à partir de php 5.4
-     * (utilisation de self et/ou $this dans le code de la closure).
-     */
-    public function piklistAdminPages($pages) {
-        foreach (glob($this->directory . '/parts/admin-pages-def/*.php') as $file) {
-            // @formatter:off
-            $page = include ($file);
-            //@formatter:on
-
-            $pages[] = $page;
-        }
-
-        return $pages;
     }
 
 
@@ -289,13 +240,13 @@ abstract class AbstractPlugin {
      * Définit les options par défaut du plugin.
      *
      * Cette méthode initialise la propriété {@link $defaultOptions} en
-     * y ajoutant les options retournées par {@link getDefaultOptions()}.
+     * y ajoutant les options retournées par {@link defaultOptions()}.
      *
-     * @return Plugin $this
+     * @return AbstractPlugin $this
      */
-    final protected function setupOptions() {
+    protected function setupOptions() {
         // Récupère les options définies par ce plugin
-        $options = $this->getDefaultOptions();
+        $options = $this->defaultOptions();
 
         // Merge avec les options générales
         if (!empty($options)) {
@@ -319,7 +270,7 @@ abstract class AbstractPlugin {
      *
      * @return null|array
      */
-    protected function getDefaultOptions() {
+    protected function defaultOptions() {
         return null;
     }
 
@@ -337,8 +288,8 @@ abstract class AbstractPlugin {
      */
     private function checkOption($option) {
         if (!array_key_exists($option, self::$defaultOptions)) {
-            $msg = __('Undefined option %s in %s:%d', 'docalist-core');
-            
+            $msg = __('Option inconnue %s dans %s:%d', 'docalist-core');
+
             $caller = next(debug_backtrace());
             $msg = sprintf($msg, $option, $caller['file'], $caller['line']);
             trigger_error($msg);
@@ -381,15 +332,13 @@ abstract class AbstractPlugin {
      * @param string $option le nom de l'option demandée.
      * @return mixed le contenu de l'option.
      */
-    public final function option($option) {
+    public function option($option) {
         // Sanity check en mode debug
         WP_DEBUG && $this->checkOption($option);
 
         // Si c'est le premier appel, charge les options depuis la base
         if (is_null(self::$options)) {
-            self::$options = get_option('docalist-options');
-
-            if (self::$options === false) {
+            if (false === self::$options = get_option('docalist-options')) {
                 self::$options = array();
             }
         }
@@ -405,6 +354,17 @@ abstract class AbstractPlugin {
         }
 
         return null;
+    }
+
+
+    /**
+     * Retourne la liste des outils disponibles pour ce plugin.
+     *
+     * @return array un tableau d'objets de type
+     * {@link Docalist\Core\AbstractTool}.
+     */
+    public function tools() {
+        return array();
     }
 
 

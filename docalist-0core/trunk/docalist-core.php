@@ -8,8 +8,8 @@
  * Plugin Name: Docalist Core
  * Plugin URI:  http://docalist.org
  * Plugin Type: Piklist
- * Description: Docalist: core functionality and utilities for other Docalist plugins.
- * Version:     0.1
+ * Description: Docalist: socle de base.
+ * Version:     0.2
  * Author:      Docalist
  * Author URI:  http://docalist.org
  * Text Domain: docalist-core
@@ -21,12 +21,13 @@
  * @version     SVN: $Id$
  */
 
-namespace Docalist;
+namespace Docalist\Core;
+use Docalist;
 
-// Charge et initialise le PluginManager
-// Comme l'autoload n'est pas encore en place, on le charge "manuellement".
-require_once __DIR__ . '/class/PluginManager.php';
-PluginManager::initialize();
+// Charge et initialise la classe principale de Docalist
+// Comme l'autoload n'est pas encore en place, on la charge "manuellement".
+require_once __DIR__ . '/class/Docalist.php';
+Docalist::initialize();
 
-// Demande au PluginManager de nous charger nous-même comme plugin Docalist
-PluginManager::load('Docalist\\Core\\Plugin', __DIR__);
+// Demande à Docalist de nous charger nous-même comme plugin Docalist
+Docalist::load('Docalist\\Core\\Plugin', __DIR__);

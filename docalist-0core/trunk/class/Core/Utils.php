@@ -48,7 +48,7 @@ class Utils {
 
         // Vérifie que cette taxonomie existe
         if (!taxonomy_exists($taxonomy)) {
-            $message = __('Taxonomy %s does not exist.', 'docalist-core');
+            $message = __('Taxonomie inexistante : %s.', 'docalist-core');
             throw new Exception(sprintf($message, $taxonomy));
         }
 

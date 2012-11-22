@@ -118,7 +118,7 @@ abstract class AbstractTool {
      * @return null|boolean
      */
     public final function run() {
-        // Détermine la mathode à appeller
+        // Détermine la méthode à appeller
         $name = isset($_GET['m']) ? $_GET['m'] : 'index';
         $name = 'action' . $name;
 
@@ -128,6 +128,7 @@ abstract class AbstractTool {
             echo "404 Not Found : method $name do not exist";
             return false;
         }
+        $method = $class->getMethod($name);
 
         // On va construire un tableau args contenant tous les paramètres
         $params = $method->getParameters();

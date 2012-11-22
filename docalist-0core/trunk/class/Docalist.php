@@ -1,7 +1,9 @@
 <?php
 /**
  * This file is part of the "Docalist Core" plugin.
- *
+ * 
+ * Copyright (C) 2012 Daniel Ménard
+ * 
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -11,7 +13,7 @@
  * @version     SVN: $Id$
  */
 
-use Docalist\Core\AbstractPlugin, Docalist\Core\AbstractTool;
+use Docalist\Core\AbstractPlugin, Docalist\Core\AbstractTool, Docalist\Core\Utils;
 
 /**
  * Gestionnaire de plugins Docalist.
@@ -23,7 +25,7 @@ final class Docalist {
      * Les clés du tableau contiennent le nom du plugin (core, biblio, etc.)
      * et les valeurs contiennent l'instance.
      */
-    protected static $plugins = array();
+    private static $plugins = array();
 
     /**
      * @var array Chemin vers le répertoire "class" des plugins Docalist
@@ -33,7 +35,7 @@ final class Docalist {
      * et les valeurs contiennent le chemin d'accès absolu au répertoire "class"
      * du plugin, avec un slash final.
      */
-    protected static $path = array();
+    private static $path = array();
 
     /**
      * Initialise le gestionnaire de plugins.
@@ -50,25 +52,18 @@ final class Docalist {
      * @param string $class le nom complet de la classe principale du
      * plugin Docalist à charger.
      *
-     * @param string $directory le path complet (absolu) du répertoire contenant
-     * le code du plugin (typiquement : __DIR__).
+     * @param string $file le path complet (absolu) du fichier principal
+     * du plugin (typiquement : __FILE__).
      *
      * @throws Exception si le plugin indiqué est introuvable, s'il a déjà été
      * chargé ou si la classe indiquée n'hérite pas de la classe
      * {@link AbstractPlugin}.
      */
-    public static function load($class, $directory) {
-        // Explose le nom de la classe (0 : docalist, 1 : name, 2 : plugin)
-        $parts = explode('\\', $class, 3);
+    public static function load($class, $file) {
 
-        // Debug : vérifie que la classe de base est dans le namespace Docalist
-        if (WP_DEBUG && ($parts[0] !== 'Docalist' || count($parts) !== 3)) {
-            $message = __('%s doit être dans le namespace Docalist.', 'docalist-core');
-            throw new Exception(sprintf($message, $class));
-        }
-
-        // Détermine le namespace du plugin
-        $name = $parts[1];
+        // Détermine le nom du plugin et son répertoire de base
+        $name = basename($file, '.php');
+        $dir = dirname($file);
 
         // Vérifie que ce plugin n'est pas déjà chargé
         if (isset(self::$plugins[$name])) {
@@ -76,15 +71,8 @@ final class Docalist {
             throw new Exception(sprintf($message, $name));
         }
 
-        // Indique à l'autoloader le path des classes de ce plugin
-        $classDir = $directory . '/class/' . $parts[1] . '/';
-        self::$path[$name] = $classDir;
-
-        // Optimisation : autoload inutile, on connaît le path exact
-        require_once $classDir . $parts[2] . '.php';
-
         // Instancie le plugin demandé
-        self::$plugins[$name] = new $class($name, $directory);
+        self::$plugins[$name] = new $class($name, $dir);
 
         // Debug : vérifie que c'est bien un plugin
         if (WP_DEBUG && !self::$plugins[$name] instanceof AbstractPlugin) {
@@ -106,7 +94,7 @@ final class Docalist {
     public function plugin($name) {
         if (!isset(self::$plugins[$name])) {
             $message = __('Plugin non trouvé : %s', 'docalist-core');
-            throw new Exception(sptrinf($message, $name));
+            throw new Exception(sprintf($message, $name));
         }
 
         return self::$plugins[$name];
@@ -124,6 +112,27 @@ final class Docalist {
 
 
     /**
+     * Définit le répertoire que l'autoloader doit utiliser pour un namespace
+     * donné.
+     *
+     * @param string $namespace Namespace à enregistrer (sensible à la casse).
+     *
+     * @param string $path Chemin absolu du dossier qui contient les classes
+     * du namespace indiqué.
+     */
+    public function registerNamespace($namespace, $path) {
+        $path = strtr($path, '/', DIRECTORY_SEPARATOR);
+
+        if (isset(self::$path[$namespace])) {
+            $msg = __('Le namespace %s est déjà enregistré (%s).', 'docalist-core');
+            throw new Exception(sprintf($msg, $namespace, self::$path[$namespace]));
+        } else {
+            self::$path[$namespace] = $path;
+        }
+    }
+
+
+    /**
      * Met en place un autoloader qui charge automatiquement les classes
      * définies par les plugins Docalist lorsqu'on en a besoin.
      *
@@ -134,32 +143,69 @@ final class Docalist {
      * doit être stockée dans le fichier /class/Package/Group/class.php du
      * plugin.
      */
-    protected static function setupAutoloader() {
-        spl_autoload_register(function($class) {
-            // Si ce n'est pas une classe Docalist, on ne s'en occupe pas
-            if (strncmp($class, 'Docalist', 8) !== 0) {
+    private static function setupAutoloader() {
+        // @formatter:off
+        spl_autoload_register(array(__CLASS__, 'autoload'), true);
+        // @formatter:on
+    }
+
+
+    /**
+     * Autoloader. Cette fonction est appellée automatiquement par
+     * spl_autoload_call lorsqu'une classe demandée n'existe pas.
+     *
+     * Notre auloader ne sait charger que les classes dont le namespace
+     * a été enregistré dans {@link registerNamespace()}.
+     *
+     * En mode WP_DEBUG, des tests supplémentaires sont effectués et une
+     * aide est affichée si la classe demandée ne figure pas là où elle
+     * devrait.
+     *
+     * @param string $class Nom complet de la classe à charger.
+     */
+    private static function autoload($class) {
+        // Cet autoloader ne sait pas charger des classes sans namespace
+        if (false === strpos($class, '\\')) {
+            return;
+        }
+
+        // Regarde si la classe figure dans un namespace qu'on connait
+        foreach (self::$path as $namespace => $path) {
+
+            // Teste si les namespaces correspondent
+            if (strncmp($namespace, $class, strlen($namespace)) !== 0) {
+                continue;
+            }
+
+            // Détermine le path du fichier
+            $file = substr($class, strlen($namespace));
+            $file = strtr($file, '\\', DIRECTORY_SEPARATOR);
+            $path = $path . $file . '.php';
+
+            // En mode Debug : on fait des vérifs supplémentaires
+            if (WP_DEBUG) {
+                // Vérifie que le fichier existe
+                if (!is_file($path)) {
+                    $msg = __('Erreur dans %s : classe inconnue "%s", impossible de charger %s', 'docalist-core');
+                    throw new Exception(sprintf($msg, Utils::caller(), $class, $path));
+                }
+
+                // Charge le fichier
+                require_once $path;
+
+                // Vérifie que désormais la classe existe
+                if (!class_exists($class, false)) {
+                    $msg = __('Erreur dans %s : classe inconnue "%s" non trouvée', 'docalist-core');
+                    throw new Exception(sprintf($msg, $path, $class));
+                }
+
+                // Ok
                 return;
             }
 
-            // Détermine le path du fichier qui contient cette classe
-            $class = substr($class, 9);
-            $plugin = strtok($class, '\\');
-            if (!isset(self::$path[$plugin])) {
-                return;
-            }
-            $path = self::$path[$plugin] . strtok('¤') . '.php';
-
-            // Aide au débogage
-            if (WP_DEBUG && !file_exists($path)) {
-                $msg = __('Classe inconnue <code>%s</code> dans <code>%s:%d</code>', 'docalist-core');
-                $caller = next(debug_backtrace());
-                $msg = sprintf($msg, $class, $caller['file'], $caller['line']);
-                trigger_error($msg);
-            }
-
-            // Charge le fichier
+            // Chargement en mode normal
             require_once $path;
-        });
+        }
     }
 
 
@@ -172,13 +218,13 @@ final class Docalist {
      * de l'outil passé en paramètre.
      *
      * Par exemple, pour la classe {@link Docalist\Core\Tools\ToolsList}, elle
-     * retourne la chaine "Core.Tools.ToolsList".
+     * retourne la chaine "Docalist.Core.Tools.ToolsList".
      *
      * @param AbstractTool $tool
      * @return string
      */
     public static function toolName(AbstractTool $tool) {
-        return strtr(substr(get_class($tool), 9), '\\', '.');
+        return strtr(get_class($tool), '\\', '.');
     }
 
 
@@ -195,12 +241,12 @@ final class Docalist {
      */
     public static function tool($name) {
         // Vérifie que c'est un outil Docalist
-        $name = 'Docalist\\' . strtr($name, '.', '\\');
+        $name = strtr($name, '.', '\\');
 
         // Sanoty check
         if (WP_DEBUG && !is_subclass_of($name, 'Docalist\\Core\\AbstractTool')) {
-            trigger_error('$name is not a subclass of AbstractTool');
-            return;
+            $msg = __("%s n'est pas un outil Docalist", 'docalist-core');
+            throw new Exception(sprintf($msg, $name));
         }
 
         // Retourne l'outil
@@ -220,7 +266,7 @@ final class Docalist {
      * chargent de lancer l'exécution de l'outil lorsque le fichier
      * Wordpress/admin-ajax.php est appellé.
      */
-    protected static function setupTools() {
+    private static function setupTools() {
         // On ne fait rien si ce n'est pas une requête ajax
         if (!defined('DOING_AJAX')) {
             return;

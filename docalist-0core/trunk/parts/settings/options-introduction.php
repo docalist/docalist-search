@@ -1,7 +1,9 @@
 <?php
 /**
- * This file is part of a "Docalist Core" plugin.
+ * This file is part of the "Docalist Core" plugin.
  *
+ * Copyright (C) 2012 Daniel Ménard
+ * 
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *

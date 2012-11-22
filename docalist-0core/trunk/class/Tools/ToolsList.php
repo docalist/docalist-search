@@ -2,6 +2,8 @@
 /**
  * This file is part of the "Docalist Core" plugin.
  *
+ * Copyright (C) 2012 Daniel Ménard
+ * 
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -39,7 +41,7 @@ class ToolsList extends AbstractTool {
      */
     public function actionIndex() {
         // Intro
-        echo '<p>', 'Le tableau ci-dessous vous donne accès à tous les outils disponibles dans les plugins Docalist.', '</p>';
+        echo '<p>', __('Le tableau ci-dessous vous donne accès à tous les outils disponibles dans les plugins Docalist.', 'docalist-core'), '</p>';
 
         // Début de table
         echo '<table class="widefat">';

@@ -2,6 +2,8 @@
 /**
  * This file is part of the "Docalist Core" plugin.
  *
+ * Copyright (C) 2012 Daniel Ménard
+ * 
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -12,6 +14,7 @@
  */
 
 namespace Docalist\Core;
+use Exception;
 
 /**
  * Classe de base abstraite représentant un plugin Docalist.
@@ -25,10 +28,10 @@ abstract class AbstractPlugin {
     const PREFIX = 'dcl';
 
     /**
-     * @var string Nom du plugin Docalist.
+     * @var string Nom du plugin.
      *
-     * Par convention, le nom d'un plugin Docalist correspond au deuxième
-     * "étage" de son espace de noms (exemples : "Core", "Biblio", etc.)
+     * Par convention, le nom d'un plugin Docalist correspond au nom du fichier
+     * principal du plugin (par exemple "docalist-core").
      */
     protected $name;
 
@@ -69,9 +72,9 @@ abstract class AbstractPlugin {
      * - Déclare dans Wordpress les pages d'administration spécifiques au
      *   plugin.
      *
-     * @param string $name nom du plugin.
+     * @param string $name Nom du plugin.
      *
-     * @param string $directory path complet du répertoire du plugin.
+     * @param string $directory Chemin complet du répertoire de base du plugin.
      */
     public function __construct($name, $directory) {
         $this->directory = $directory;
@@ -84,17 +87,19 @@ abstract class AbstractPlugin {
              ->setupPostTypes()
              ->setupAdminPages();
         // @formatter:on
+        
+        //register_deactivation_hook($file, $function);
+        //register_activation_hook( $file, $function );
+        //register_uninstall_hook($file, $callback);
     }
 
 
     /**
      * Retourne le nom du plugin.
      *
-     * Par convention, le nom d'un plugin Docalist correspond au deuxième
-     * "étage" de son espace de noms. Par exemple, pour le plugin
-     * "docalist-biblio", la classe principale du plugin s'appelle
-     * "Docalist\Biblio\Plugin" et le nom du plugin est "Biblio".
-     *
+     * Par convention, le nom d'un plugin Docalist correspond au nom du fichier
+     * principal du plugin (par exemple "docalist-core").
+     * 
      * @return string
      */
     public function name() {
@@ -103,12 +108,13 @@ abstract class AbstractPlugin {
 
 
     /**
-     * Retourne le répertoire d'installation du plugin.
+     * Retourne le répertoire de base du plugin.
      *
      * @param boolean $relative Indique s'il faut retourner le chemin absolu
-     * (valeur par défaut) ou bien le chemin relatif du plugin.
+     * (valeur par défaut) ou bien un chemin relatif au répertoire plugins de
+     * Wordpress.
      *
-     * @return string le path répertoire dans lequel est installé le plugin.
+     * @return string Le path répertoire dans lequel est installé le plugin.
      * Retourne un chemin absolu si $relative est à faux et un chemin relatif
      * au répertoire "wp-content/plugins" de Wordpress sinon.
      */
@@ -121,14 +127,12 @@ abstract class AbstractPlugin {
      * Retourne le domaine de texte à utiliser pour charger les fichiers
      * de traduction du plugin.
      *
-     * Par convention, le domaine du plugin correspond au répertoire
-     * de base du plugin (docalist-biblio, par exemple). Les plugins peuvent
-     * néanmois surcharger cette méthode pour indiquer un domaine différent.
-     *
-     * (Exemple : {@link Plugin}).
+     * Par convention, le domaine du plugin correspond à son nom.
+     * 
+     * @return string
      */
     public function domain() {
-        return $this->directory(true);
+        return $this->name;
     }
 
 
@@ -141,7 +145,7 @@ abstract class AbstractPlugin {
      * @return AbstractPlugin $this
      */
     protected function setupDomain() {
-        // le path doit être relatif à WP_PLUGIN_DIR
+        // Le path doit être relatif à WP_PLUGIN_DIR
         $path = $this->directory(true) . '/languages';
 
         load_plugin_textdomain($this->domain(), false, $path);
@@ -288,11 +292,8 @@ abstract class AbstractPlugin {
      */
     private function checkOption($option) {
         if (!array_key_exists($option, self::$defaultOptions)) {
-            $msg = __('Option inconnue %s dans %s:%d', 'docalist-core');
-
-            $caller = next(debug_backtrace());
-            $msg = sprintf($msg, $option, $caller['file'], $caller['line']);
-            trigger_error($msg);
+            $msg = __('Option inconnue %s dans %s', 'docalist-core');
+            throw new Exception(sprintf($msg, $option, Utils::caller()));
 
             return false;
         };

@@ -2,6 +2,8 @@
 /**
  * This file is part of the "Docalist Core" plugin.
  *
+ * Copyright (C) 2012 Daniel Ménard
+ * 
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -12,7 +14,7 @@
  */
 
 namespace Docalist\Core;
-use \ReflectionObject, \Exception;
+use ReflectionObject, Exception;
 
 /**
  * Classe de base abstraite représentant un outil.
@@ -49,7 +51,7 @@ abstract class AbstractTool {
 
         foreach ($args as $property => $value) {
             if (!property_exists($this, $property)) {
-                $message = __('Invalid property: %s', 'docalist-core');
+                $message = __('Propriété invalide %s', 'docalist-core');
                 throw new Exception(sprintf($message, $property));
             }
             $this->$property = $value;
@@ -126,15 +128,6 @@ abstract class AbstractTool {
             echo "404 Not Found : method $name do not exist";
             return false;
         }
-
-        // Vérifie qu'on a le droit de l'appeller
-        $method = $class->getMethod($name);
-        if ($method->isStatic() || !$method->isPublic()) {
-            echo "403 Forbidden : method $name is not callable";
-            return false;
-        }
-        // ci-dessus : utile ? reflection va générer une exception si not
-        // callable.
 
         // On va construire un tableau args contenant tous les paramètres
         $params = $method->getParameters();

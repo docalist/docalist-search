@@ -120,7 +120,7 @@ final class Docalist {
      * @param string $path Chemin absolu du dossier qui contient les classes
      * du namespace indiqué.
      */
-    public function registerNamespace($namespace, $path) {
+    public static function registerNamespace($namespace, $path) {
         $path = strtr($path, '/', DIRECTORY_SEPARATOR);
 
         if (isset(self::$path[$namespace])) {

@@ -11,7 +11,7 @@
  * Plugin URI:  http://docalist.org
  * Plugin Type: Piklist
  * Description: Docalist: socle de base.
- * Version:     0.2.1
+ * Version:     0.2.2
  * Author:      Daniel Ménard
  * Author URI:  http://docalist.org/
  * Text Domain: docalist-core
@@ -31,7 +31,7 @@ require_once __DIR__ . '/class/Docalist.php';
 Docalist::initialize();
 
 // Enregistre notre espace de noms
-Docalist::registerNamespace(__NAMESPACE__, __DIR__ . '/class');
+Docalist::registerNamespace(__NAMESPACE__, __DIR__ . '/class/Core');
 
 // Charge le plugin
 Docalist::load('Docalist\\Core\\Plugin', __FILE__);

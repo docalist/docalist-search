@@ -194,7 +194,7 @@ final class Docalist {
                 require_once $path;
 
                 // Vérifie que désormais la classe existe
-                if (!class_exists($class, false)) {
+                if (!class_exists($class, false) && ! interface_exists($class, false)) {
                     $msg = __('Erreur dans %s : classe inconnue "%s" non trouvée', 'docalist-core');
                     throw new Exception(sprintf($msg, $path, $class));
                 }

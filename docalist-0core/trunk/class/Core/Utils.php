@@ -3,7 +3,7 @@
  * This file is part of the "Docalist Core" plugin.
  *
  * Copyright (C) 2012 Daniel Ménard
- * 
+ *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -22,10 +22,10 @@ use Exception;
 class Utils {
     /**
      * Indique qui est l'appellant d'une fonction ou d'une méthode.
-     * 
+     *
      * Retourne une chaine qui indique le fichier et le numéro de ligne
      * où a été appellé la méthode.
-     * 
+     *
      * @return string une chaine de la forme path:line (ou path seulement
      * si le numéro de ligne n'est pas connu).
      */
@@ -39,22 +39,26 @@ class Utils {
 
         // Détermine l'appellant (0=nous, 1=notre appellant, 2=ce qu'on veut)
         $caller = $trace[2];
-
-        // Détermine le path du fichier et essaie de le mettre en relatif        
-        $file = $caller['file'];
-//        if (strncmp($file, WP_CONTENT_DIR, strlen(WP_CONTENT_DIR)) === 0) {
-//            $file = substr($file, strlen(WP_CONTENT_DIR) + 1);
-//        }
         
-        // Dans certains cas (closures), line n'est pas défini
-        if (! isset($caller['line'])) {
-            return $file;
+        // Dans certains cas, on peut ne pas avoir file
+        if (!isset($caller['file'])) {
+            if (isset($caller['function'])) {
+                return $caller['function'] . '()';
+            }
+            return '';
         }
         
+        // Détermine le path du fichier et essaie de le mettre en relatif
+        $file = $caller['file'];
+
+        // Dans certains cas (closures), line n'est pas défini
+        if (!isset($caller['line'])) {
+            return $file;
+        }
+
         // Retourne le nom du fichier et le numéro de ligne
         return $file . ':' . $caller['line'];
     }
-
 
     /**
      * Dumpe les arguments passés en paramètre en les encadrant d'une balise
@@ -69,7 +73,6 @@ class Utils {
         }
         echo '</pre>';
     }
-
 
     /**
      * Retourne un tableau contenant tous les termes de la taxonomie indiquée
@@ -105,6 +108,5 @@ class Utils {
 
         return $terms;
     }
-
 
 }

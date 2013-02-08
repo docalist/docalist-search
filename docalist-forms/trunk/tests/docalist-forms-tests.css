@@ -1,0 +1,86 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial;
+    background: #ddd;
+    height: 100%;
+}
+
+.page {
+    box-sizing: border-box;
+    margin-right: 240px;
+    background: yellow;
+    padding: 1em;
+    min-height: 100%;
+    background: #fff;
+}
+
+.content {
+    background: #eee;
+    padding: 1em;
+    border: 1px solid #ddd;
+}
+
+.sidebar {
+    box-sizing: border-box;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 240px;
+    height: 100%;
+    padding: 20px;
+    text-align: center;
+}
+
+.sidebar label {
+    display: block;
+    text-align: left;
+    font-weight: bold;
+}
+
+.sidebar select {
+    margin-bottom: 1em;
+    width: 200px;
+}
+
+.sidebar button {
+    padding: 1em;
+    width: 200px;
+}
+.tabs{
+    margin: 0;
+    padding: 0;
+}
+
+.tabs li {
+    list-style: none;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+.tabs a {
+    font-weight: bold;
+    padding: 0.5em 1em;
+    display: inline-block;
+    text-decoration: none;
+    color: #666;
+    border: 1px solid #fff;
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    z-index: 999;
+    margin-bottom: -1px;
+}
+
+.tabs a.active {
+    background: #eee;
+    border-color: #ddd;
+}
+
+pre.prettyprint {
+    padding: 1em;
+    border: 1px solid #ddd;
+    background: #fff;
+    word-wrap: break-word;
+}

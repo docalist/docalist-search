@@ -3,7 +3,6 @@
 
     // émulation wp
     define('WP_DEBUG', true);
-    function __($x) {return $x;}
 
     // charge docalist-form
     require __DIR__ . '/../src/autoload.php';

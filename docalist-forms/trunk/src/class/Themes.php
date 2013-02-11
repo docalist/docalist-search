@@ -44,7 +44,7 @@ class Themes {
      */
     private static function check($name) {
         if (!isset(self::$themes[$name])) {
-            $msg = __('Le thème %s n\'existe pas.', 'docalist-core');
+            $msg = 'Theme not found "%s"';
             throw new Exception(sprintf($msg, $name));
         }
 
@@ -68,7 +68,7 @@ class Themes {
      */
     public static function register($name, $path, $extends = 'default', $assets = null) {
         if (WP_DEBUG && isset(self::$themes[$name])) {
-            $msg = __('Le thème %s est déjà enregistré.', 'docalist-core');
+            $msg = 'Theme already registered: "%s"';
             throw new Exception(sprintf($msg, $name));
         }
 

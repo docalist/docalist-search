@@ -367,7 +367,7 @@ abstract class Field {
         // Le template demandé n'existe pas dans ce thème
         $class = $inherit ? get_parent_class($this) : get_class($this);
         $file = strtolower(substr(strrchr($class, '\\'), 1)) . ".$template.php";
-        $msg = __('Le thème %s ne contient pas de template pour %s', 'docalist-core');
+        $msg = 'Theme %s can\'t render template %s';
         throw new Exception(sprintf($msg, $theme, $file));
     }
 

@@ -1,9 +1,6 @@
 <?php
     use Docalist\Forms\Form, Docalist\Forms\Themes;
 
-    // émulation wp
-    define('WP_DEBUG', true);
-
     // charge docalist-form
     require __DIR__ . '/../src/autoload.php';
 

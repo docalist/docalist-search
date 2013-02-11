@@ -67,7 +67,7 @@ class Themes {
      * @throws Exception Si le thème indiqué est déjà enregistré.
      */
     public static function register($name, $path, $extends = 'default', $assets = null) {
-        if (WP_DEBUG && isset(self::$themes[$name])) {
+        if (isset(self::$themes[$name])) {
             $msg = 'Theme already registered: "%s"';
             throw new Exception(sprintf($msg, $name));
         }
@@ -76,7 +76,7 @@ class Themes {
         $path = rtrim($path, '\\/') . '/';
 
         // Vérifie que le thème de base existe
-        WP_DEBUG && ($extends !== false) && self::check($extends);
+        ($extends !== false) && self::check($extends);
 
         // Normalise les assets
         // @todo
@@ -138,7 +138,7 @@ class Themes {
      * @throws Exception Si le thème indiqué n'existe pas.
      */
     public static function path($name) {
-        WP_DEBUG && self::check($name);
+        self::check($name);
 
         return self::$themes[$name]['path'];
     }
@@ -153,7 +153,7 @@ class Themes {
      * @throws Exception Si le thème indiqué n'existe pas.
      */
     public static function baseTheme($name) {
-        WP_DEBUG && self::check($name);
+        self::check($name);
 
         return self::$themes[$name]['extends'];
     }
@@ -168,7 +168,7 @@ class Themes {
      * @throws Exception Si le thème indiqué n'existe pas.
      */
     public static function assets($name) {
-        WP_DEBUG && self::check($name);
+        self::check($name);
 
         return self::$themes[$name]['assets'];
     }

@@ -10,12 +10,14 @@
  * @package     Docalist
  * @subpackage  Forms
  * @author      Daniel Ménard <daniel.menard@laposte.net>
- * @version     SVN: $Id$
+ * @version     SVN: $Id: Field.php 397 2013-02-11 15:30:06Z
+ * daniel.menard.35@gmail.com $
  */
 
 namespace Docalist\Forms;
 
-use ArrayAccess, Exception;
+use ArrayAccess, Exception, XmlWriter;
+
 
 /**
  * Un champ de formulaire.
@@ -25,9 +27,10 @@ use ArrayAccess, Exception;
  */
 abstract class Field {
     /**
-     * @var array Liste des thèmes pour le rendu en cours.
+     * @var XMLWriter Le générateur XML utilisé pour générer le code html
+     * du formulaire.
      */
-    protected static $directories;
+    protected static $writer;
 
     /**
      * @var array Liste des ID déjà utilisés pour le rendu en cours.
@@ -326,12 +329,45 @@ abstract class Field {
      * @param string $theme Le nom du thème à utiliser pour faire le rendu
      * de l'élément.
      * @param string $template Optionnel, le nom du template à appeller.
-     * @param array|null $args Optionnel arguments à passer au template.
+     * @param array|null $args Optionnel arguments à passer au template :
+     * - 'options' : un tableau d'option pour le rendu
+     *      'indent' : true, un entier ou une chaine ('  ') pour indenter,
+     *      false pour générer un code compact.
      * @param bool $inherit Optionnel True pour exécuter le template de la
      * classe parent au lieu du template de la classe en cours.
      */
     public function render($theme = 'default', $template = 'container', $args = null, $inherit = false) {
-        //        self::$usedId = array();
+        // Premier appel : crée l'objet xmlwriter
+        if (is_null(self::$writer)) {
+            $createdWriter = true;
+
+            self::$writer = new XMLWriter();
+            self::$writer->openURI('php://output');
+
+            // Teste s'il faut indenter le code html généré
+            if (isset($args['options']['indent']) && $args['options']['indent']) {
+                $indent = $args['options']['indent'];
+                if ($indent === true) {
+                    $indent = '    ';
+                    // 4 espaces par défaut
+                } elseif (is_int($indent)) {
+                    $indent = str_repeat(' ', $indent);
+                }
+                self::$writer->setIndent(true);
+                self::$writer->setIndentString($indent);
+
+                // Pour que XMLWriter nous génère de l'utf-8, il faut
+                // obligatoirement appeller startDocument() et indiquer l'encoding.
+                // Dans le cas contraire, xmlwriter génère des entités
+                // numériques (par exemple "M&#xE9;nard").
+                // Par contre, on ne veut pas que le prologue xml (<?xml ..>)
+                // apparaisse dans la sortie générée.
+                ob_start();
+                self::$writer->startDocument('1.0', 'UTF-8');
+                self::$writer->flush();
+                ob_end_clean();
+            }
+        }
 
         // On commence soit avec la classe de l'objet, soit celle de son parent
         $class = $inherit ? get_parent_class($this) : get_class($this);
@@ -346,15 +382,30 @@ abstract class Field {
 
             // On a trouvé, on exécute le template
             if ($path !== false) {
-                // Les seules variables accessibles depuis un template sont :
-                // $this, $theme, $path, $template et $args
+                // Les variables accessibles depuis un template sont :
+                // $this, $theme, $template, $args et $path
                 unset($inherit, $class, $file);
 
-                // Et celles fournies dans le tableau $args
+                // $writer
+                $writer = self::$writer;
+
+                // Plus celles fournies dans le tableau $args
                 $args && extract($args, EXTR_SKIP);
 
                 // Exécute le template
+                ob_start();
                 include $path;
+                $h = ob_get_clean();
+                if ($h) {
+                    $writer->writeRaw("Le template $path a fait des echo : <pre>".htmlspecialchars($h)."</pre>");
+                }
+
+                // Si c'est nous qui avons créé le writer, on le ferme
+                if (isset($createdWriter)) {
+                    self::$writer->endDocument();
+                    self::$writer->flush();
+                    self::$writer = null;
+                }
 
                 // Terminé
                 return;
@@ -367,8 +418,8 @@ abstract class Field {
         // Le template demandé n'existe pas dans ce thème
         $class = $inherit ? get_parent_class($this) : get_class($this);
         $file = strtolower(substr(strrchr($class, '\\'), 1)) . ".$template.php";
-        $msg = 'Theme %s can\'t render template %s';
-        throw new Exception(sprintf($msg, $theme, $file));
+        $msg = 'Unable to render template %s with theme %s';
+        throw new Exception(sprintf($msg, $file, $theme));
     }
 
     public function generateId() {
@@ -549,7 +600,7 @@ abstract class Field {
 
         // Commence avec les assets définis par le thème
         if ($theme) {
-            foreach((array) Themes::assets($theme) as $asset) {
+            foreach ((array) Themes::assets($theme) as $asset) {
                 $asset += $defaults[$asset['type']];
                 $key = $asset['src'] ? : $asset['name'];
 

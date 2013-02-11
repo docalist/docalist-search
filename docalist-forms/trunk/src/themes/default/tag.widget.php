@@ -5,16 +5,17 @@ $selfClosing = 'area,base,br,col,command,embed,hr,img,input,keygen,link,metapara
 
 // On a un nom de tag
 if ($this->tag) {
-    echo '<', $this->tag, $this->render($theme, 'attributes');
+    $writer->startElement($this->tag);
+    $this->render($theme, 'attributes');
 
     if (empty($this->data) && false !== strpos($selfClosing, $this->name . ',')) {
-        echo '/>';
+        $writer->endElement();
     } else {
-        echo '>', $this->data, '</', $this->name, '>';
+        $writer->fullEndElement();
     }
 }
 
 // Pas de tag, affiche data comme un simple bloc de texte, ignore les attributs
 else {
-    echo $this->tag;
+    $writer->text($this->data);
 }

@@ -12,5 +12,5 @@ else
             $this->render($theme, 'widget');
         }
     }
-    echo '<button>ajouter ', $this->label, '</button>';
+    $writer->writeElement('button', 'Ajouter ' . $this->label);
 }

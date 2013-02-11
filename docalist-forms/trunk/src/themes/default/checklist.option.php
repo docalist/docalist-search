@@ -9,11 +9,14 @@
  * - $label : le libellé à afficher pour cette option
  * - selected : un booléen qui indique si l'option est sélectionnée ou non
  */
-?>
-<label><input<?php
-    $this->htmlAttribute('name', $this->controlName());
-    $this->htmlAttribute('type', 'checkbox');
-    $this->htmlAttribute('value', is_null($value) ? $label : $value);
-    $selected && $this->htmlAttribute('checked', true) ?>/><?php
-    echo $label
-?></label>
+$writer->startElement('label');
+
+$writer->startElement('input');
+$writer->writeAttribute('name', $this->controlName());
+$writer->writeAttribute('type', 'checkbox');
+$writer->writeAttribute('value', is_null($value) ? $label : $value);
+$selected && $writer->writeAttribute('checked', 'checked');
+$writer->endElement();
+
+$writer->text($label);
+$writer->fullEndElement();

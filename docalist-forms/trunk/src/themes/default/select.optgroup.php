@@ -8,7 +8,7 @@
  * - $options : la liste des options de ce groupe.
  * - selectedOptions : la liste des options sélectionnés.
  */
-?>
-<optgroup<?php $this->htmlAttribute('label', $label) ?>><?php
-    $this->render($theme, 'optgroup', $args, true)
-?></optgroup>
+$writer->startElement('optgroup');
+$writer->writeAttribute('label', $label);
+$this->render($theme, 'optgroup', $args, true);
+$writer->fullEndElement();

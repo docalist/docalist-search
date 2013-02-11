@@ -8,6 +8,6 @@
  * - $options : la liste des options de ce groupe.
  * - selected : la liste des options sélectionnés.
  */
-?>
-<p><?php echo $label ?></p><?php
-$this->render($theme, 'optgroup', $args, true) ?>
+
+$writer->writeElement('p', $label);
+$this->render($theme, 'optgroup', $args, true);

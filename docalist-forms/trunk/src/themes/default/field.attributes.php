@@ -1,8 +1,6 @@
 <?php
-if ($this->name) {
-    $this->htmlAttribute('name', $this->controlName());
-}
+$this->name && $writer->writeAttribute('name', $this->controlName());
 
 foreach ($this->attributes as $name => $value) {
-    $this->htmlAttribute($name, $value);
+    $writer->writeAttribute($name, $value);
 }

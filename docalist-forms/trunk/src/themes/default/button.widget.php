@@ -1,3 +1,5 @@
-<button<?php $this->render($theme, 'attributes') ?>><?php
-    echo $this->label
-?></button>
+<?php
+$writer->startElement('button');
+$this->render($theme, 'attributes');
+$writer->text($this->label);
+$writer->fullEndElement();

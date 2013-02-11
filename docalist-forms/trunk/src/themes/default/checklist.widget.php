@@ -1,3 +1,5 @@
-<div<?php $this->render($theme, 'attributes') ?>><?php
-    $this->render($theme, 'options')
-?></div>
+<?php
+$writer->startElement('div');
+$this->render($theme, 'attributes');
+$this->render($theme, 'options');
+$writer->fullEndElement();

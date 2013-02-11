@@ -1,3 +1,2 @@
-<h2><?php
-    echo $this->label
-?></h2>
+<?php
+$writer->writeElement('h2', $this->label);

@@ -1,14 +1,18 @@
-<select<?php $this->render($theme, 'attributes') ?>><?php
-    if (! $this->multiple()) // && (! $this->required())
-    {
+<?php
+$writer->startElement('select');
+$this->render($theme, 'attributes');
 
-        $option = $this->firstOption();
-        $this->render($theme, 'option', array(
-            'value' => $option['value'],
-            'label' => $option['label'],
-            'selected' => false,
-        ));
-    }
+if (! $this->multiple()) // && (! $this->required())
+{
 
-    $this->render($theme, 'options');
-?></select>
+    $option = $this->firstOption();
+    $this->render($theme, 'option', array(
+        'value' => $option['value'],
+        'label' => $option['label'],
+        'selected' => false,
+    ));
+}
+
+$this->render($theme, 'options');
+
+$writer->fullEndElement();

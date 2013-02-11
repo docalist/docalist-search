@@ -1,3 +1,5 @@
-<label<?php $this->htmlAttribute('for', $this->generateId()) ?>><?php
-    echo $this->label
-?></label>
+<?php
+$writer->startElement('label');
+$writer->writeAttribute('for', $this->generateId());
+$writer->text($this->label);
+$writer->fullEndElement();

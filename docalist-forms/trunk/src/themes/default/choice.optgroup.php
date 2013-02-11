@@ -8,13 +8,10 @@
  * - $options : la liste des options de ce groupe.
  * - selected : la liste des options sélectionnés.
  */
-?>
-<?php
-    foreach ($options as $value => $label) {
-        $this->render($theme, 'option', array(
-            'value' => is_int($value) ? null : $value,
-            'label' => $label,
-            'selected' => isset($selected[is_int($value) ? $label : $value]),
-        ));
-    }
-?>
+foreach ($options as $value => $label) {
+    $this->render($theme, 'option', array(
+        'value' => is_int($value) ? null : $value,
+        'label' => $label,
+        'selected' => isset($selected[is_int($value) ? $label : $value]),
+    ));
+}

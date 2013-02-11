@@ -1,3 +1,5 @@
-<textarea<?php $this->render($theme, 'attributes') ?>><?php
-    if ($this->data) echo $this->data
-?></textarea>
+<?php
+$writer->startElement('textarea');
+$this->render($theme, 'attributes');
+$this->data && $writer->text($this->data);
+$writer->fullEndElement();

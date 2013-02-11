@@ -1,6 +1,5 @@
-<fieldset>
-    <?php if ($this->label) : ?>
-    <legend><?php echo $this->label ?></legend>
-    <?php endif ?>
-    <?php $this->render($theme, 'widget', $args, true) ?>
-</fieldset>
+<?php
+$writer->startElement('fieldset');
+$this->label && $writer->writeElement('legend', $this->label);
+$this->render($theme, 'widget', $args, true);
+$writer->fullEndElement();

@@ -1,5 +1,8 @@
-<tr>
-    <?php foreach($this->fields as $field) : ?>
-        <td scope="col"><?php echo $field->render($theme, 'values') ?></td>
-    <?php endforeach ?>
-</tr>
+<?php
+$writer->startElement('tr');
+foreach($this->fields as $field) {
+    $writer->startElement('td');
+    $field->render($theme, 'values');
+    $writer->fullEndElement(); // </td>
+}
+$writer->fullEndElement(); // </tr>

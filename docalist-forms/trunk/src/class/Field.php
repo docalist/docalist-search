@@ -328,44 +328,91 @@ abstract class Field {
      *
      * @param string $theme Le nom du thème à utiliser pour faire le rendu
      * de l'élément.
+     *
      * @param string $template Optionnel, le nom du template à appeller.
-     * @param array|null $args Optionnel arguments à passer au template :
-     * - 'options' : un tableau d'option pour le rendu
-     *      'indent' : true, un entier ou une chaine ('  ') pour indenter,
-     *      false pour générer un code compact.
+     *
+     * @param array|null $args Paramètres optionnels utilisés pour le rendu du
+     * formulaire ou bien transmis aux templates utilisés pour la génération.
+     *
+     * Actuellement, la seule option reconnue est la clé 'option'.
+     *
+     * Les options disponibles sont :
+     *
+     * - indent : chaine utilisée pour l'indentation du code html généré.
+     * Par défaut, le code html n'est pas indenté. Vous pouvez indiquer
+     * soit true (indenter de quatre espaces), soit un entier (indenter de x
+     * espaces) soit une chaine d'indentation personnalisée ("\t", "  ", etc.)
+     *
+     * - charset : jeu de caractères à utiliser pour la génération du code html.
+     * Par défaut, le formulaire est généré en UTF-8. Vous pouvez indiquer un
+     * charset différent dans cette option. Remarque : le charset indiqué doit
+     * être supporté par XMLWriter, consultez la doc.
+     *
      * @param bool $inherit Optionnel True pour exécuter le template de la
      * classe parent au lieu du template de la classe en cours.
      */
     public function render($theme = 'default', $template = 'container', $args = null, $inherit = false) {
         // Premier appel : crée l'objet xmlwriter
         if (is_null(self::$writer)) {
+
+            // Crée le XMLWriter
+            self::$writer = new XMLWriter();
+            self::$writer->openURI('php://output'); // Faire une option ?
             $createdWriter = true;
 
-            self::$writer = new XMLWriter();
-            self::$writer->openURI('php://output');
+            // Gère les options indiquées
+            if (isset($args['options'])) {
+                $options = $args['options'];
 
-            // Teste s'il faut indenter le code html généré
-            if (isset($args['options']['indent']) && $args['options']['indent']) {
-                $indent = $args['options']['indent'];
-                if ($indent === true) {
-                    $indent = '    ';
-                    // 4 espaces par défaut
-                } elseif (is_int($indent)) {
-                    $indent = str_repeat(' ', $indent);
+                // Option indent : indentation du code
+                if (isset($options['indent']) && $options['indent']) {
+                    //Le test ci-dessus ignore false, 0, '' (pas d'indentation)
+                    $indent = $options['indent'];
+
+                    // true = 4 espaces par défaut
+                    if ($indent === true) {
+                        $indent = '    ';
+
+                    // entier : n espaces
+                    } elseif (is_int($indent)) {
+                        $indent = str_repeat(' ', $indent);
+                    }
+
+                    // sinon : chaine litérale (tabulation, deux espaces, etc.)
+
+                    // Demande au xmlwriter de nous indenter le code
+                    self::$writer->setIndent(true);
+                    self::$writer->setIndentString($indent);
+
                 }
-                self::$writer->setIndent(true);
-                self::$writer->setIndentString($indent);
+
+                // Option 'charset' : jeu de caractère utilisé
+                $charset = isset($options['charset']) ? $options['charset'] : 'UTF-8';
 
                 // Pour que XMLWriter nous génère de l'utf-8, il faut
                 // obligatoirement appeller startDocument() et indiquer l'encoding.
                 // Dans le cas contraire, xmlwriter génère des entités
                 // numériques (par exemple "M&#xE9;nard").
                 // Par contre, on ne veut pas que le prologue xml (<?xml ..>)
-                // apparaisse dans la sortie générée.
+                // apparaisse dans la sortie générée. Donc on bufferise
+                // l'écriture du prologue et on l'ignore.
                 ob_start();
-                self::$writer->startDocument('1.0', 'UTF-8');
+                self::$writer->startDocument('1.0', $charset);
                 self::$writer->flush();
                 ob_end_clean();
+
+                // Supprime les variables dont on n'a plus besoin pour qu'on
+                // n'ait dans les templates que les variables documentées.
+                // Vide également $args si on n'avait que options car on n'en
+                // aura plus besoin pour le rendu et ça évite de faire un
+                // extract à chaque exécution de template.
+                unset($indent, $charset);
+                unset($options['indent'], $options['charset']);
+                if (empty($options)) {
+                    unset($args['options']);
+                    if (empty($args)) $args = null;
+                }
+                unset($options);
             }
         }
 
@@ -382,23 +429,23 @@ abstract class Field {
 
             // On a trouvé, on exécute le template
             if ($path !== false) {
+
                 // Les variables accessibles depuis un template sont :
-                // $this, $theme, $template, $args et $path
+                // - $this : l'objet Field en cours de rendu
+                // - $theme : le nom du thème en cours
+                // - $template : le nom du template en cours
+                // - $path : son path complet
+                // - $args : les paramètres du template
+                // - $writer : l'ojet XMLWriter utilisé pour générer le html
+                // - les varaibles définies dans le tableau $args.
+                //
+                // On a aussi $createdWriter, mais on est obligé de la garder.
                 unset($inherit, $class, $file);
-
-                // $writer
                 $writer = self::$writer;
-
-                // Plus celles fournies dans le tableau $args
                 $args && extract($args, EXTR_SKIP);
 
                 // Exécute le template
-                ob_start();
                 include $path;
-                $h = ob_get_clean();
-                if ($h) {
-                    $writer->writeRaw("Le template $path a fait des echo : <pre>".htmlspecialchars($h)."</pre>");
-                }
 
                 // Si c'est nous qui avons créé le writer, on le ferme
                 if (isset($createdWriter)) {

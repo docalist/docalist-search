@@ -273,7 +273,7 @@ abstract class Field {
     /**
      * @var int
      */
-    protected $occurence;
+    protected $occurence = 0;
 
     protected function occurence($occurence = null) {
         if (is_null($occurence))
@@ -432,6 +432,9 @@ abstract class Field {
      * charset différent dans cette option. Remarque : le charset indiqué doit
      * être supporté par XMLWriter, consultez la doc.
      *
+     * - comment : ajoute le nom des templates utilisés pour le rendu sous
+     * forme de commentaires insérés dans le code html généré.
+     *
      * @param bool $inherit Optionnel True pour exécuter le template de la
      * classe parent au lieu du template de la classe en cours.
      */
@@ -501,6 +504,18 @@ abstract class Field {
                 }
                 unset($options);
             }
+
+			// Débogage : vérifie que les templates transmettent bien $args aux sous-templates
+			$args['dmdm'] = 1;
+        }
+
+        // Débogage - Vérifie que $args est correctement transmis
+        if (! isset($args['dmdm'])) {
+            $t = debug_backtrace();
+            $file = $t[0]['file'];
+            $file = basename(dirname($file)) . '/' . basename($file);
+            $line = $t[0]['line'];
+            echo "\nARGUMENTS NON TRANSMIS : $file ligne $line\n";
         }
 
         // On commence soit avec la classe de l'objet, soit celle de son parent
@@ -531,8 +546,19 @@ abstract class Field {
                 $writer = self::$writer;
                 $args && extract($args, EXTR_SKIP);
 
-                // Exécute le template
-                include $path;
+                // Exécute le template et ajoute en commentaire le nom des templates
+                if (isset($args['options']['comment']) && $args['options']['comment'] && $template !== 'attributes') {
+                    $templateFriendlyName = basename(dirname($path)) . '-' . basename($path);
+                    self::$writer->writeComment(' start ' . $templateFriendlyName);
+
+                    include $path;
+                    self::$writer->writeComment(' end  ' . $templateFriendlyName);
+                }
+
+                // Exécute le template normallement
+                else {
+                    include $path;
+                }
 
                 // Si c'est nous qui avons créé le writer, on le ferme
                 if (isset($createdWriter)) {
@@ -558,7 +584,7 @@ abstract class Field {
 
     public function generateId() {
         if (!isset($this->attributes['id'])) {
-            $id = $this->name ? : $this->type();
+            $id = $this->controlName() ? : $this->type();
             if (!isset(self::$usedId[$id])) {
                 self::$usedId[$id] = 1;
             } else {
@@ -736,7 +762,7 @@ abstract class Field {
         if ($theme) {
             foreach ((array) Themes::assets($theme) as $asset) {
                 $asset += $defaults[$asset['type']];
-                $key = $asset['src'] ? : $asset['name'];
+                $key = $asset['name'] ? : $asset['src'];
 
                 $assets[$key] = $asset;
             }
@@ -765,7 +791,7 @@ abstract class Field {
             }
         }
 
-        return array_values($assets);
+        return $assets;
     }
 
     /**

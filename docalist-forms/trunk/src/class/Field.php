@@ -62,6 +62,14 @@ abstract class Field {
     protected $description;
 
     /**
+     * @var Position de la description.
+     *
+     * Par défaut, le bloc description est affiché avant le champ.
+     * Lorsque cette propriété est à false, ell est affichée après.
+     */
+    protected $descriptionAfter = false;
+
+    /**
      * @var mixed Les données du champ.
      */
     protected $data;
@@ -326,13 +334,20 @@ abstract class Field {
      *
      * @param string $description
      *
+     * @param null|bool Emplacement de la description par rapport au champ :
+     * - false : en haut (valeur par défaut)
+     * - true : en bas
+     *
      * @return string|$this
      */
-    public function description($description = null) {
+    public function description($description = null, $after = null) {
         if (is_null($description))
             return $this->description;
 
         $this->description = $description;
+        if (! is_null($after)) {
+            $this->descriptionAfter = $after;
+        }
 
         return $this;
     }

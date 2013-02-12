@@ -1,5 +1,10 @@
 <?php
 $writer->startElement('p');
-$writer->writeAttribute('class', 'description');
-$writer->text($this->description); // html ?
+if ($this->descriptionAfter) {
+    $writer->writeAttribute('class', 'description after');
+} else {
+    $writer->writeAttribute('class', 'description');
+}
+$writer->text($this->description);
+// html ?
 $writer->fullEndElement();

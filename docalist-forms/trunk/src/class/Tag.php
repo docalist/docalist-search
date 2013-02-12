@@ -27,6 +27,11 @@ class Tag extends Fields {
     protected $tag;
 
     /**
+     * @var string Le contenu textuel de l'élément.
+     */
+    protected $content;
+
+    /**
      * Crée un nouveau tag.
      *
      * @param string $tag le tag de l'élément.
@@ -35,7 +40,7 @@ class Tag extends Fields {
      */
     public function __construct($tag, $content = null) {
         $this->parseTag($tag);
-        $this->data = $content;
+        $this->content = $content;
     }
 
     /**
@@ -56,6 +61,22 @@ class Tag extends Fields {
             return $this->tag;
 
         $this->parseTag($tag);
+
+        return $this;
+    }
+
+    /**
+     * Retourne ou modifie le contenu textuel de l'élément.
+     *
+     * @param string $content
+     *
+     * @return string|$this
+     */
+    public function content($content = null) {
+        if (is_null($content))
+            return $this->content;
+
+        $this->content = $content;
 
         return $this;
     }

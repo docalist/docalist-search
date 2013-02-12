@@ -13,7 +13,7 @@
     // Si un nom de formulaire a été indiqué, on le charge
     $file = $_GET['file']; // nom du formulaire
     $theme = $_GET['theme']; // le thème à utiliser pour le rendu
-    $options = array_flip($_GET['options']); // options
+    $options = array_fill_keys($_GET['options'], true); // options
     $form = null; // l'objet formulaire
     $path = null; // son path
     $error = null; // message d'erreur
@@ -26,7 +26,7 @@
         die("Le formulaire '$form' indiqué en paramètre n'existe pas.");
 
     // Charge le formulaire
-    $form = require ($path);
+    $form = require $path;
     $source = file_get_contents($path);
 
     // Prépare le rendu du formulaire, fait le bind, détermine les assets
@@ -83,7 +83,7 @@
             <div id="render" class="well">
                 <?php
                     ob_start();
-                    $form->render($theme);
+                    $form->render($theme, 'container', array('options' => $options));
                     $html = ob_get_flush();
                 ?>
             </div>
@@ -100,22 +100,13 @@
                 <p>
                     Voici le code html généré :
                 </p>
-                <?php
-                    if (isset($options['prettyhtml'])) {
-                        $dom = new DOMDocument();
-                        $dom->preserveWhiteSpace = false;
-                        $dom->formatOutput = true;
-                        $dom->loadXml($html);
-                        $html = $dom->saveXml($dom->documentElement);
-                    }
-                    prettyPrint($html);
-                ?>
+                <?php prettyPrint($html) ?>
             </div>
 
             <div id="assets">
                 <p>
                     Voici la liste des assets (fichiers javascript et feuilles de style CSS)
-                    qui sont déclarées par ce formulaire et/ou par le thème utilisé:
+                    qui sont déclarés par ce formulaire et/ou par le thème utilisé:
                 </p>
                 <?php dumpArray($assets, '// Tableau retourné par $form->assets()') ?>
             </div>
@@ -159,7 +150,6 @@ function choose() {
     foreach($files as &$file) $file = basename($file, '.php');
 
     $form = new Form('', 'get');
-    $form->attribute('class', 'form-horizontal');
 
     $form->select('file')
          ->label('Formulaire en cours :')
@@ -175,9 +165,12 @@ function choose() {
 
     $form->checklist('options')
          ->label('Options')
-         ->options(array('prettyhtml'=>'indenter le code html'));
+         ->options(array(
+               'indent'  => ' Indenter le code html',
+               'comment' => ' Nom des templates'
+           ));
 
-    $form->submit('Tester ce formulaire »»»')->attribute('class', 'btn btn-primary');
+    $form->submit('Tester ce formulaire »»»');
 
     $form->bind($_GET)->render();
 }
@@ -188,15 +181,10 @@ function assets($assets, $pos) {
 
         extract($asset);
 
-        if (empty($src)) {
-            switch($name) {
-                case 'jquery':
-                    $src = 'http://code.jquery.com/jquery-1.9.1.min.js';
-                    break;
-
-                default:
-                    die("Je ne sais pas quelle url mettre pour l'asset $type $name\n");
-            }
+        switch($name) {
+            case 'docalist-forms':
+                $src = '../src/' . $src;
+                break;
         }
 
         if ($condition) echo "<!--[if $condition]>\n";

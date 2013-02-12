@@ -18,7 +18,6 @@ namespace Docalist\Forms;
 
 use ArrayAccess, Exception, XmlWriter;
 
-
 /**
  * Un champ de formulaire.
  *
@@ -168,6 +167,91 @@ abstract class Field {
         $this->attributes[$name] = $value;
 
         return $this;
+    }
+
+    /**
+     * Ajoute une ou plusieurs classes à l'attribut class du champ.
+     *
+     * Chacune des classes indiquées n'est ajoutée à l'attribut que si elle
+     * n'y figure pas déjà. Les noms de classes sont sensibles à la casse.
+     *
+     * @param string $class La classe à ajouter. Vous pouvez également ajouter
+     * plusieurs classes en séparant leurs noms par un espace.
+     *
+     * Exemple $input->addClass('text small');
+     *
+     * @return $this
+     */
+    public function addClass($class) {
+        if (!isset($this->attributes['class']) || empty($this->attributes['class'])) {
+            $this->attributes['class'] = $class;
+        } else {
+            foreach (explode(' ', $class) as $class) {
+                $pos = strpos(' ' . $this->attributes['class'] . ' ', " $class ");
+                if ($pos === false) {
+                    $this->attributes['class'] .= " $class";
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Supprime une ou plusieurs classes de l'attribut class du champ.
+     *
+     * @param string $class La classe à supprimer. Vous pouvez également enlever
+     * plusieurs classes en séparant leurs noms par un espace.
+     *
+     * Exemple $input->removeClass('text small');
+     *
+     * @return $this
+     */
+    public function removeClass($class) {
+        if (isset($this->attributes['class'])) {
+            foreach (explode(' ', $class) as $class) {
+                $pos = strpos(' ' . $this->attributes['class'] . ' ', " $class ");
+                if ($pos !== false) {
+                    $len = strlen($class);
+                    if ($pos > 0 && ' ' === $this->attributes['class'][$pos - 1]) {
+                        --$pos;
+                        ++$len;
+                    }
+                    $this->attributes['class'] = trim(substr_replace($this->attributes['class'], '', $pos, $len));
+                    if (empty($this->attributes['class'])) {
+                        unset($this->attributes['class']);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Indique si l'attribut class du champ contient l'une des classes indiquées.
+     *
+     * @param string $class La classe à tester. Vous pouvez également tester
+     * plusieurs classes en séparant leurs noms par un espace.
+     *
+     * Exemple $input->removeClass('text small');
+     *
+     * Retournera true si l'atttribut class contient la classe 'text' OU la
+     * classe 'small'.
+     *
+     * @return $this
+     */
+    public function hasClass($class) {
+        if (isset($this->attributes['class'])) {
+            foreach (explode(' ', $class) as $class) {
+                if (false !== strpos(' ' . $this->attributes['class'] . ' ', " $class ")) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -357,7 +441,8 @@ abstract class Field {
 
             // Crée le XMLWriter
             self::$writer = new XMLWriter();
-            self::$writer->openURI('php://output'); // Faire une option ?
+            self::$writer->openURI('php://output');
+            // Faire une option ?
             $createdWriter = true;
 
             // Gère les options indiquées
@@ -373,7 +458,7 @@ abstract class Field {
                     if ($indent === true) {
                         $indent = '    ';
 
-                    // entier : n espaces
+                        // entier : n espaces
                     } elseif (is_int($indent)) {
                         $indent = str_repeat(' ', $indent);
                     }
@@ -390,9 +475,9 @@ abstract class Field {
                 $charset = isset($options['charset']) ? $options['charset'] : 'UTF-8';
 
                 // Pour que XMLWriter nous génère de l'utf-8, il faut
-                // obligatoirement appeller startDocument() et indiquer l'encoding.
-                // Dans le cas contraire, xmlwriter génère des entités
-                // numériques (par exemple "M&#xE9;nard").
+                // obligatoirement appeller startDocument() et indiquer
+                // l'encoding. Dans le cas contraire, xmlwriter génère des
+                // entités numériques (par exemple "M&#xE9;nard").
                 // Par contre, on ne veut pas que le prologue xml (<?xml ..>)
                 // apparaisse dans la sortie générée. Donc on bufferise
                 // l'écriture du prologue et on l'ignore.
@@ -410,7 +495,9 @@ abstract class Field {
                 unset($options['indent'], $options['charset']);
                 if (empty($options)) {
                     unset($args['options']);
-                    if (empty($args)) $args = null;
+                    if (empty($args)) {
+                        $args = null;
+                    }
                 }
                 unset($options);
             }

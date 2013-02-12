@@ -10,7 +10,8 @@
  * @package     Docalist
  * @subpackage  Forms
  * @author      Daniel Ménard <daniel.menard@laposte.net>
- * @version     SVN: $Id$
+ * @version     SVN: $Id: Themes.php 398 2013-02-11 15:32:10Z
+ * daniel.menard.35@gmail.com $
  */
 
 namespace Docalist\Forms;
@@ -102,22 +103,26 @@ class Themes {
                 'path' => $dir . 'default/',
                 'extends' => false,
                 'assets' => array(
-                    array(
+                    'jquery' => array(
                         'type' => 'js',
+                        'name' => 'jquery',
                         'src' => '//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js',
                     ),
-/*
-                    array(
-                        'type' => 'css',
-                        'src' => '//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css',
-                    )
- */
+                    'docalist-forms' => array(
+                        'type' => 'js',
+                        'name' => 'docalist-forms',
+                        'src' => 'assets/docalist-forms.js',
+                    ),
                 ),
             ),
-            'dump' => array(
-                'path' => $dir . 'dump/',
-                'extends' => false,
-                'assets' => null,
+            'bootstrap' => array(
+                'path' => $dir . 'bootstrap/',
+                'extends' => 'default',
+                'assets' => array('bootstrap-css' => array(
+                        'type' => 'css',
+                        'name' => 'bootstrap-css',
+                        'src' => '//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css',
+                    ), )
             ),
             'form-table' => array(
                 'path' => $dir . 'form-table/',
@@ -170,7 +175,12 @@ class Themes {
     public static function assets($name) {
         self::check($name);
 
-        return self::$themes[$name]['assets'];
+        $assets = self::$themes['default']['assets'];
+        if ($name !== 'default') {
+            $assets = array_merge($assets, self::$themes[$name]['assets']);
+        }
+
+        return $assets;
     }
 
     /**

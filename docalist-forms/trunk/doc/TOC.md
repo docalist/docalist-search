@@ -5,8 +5,10 @@
 ## Mise en route
 
 * [Introduction](intro.md) — Présentation, installation, utilisation, etc.
+* [Fonctionnalités](features.md) — Ce qu'on peut faire, ce qui fonctionne, ce qui est prévu.
 * [Thèmes](themes.md) — Thèmes par défaut, créer un nouveau thème
-* [FAQ](faq.md) — Frequently asked questions, along with their answers.
+* [FAQ](faq.md) — Notes diverses
+* [Champs répétables](repeat.md) - Notes sur la façon dont sont gérés les champs répétables
 
 ## Librairies similaires
 

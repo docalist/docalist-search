@@ -32,6 +32,21 @@ abstract class Field {
     protected static $writer;
 
     /**
+     * @var bool Indique si l'option "indent" a été activée pour la génération
+     * de code en cours (lors de l'appel à {@link render()}).
+     *
+     * Cette propriété est interne (protected) et statique. Elle est utilisée
+     * en interne par les templates pour leur permettre de désactiver
+     * temporairement l'indentation faite par XMLWriter lorsque celle-ci ne
+     * convient pas (par exemple lorsqu'on insère du texte : xmlwriter ne peut
+     * pas "inventer" de nouveaux espaces et donc il ne peut pas indenter le
+     * code.
+     *
+     * Pour un exemple d'utilisation, voir default/checklist.option.php.
+     */
+    protected static $indent;
+
+    /**
      * @var array Liste des ID déjà utilisés pour le rendu en cours.
      */
     protected static $usedId;
@@ -64,10 +79,13 @@ abstract class Field {
     /**
      * @var Position de la description.
      *
-     * Par défaut, le bloc description est affiché avant le champ.
-     * Lorsque cette propriété est à false, ell est affichée après.
+     * Par défaut, le bloc description est affiché après le champ.
+     * Lorsque cette propriété est à true, elle est affichée avant.
+     *
+     * Cette propriété peut être modifiée en passant un paramètre
+     * suplémentaire à la méthode {description()}.
      */
-    protected $descriptionAfter = false;
+    protected $descriptionAfter = true;
 
     /**
      * @var mixed Les données du champ.
@@ -345,7 +363,7 @@ abstract class Field {
             return $this->description;
 
         $this->description = $description;
-        if (! is_null($after)) {
+        if (!is_null($after)) {
             $this->descriptionAfter = $after;
         }
 
@@ -382,6 +400,24 @@ abstract class Field {
         $this->repeatable = $repeatable;
 
         return $this;
+    }
+
+    /**
+     * Retourne le "niveau de répétition" du noeud en cours.
+     *
+     * Exemples :
+     * - pour un champ non répétable, retourne 0
+     * - si le champ est répétable, retourne 1
+     * - si le champ est répétable et que son parent est répétable, retoune 2
+     * - et ainsi de suite
+     *
+     * @return int
+     */
+    protected function repeatLevel() {
+        $level = $this->parent ? $this->parent->repeatLevel() : 0;
+        $this->repeatable && ++$level;
+
+        return $level;
     }
 
     /**
@@ -468,8 +504,10 @@ abstract class Field {
                 $options = $args['options'];
 
                 // Option indent : indentation du code
-                if (isset($options['indent']) && $options['indent']) {
-                    //Le test ci-dessus ignore false, 0, '' (pas d'indentation)
+                // Le test ci-dessous ignore false, 0, '' (pas d'indentation)
+                self::$indent = isset($options['indent']) && $options['indent'];
+
+                if (self::$indent) {
                     $indent = $options['indent'];
 
                     // true = 4 espaces par défaut
@@ -520,12 +558,13 @@ abstract class Field {
                 unset($options);
             }
 
-			// Débogage : vérifie que les templates transmettent bien $args aux sous-templates
-			$args['dmdm'] = 1;
+            // Débogage : vérifie que les templates transmettent bien $args aux
+            // sous-templates
+            $args['dmdm'] = 1;
         }
 
         // Débogage - Vérifie que $args est correctement transmis
-        if (! isset($args['dmdm'])) {
+        if (!isset($args['dmdm'])) {
             $t = debug_backtrace();
             $file = $t[0]['file'];
             $file = basename(dirname($file)) . '/' . basename($file);
@@ -561,7 +600,8 @@ abstract class Field {
                 $writer = self::$writer;
                 $args && extract($args, EXTR_SKIP);
 
-                // Exécute le template et ajoute en commentaire le nom des templates
+                // Exécute le template et ajoute en commentaire le nom des
+                // templates
                 if (isset($args['options']['comment']) && $args['options']['comment'] && $template !== 'attributes') {
                     $templateFriendlyName = basename(dirname($path)) . '-' . basename($path);
                     self::$writer->writeComment(' start ' . $templateFriendlyName);

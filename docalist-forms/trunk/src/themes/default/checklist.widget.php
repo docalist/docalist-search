@@ -1,5 +1,5 @@
 <?php
-$writer->startElement('div');
-$this->render($theme, 'attributes');
-$this->render($theme, 'options');
+$writer->startElement('ul');
+$this->render($theme, 'attributes', $args);
+$this->render($theme, 'options', $args);
 $writer->fullEndElement();

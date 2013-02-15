@@ -44,6 +44,18 @@ class Tag extends Fields {
     }
 
     /**
+     * @inheritdoc
+     *
+     * Un champ de type "Tag" ne peut pas avoir de label.
+     */
+    public function label($label = null) {
+        if (is_null($label))
+            return $this->label;
+
+        throw new Exception('a Tag can\'t have a label');
+    }
+
+    /**
      * Retourne ou modifie le tag de l'élément.
      *
      * @param string $tag Le nouveau tag de l'élément.

@@ -152,13 +152,13 @@ function choose() {
     $form = new Form('', 'get');
 
     $form->select('file')
-         ->label('Formulaire en cours :')
+         ->label('Formulaire à tester :')
          ->options($files)
          ->multiple(true)
-         ->attribute('size', 10);
+         ->attribute('size', 20);
 
     $form->select('theme')
-         ->label('Thème en cours :')
+         ->label('Thème à utiliser :')
          ->options(Themes::all())
          ->multiple(true)
          ->attribute('size', 3);

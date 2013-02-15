@@ -32,6 +32,23 @@ $(document).ready(function() {
 
             // Prevent the anchor's default click action
             e.preventDefault();
+
+
+            scrollV = document.body.scrollTop;
+            scrollH = document.body.scrollLeft;
+
+            window.location.hash = $content.attr('id');
+
+            // Restore the scroll offset, should be flicker free
+            document.body.scrollTop = scrollV;
+            document.body.scrollLeft = scrollH;
+
+            return false;
         });
     });
+    window.setTimeout(function(){
+        document.body.scrollTop = 0;
+    }, 1);
+
+
 });

@@ -1,18 +1,19 @@
 <?php
 $writer->startElement('select');
-$this->render($theme, 'attributes');
+$this->name && $writer->writeAttribute('name', $this->controlName());
+$this->render($theme, 'attributes', $args);
 
 if (! $this->multiple()) // && (! $this->required())
 {
 
     $option = $this->firstOption();
-    $this->render($theme, 'option', array(
+    $this->render($theme, 'option', $args + array(
         'value' => $option['value'],
         'label' => $option['label'],
         'selected' => false,
     ));
 }
 
-$this->render($theme, 'options');
+$this->render($theme, 'options', $args);
 
 $writer->fullEndElement();

@@ -6,9 +6,12 @@ $selfClosing = 'area,base,br,col,command,embed,hr,img,input,keygen,link,metapara
 // On a un nom de tag
 if ($this->tag) {
     $writer->startElement($this->tag);
-    $this->render($theme, 'attributes');
+    $this->name && $writer->writeAttribute('name', $this->controlName());
+    $this->render($theme, 'attributes', $args);
 
-    if (empty($this->data) && false !== strpos($selfClosing, $this->name . ',')) {
+    $writer->text($this->content);
+
+    if (empty($this->content) && false !== strpos($selfClosing, $this->name . ',')) {
         $writer->endElement();
     } else {
         $writer->fullEndElement();
@@ -17,5 +20,5 @@ if ($this->tag) {
 
 // Pas de tag, affiche data comme un simple bloc de texte, ignore les attributs
 else {
-    $writer->text($this->data);
+    $writer->text($this->content);
 }

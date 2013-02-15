@@ -14,7 +14,7 @@ foreach ($this->options as $value => $label) {
             'label' => $value,
             'options' => $label,
             'selected' => $selected,
-        ));
+        ) + $args);
     }
 
     // Option simple
@@ -23,6 +23,6 @@ foreach ($this->options as $value => $label) {
             'value' => is_int($value) ? null : $value,
             'label' => $label,
             'selected' => isset($selected[is_int($value) ? $label : $value]),
-        ));
+        ) + $args);
     }
 }

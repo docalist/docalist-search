@@ -1,16 +1,15 @@
 <?php
 if (! $this->repeatable) {
-    $this->render($theme, 'widget');
+    $this->render($theme, 'widget', $args);
 }
 
 else
 {
-    if ($this->data) {
-        foreach($this->data as $i=>$data) {
-            $this->occurence($i);
-            $this->bindOccurence($data);
-            $this->render($theme, 'widget');
-        }
+    $data = $this->data ?: array(null);
+    foreach($data as $i=>$data) {
+        $this->occurence($i);
+        $this->bindOccurence($data);
+        $this->render($theme, 'widget', $args);
     }
-    $writer->writeElement('button', 'Ajouter ' . $this->label);
+    $this->render($theme, 'add', $args);
 }

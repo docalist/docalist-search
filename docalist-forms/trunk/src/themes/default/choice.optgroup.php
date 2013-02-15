@@ -13,5 +13,5 @@ foreach ($options as $value => $label) {
         'value' => is_int($value) ? null : $value,
         'label' => $label,
         'selected' => isset($selected[is_int($value) ? $label : $value]),
-    ));
+    ) + $args);
 }

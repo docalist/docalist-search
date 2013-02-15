@@ -1,5 +1,6 @@
 <?php
 $writer->startElement('button');
-$this->render($theme, 'attributes');
+$this->name && $writer->writeAttribute('name', $this->controlName());
+$this->render($theme, 'attributes', $args);
 $writer->text($this->label);
 $writer->fullEndElement();

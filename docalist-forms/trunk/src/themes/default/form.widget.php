@@ -1,5 +1,6 @@
 <?php
 $writer->startElement('form');
-$this->render($theme, 'attributes');
+$this->name && $writer->writeAttribute('name', $this->controlName());
+$this->render($theme, 'attributes', $args);
 $this->render($theme, 'widget', $args, true);
 $writer->fullEndElement();

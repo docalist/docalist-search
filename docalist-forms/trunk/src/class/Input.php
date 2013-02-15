@@ -25,6 +25,8 @@ namespace Docalist\Forms;
  *
  */
 class Input extends Field {
-    // remarque : inutile de déclarer $attributes avec type=text car c'est la
-    // valeur par défaut d'un input (cf ref w3c).
+    /**
+     * @inheritdoc
+     */
+    protected $attributes = array('type' => 'text');
 }

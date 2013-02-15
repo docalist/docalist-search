@@ -12,99 +12,136 @@
  * @version     SVN: $Id$
  */
 
-$(document).ready(function(){
+$(document).ready(function() {
 
     /**
-     * Clone un champ simple (un input, un select, une checklist, etc.)
+     * Génère un effet highlight sur l'élément passé en paramètre : l'élément
+     * apparaît en jaune clair quelques instants puis s'estompe.
+     *
+     * On gère l'effet nous-même pour éviter d'avoir une dépendance envers
+     * jquery-ui.
+     *
+     * @param DomElement el l'élément à highlighter
      */
-    $('.btn-add-field').click(function(e){
-        var btn = $(e.currentTarget);
-        console.log('Click sur le bouton ', btn);
+    function highlight(el) {
+        // Principe : on crée une div jaune avec exactment les mêmes dimensions
+        // que l'élément et on la place au dessus en absolute puis on l'estompe
+        // (fadeout) gentiment avant de la supprimer.
+        // Adapté de : http://goo.gl/9pr4Q
+        $("<div/>").width(el.outerWidth()).height(el.outerHeight()).css({
+            'position' : 'absolute',
+            'left' : el.offset().left,
+            'top' : el.offset().top,
+            'background-color' : '#ffff99',
+            'opacity' : '0.5',
+            'z-index' : '9999999'
+        }).appendTo('body').fadeOut(500, function() {
+            $(this).remove();
+        });
+    }
 
-        // Détermine l'élément à cloner
-        var item = btn.prev();
-        console.log('champ à cloner : ', item);
+    /**
+     * Gère les boutons de répétition des champs.
+     *
+     * Les boutons doivent avoir la classe "cloner" et peuvent avoir un attribut
+     * "data-clone" qui indique l'élément à cloner (cf doc).
+     */
+    $('body').on('click', '.cloner', function() {
+        // On va travailler en plusieurs étapes :
+        //
+        // 1. déterminer l'élément à cloner à partir du bouton qui a été cliqué
+        // 2. cloner cet élément
+        // 3. enlever du clone les sous-éléments qui sont eux-même des clones
+        // 4. renommer les attributs name, id, for, etc.
+        // 5. réinitialiser les champs du clone à vide
+        // 6. insérer le clone au bon endroit
+        // 7. highlighte le nouveau champ et lui donne le focus
 
-        // Clone l'élément
-        var clone = item.clone();
+        // 1. Détermine le bouton qui a été cliqué
+        var node = $(this);
 
-        var re = /\[(\d+)\](?!.*\[\d+\])/;
-        /*
-         * La regexp ci-dessus capture le dernier nombre entre crochets.
-         *
-         * Elle se lit de la façon suivante : "rechercher un nombre entre
-         * crochets qui n'est pas suivi par un nombre entre crochets".
-         *
-         * \[(\d+)\] : un nombre entre cochets (on ne capture que le nombre)
-         * (?! xxx)  : negative lookahead (qui n'est pas suivi par)
-         * xxx = n'importe quoi (.*) suivi d'un nombre entre crochets \[\d+\].
-         */
+        // Récupère le sélecteur à appliquer (attribut data-clone, '<' par défaut)
+        var selector = node.data('clone') || '<';
+
+        // Exécute les commandes contenues dans le préfixe (< = prev, ^ = parent)
+        for (var i = 0; i < selector.length; i++) {
+            switch (selector.substr(i, 1)) {
+                // parent
+                case '^':
+                    node = node.parent();
+                    continue;
+
+                // previous
+                case '<':
+                    node = node.prev();
+                    continue;
+            }
+
+            // Autre caractère = début du sélecteur jquery
+            break;
+        }
+
+        // On extrait ce qui reste du sélecteur et on l'applique (si non vide)
+        selector = selector.substr(i);
+        if (selector.length) {
+            node = $(selector, node);
+        }
+
+        // node pointe maintenant sur le noeud à cloner
+        console.log('noeud à cloner : ', node.eq(0));
+
+        // 2. Clone le noeud
+        var clone = node.clone();
+
+        // 3. Exclue du clone les éléments qui sont eux-mêmes des clones
+        $('.clone', clone).remove();
+
+        // Ajoute la classe 'clone' au noeud pour qu'on sache que c'est un clone
+        clone.addClass('clone');
+
+        // 4. Renomme les champs
+
+        // Récupère le repeatLevel() en cours
+        var level = parseInt($(this).data('level')) || 1; // NaN ou 0 -> 1
+
+        // Incrémente le level-ième nombre entre crochets trouvé dans les
+        // attributs name, for et id de tous les champs et labels
         $(':input,label', clone).andSelf().each(function(){
             var input = $(this);
-            input.val('').attr('selected', false).attr('checked', false);
 
             $.each(['name', 'id', 'for'], function(i, name){
-                var value = input.attr(name);
+                var value = input.attr(name); // valeur de l'attribut name, id ou for
                 if (! value) return;
-                var old=value;
-                value = value.replace(re, function(str, i) {
-                    console.log(str, i);
-                    return '[' + (parseInt(i) + 1) + ']';
+                var old = value;
+                var curLevel = 0;
+                console.log('renommage de ', value, 'level=', level);
+                value = value.replace(/\[(\d+)\]/g, function(match, i) {
+                    console.log('match=', match, 'i=', i, 'curlevel=', curLevel);
+                    if (++curLevel !== level) return match;
+                    return '[' + (parseInt(i)+1) + ']';
                 });
                 input.attr(name, value);
                 console.log("Renommage", name, ':', old, '->', value);
             });
         });
 
-        // Insère le clone juste après l'élément
-        item.after(' ', clone);
+        // 5. Fait un clear sur tous les champs présents dans le clone
+        // Source : http://goo.gl/RE9f1
+        clone.find('input:text, input:password, input:file, select, textarea').val('');
+        clone.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
 
-        // Met le focus sur le clone
-        clone.focus();
-    });
+        // Si on voulait faire un reset, j'ai trouvé la méthode suivante :
+        // var form = $('<form>').append(clone).get(0).reset();
+        // pb : si on édite une notice, on récupère dans le clone les valeurs
+        // déjà saisies.
 
-    $('.OLDbtn-add-field').click(function(e){
-        var btn = $(e.currentTarget);
-        console.log('Click sur le bouton ', btn);
-        // Détermine l'élément à cloner
-        var item;
-        var parent = btn.parent()[0];
-        console.log('parent du bouton : ', parent);
-        switch (btn.parent()[0].tagName)
-        {
-            case 'LI': // Le dernier LI contient le bouton repeat. Sélectionne le LI qui précède.
-                item = btn.closest('li').prev()
-                break;
+        // 6. Insère le clone juste après le noeud d'origine, avec un espace entre deux
+        node.after(' ', clone);
 
-//            case 'TD': // Sélectionne le dernier TR du bloc TBODY de la TABLE qui contient le bouton repeat.
-//                item = $('tbody tr:last', btn.closest('table'))
-//                break;
+        // 7. Fait flasher le clone pour que l'utilisateur voit l'élément inséré
+        highlight(clone);
 
-            default: // Sélectionne l'élément qui précède le bouton repeat
-                item = btn.prev();
-        }
-        console.log('item à cloner : ', item);
-        // Clone l'élément
-        var clone = item.clone();
-
-        // Réinitialise tous les contrôles qui figurent dans le clone et modifie leur nom
-        $(':input,label', clone).each(function(){
-            var input = $(this);
-            input.val('').attr('selected', false).attr('checked', false);
-
-            $.each(['name', 'id', 'for'], function(i, name){
-                var value = input.attr(name);
-                if (! value) return;
-                var old=value;
-                value = value.replace(/\[(.*?)\]/, function(str, i) {
-                    return '[' + (parseInt(i) + 1) + ']';
-                });
-                input.attr(name, value);
-                console.log("Renommage", name, ':', old, '->', value);
-            });
-        });
-
-        // Insère le clone juste après l'élément
-        clone.insertAfter(item);
+        // Donne le focus au premier champ trouvé dans le clone
+        clone.is(':input') ? clone.focus() : $(':input:first', clone).focus();
     });
 });

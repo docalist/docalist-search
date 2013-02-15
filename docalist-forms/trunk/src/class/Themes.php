@@ -121,7 +121,7 @@ class Themes {
                 'assets' => array('bootstrap-css' => array(
                         'type' => 'css',
                         'name' => 'bootstrap-css',
-                        'src' => '//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css',
+                        'src' => '//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/css/bootstrap-combined.min.css',
                     ), )
             ),
             'form-table' => array(

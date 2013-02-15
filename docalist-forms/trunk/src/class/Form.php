@@ -24,6 +24,11 @@ namespace Docalist\Forms;
  */
 class Form extends Fields {
     /**
+     * @inheritdoc
+     */
+    protected $descriptionAfter = false;
+
+    /**
      * Crée un nouveau formulaire.
      *
      * @param string $action L'action du formulaire.

@@ -21,6 +21,11 @@ namespace Docalist\Forms;
 class Checklist extends Choice {
     /**
      * @inheritdoc
+     */
+    protected $descriptionAfter = false;
+
+    /**
+     * @inheritdoc
      *
      * Une checklist est obligatoirement multivaluée (et indépendemment de ça,
      * elle peut être repeatable). Le nom du contrôle a toujours '[]' à la fin.

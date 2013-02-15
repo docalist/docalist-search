@@ -1,5 +1,6 @@
 <?php
 $writer->startElement('table');
+$this->render($theme, 'attributes', $args);
 
 // Entête du tableau : nom des champs
 $writer->startElement('thead');
@@ -7,7 +8,7 @@ $writer->startElement('tr');
 foreach($this->fields as $field) {
     $writer->startElement('th');
     $writer->writeAttribute('scope', 'col');
-    $writer->text($field->label);
+    $writer->text($field->label ?: $field->name);
     $writer->fullEndElement(); // </th>
 }
 $writer->fullEndElement(); // </tr>
@@ -15,12 +16,11 @@ $writer->fullEndElement(); // </thead>
 
 // Corps du tableau : liste des valeurs
 $writer->startElement('tbody');
-if ($this->data) {
-    foreach($this->data as $i=>$data) {
-        $this->occurence($i);
-        $this->bindOccurence($data);
-        $this->render($theme, 'widget');
-    }
+$data = $this->data ?: array(null);
+foreach($data as $i=>$data) {
+    $this->occurence($i);
+    $this->bindOccurence($data);
+    $this->render($theme, 'widget', $args);
 }
 $writer->fullEndElement(); // </tbody>
 
@@ -31,7 +31,7 @@ if ($this->repeatable) {
     $writer->startElement('tr');
     $writer->startElement('td');
     $writer->writeAttribute('colspan', count($this->fields));
-    $writer->writeElement('button', 'Ajouter ' . $this->label);
+    $this->render($theme, 'add', $args);
     $writer->fullEndElement(); // </th>
 
     $writer->fullEndElement(); // </tr>

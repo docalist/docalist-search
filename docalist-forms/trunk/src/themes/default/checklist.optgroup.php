@@ -8,16 +8,14 @@
  * - $options : la liste des options de ce groupe.
  * - selected : la liste des options sélectionnés.
  */
-
 $writer->startElement('li');
 
 $writer->startElement('p');
-//$writer->writeAttribute('class', 'checklist-group');
 $writer->writeRaw($label);
 $writer->endElement();
 
 $writer->startElement('ul');
-//$writer->writeAttribute('class', 'checklist-group');
 $this->render($theme, 'optgroup', $args, true);
 $writer->endElement();
-$writer->endElement();
+
+$writer->endElement(); // li

@@ -77,4 +77,16 @@ class Select extends Choice {
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     *
+     * Si le select est multivalué (multiple=true), il faut ajouter '[]' au
+     * nom du contrôle.
+     */
+    protected function controlName() {
+        $name = parent::controlName();
+        $this->attribute('multiple') && $name .= '[]';
+
+        return $name;
+    }
 }

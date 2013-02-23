@@ -283,6 +283,17 @@ abstract class Fields extends Field {
         return $this->add(new Table($name));
     }
 
+    /**
+     * Crée un champ de type "Div" et l'ajoute à la collection.
+     *
+     * @param string $tag Le nom du champ.
+     *
+     * @return Table Le champ créé.
+     */
+    public function div($name = null) {
+        return $this->add(new Div($name));
+    }
+
     public function toArray($withData = false) {
         $t = parent::toArray($withData);
 

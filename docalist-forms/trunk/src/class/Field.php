@@ -26,6 +26,45 @@ use ArrayAccess, Exception, XmlWriter;
  */
 abstract class Field {
     /**
+     * @var array Liste des attributs booléens qui existent en html 5.
+     *
+     * cf http://www.w3.org/TR/html5/infrastructure.html#boolean-attribute
+     *
+     * Cette liste a été constituée "à la main" en recherchant la chaine
+     * "boolean attribute" dans la page http://www.w3.org/TR/html5/index.html.
+     */
+    protected static $booleanAttributes = array(
+        'async' => true,
+        'autofocus' => true,
+        'autoplay' => true,
+        'checked' => true,
+        'controls' => true,
+        'default' => true,
+        'defer' => true,
+        'disabled' => true,
+        'formnovalidate' => true,
+        'hidden' => true,
+        'ismap' => true,
+        'loop' => true,
+        'multiple' => true,
+        'muted' => true,
+        'novalidate' => true,
+        'open' => true,
+        'readonly' => true,
+        'required' => true,
+        'reversed' => true,
+        'scoped' => true,
+        'seamless' => true,
+        'selected' => true,
+        'typemustmatch' => true,
+    );
+
+    /**
+     * @var string Thème en cours utilisé pour le rendu.
+     */
+    protected static $theme;
+
+    /**
      * @var XMLWriter Le générateur XML utilisé pour générer le code html
      * du formulaire.
      */
@@ -47,9 +86,24 @@ abstract class Field {
     protected static $indent;
 
     /**
+     * @var bool Indique si l'option "comment" a été activée
+     */
+    protected static $comment;
+
+    /**
      * @var array Liste des ID déjà utilisés pour le rendu en cours.
      */
     protected static $usedId;
+
+    /**
+     * @var int Occurence en cours (lors du rendu)
+     */
+    protected $occurence = 0;
+
+    /**
+     * @var array Pile utilisée pour le rendu des templates.
+     */
+    protected $callStack = array();
 
     /**
      * @var Fields Le bloc parent de cet élément.
@@ -107,7 +161,7 @@ abstract class Field {
     }
 
     /**
-     * Retourne le type du champ.
+     * Retourne une chaine indiquant le type du champ.
      *
      * Par convention, le type du champ correspond à la version en minuscules
      * du dernier élément du nom de classe.
@@ -162,12 +216,14 @@ abstract class Field {
      *
      * @return array|$this
      */
-    public function attributes($attributes = null) {
+    public function attributes(array $attributes = null) {
         if (is_null($attributes))
             return $this->attributes;
 
         // @todo : tester si on a des attributs booléen dans la liste
-        $this->attributes = $attributes;
+        foreach ($this->attributes as $name => $value) {
+            $this->attribute($name, $value);
+        }
 
         return $this;
     }
@@ -175,22 +231,43 @@ abstract class Field {
     /**
      * Retourne ou modifie la valeur d'un attribut.
      *
-     * @param string $name le nom de l'attribut.
+     * Appellée avec un seul paramètre, la méthode retourne la valeur de
+     * l'attribut demandé ou null si celui-ci n'existe pas.
+     *
+     * Appellée avec deux paramètres, la méthode modifie la valeur de
+     * l'attribut indiqué. Si la valeur est vide (false, '', etc.) l'attribut
+     * est supprimé.
+     *
+     * La méthode reconnait les
+     * {@link http://www.w3.org/TR/html5/infrastructure.html#boolean-attribute
+     * attributs booléens} tels que selected="selected" ou checked="checked".
+     * Dans ce cas, vous pouvez utiliser true pour activer un attribut.
+     * Exemple :
+     * <code>
+     * $field->attribute('checked', true);
+     * echo $field->attribute('checked'); // retourne 'checked'
+     * </code>
+     *
+     * @param string $name le nom de l'attribut (en minuscules).
      * @param string $value la valeur de l'attribut
      *
      * @return string|$this
      */
     public function attribute($name, $value = null) {
+        // Getter
         if (is_null($value)) {
-            if (isset($this->attributes[$name])) {
-                return $this->attributes[$name];
-            } else {
-                return null;
-            }
+            return isset($this->attributes[$name]) ? $this->attributes[$name] : null;
         }
 
-        // @todo : tester si c'est un attribut booléen
-        $this->attributes[$name] = $value;
+        // Setter
+        if ($value) {
+            $this->attributes[$name] = isset(self::$booleanAttributes[$name]) ? $name : $value;
+        }
+
+        // L'attribut à une valeur vide (false, '', etc.). On le supprime
+        else {
+            unset($this->attributes[$name]);
+        }
 
         return $this;
     }
@@ -297,36 +374,40 @@ abstract class Field {
     }
 
     /**
-     * @var int
+     * Retourne ou modifie le numéro d'occurence du champ.
+     *
+     * @param int $occurence
+     *
+     * @return int|$this
      */
-    protected $occurence = 0;
-
     protected function occurence($occurence = null) {
-        if (is_null($occurence))
+        if (is_null($occurence)) {
             return $this->occurence;
+        }
 
         $this->occurence = $occurence;
+        $occurence ? $this->addClass('clone') : $this->removeClass('clone');
 
         return $this;
     }
 
+    /**
+     * Retourne le nom du contrôle html pour ce champ.
+     *
+     * La nom du contrôle est construit à partir du nom du champ, de son numéro
+     * d'occurence (s'il est répétable) et du nom des champs parents.
+     *
+     * Par exemple, si on a un champ "contact" (répétable) qui contient un champ
+     * "nom", la méthode retournera une chaine de la forme "contact[0][nom]".
+     *
+     * @return string
+     */
     protected function controlName() {
-        // Autre chose qu'un champ (i.e. pas de nom)
-        if (!$this->name)
-            return '';
-
-        // Champ de base
-        if (is_null($this->parent) || !$this->parent->name) {
-            $name = $this->name;
-        }
-
-        // Sous champ
-        else {
-            $name = $this->parent->controlName() . '[' . $this->name . ']';
-        }
-
-        if ($this->repeatable)
-            $name .= '[' . $this->occurence . ']';
+        $base = $this->parent ? $this->parent->controlName() : '';
+        if (!$this->name) return $base;
+        $name = $this->name;
+        $base && $name = $base . '[' . $name . ']';
+        $this->repeatable &&  $name .= '[' . $this->occurence . ']';
 
         return $name;
     }
@@ -339,8 +420,9 @@ abstract class Field {
      * @return string|$this
      */
     public function label($label = null) {
-        if (is_null($label))
+        if (is_null($label)) {
             return $this->label;
+        }
 
         $this->label = $label;
 
@@ -359,8 +441,9 @@ abstract class Field {
      * @return string|$this
      */
     public function description($description = null, $after = null) {
-        if (is_null($description))
+        if (is_null($description)) {
             return $this->description;
+        }
 
         $this->description = $description;
         if (!is_null($after)) {
@@ -378,8 +461,9 @@ abstract class Field {
      * @return mixed|$this
      */
     public function data($data = null) {
-        if (is_null($data))
+        if (is_null($data)) {
             return $this->data;
+        }
 
         $this->data = $data;
 
@@ -394,8 +478,9 @@ abstract class Field {
      * @return bool|$this
      */
     public function repeatable($repeatable = null) {
-        if (is_null($repeatable))
+        if (is_null($repeatable)) {
             return $this->repeatable;
+        }
 
         $this->repeatable = $repeatable;
 
@@ -427,6 +512,7 @@ abstract class Field {
      * @param array|ArrayAccess|Object|Scalar $data
      */
     public function bind($data) {
+        $this->data = null;
         if (is_array($data) || $data instanceof ArrayAccess) {
             if (isset($data[$this->name])) {
                 $this->data = $data[$this->name];
@@ -449,8 +535,6 @@ abstract class Field {
             $this->data = $data;
         }
 
-        // else : ben c'est quoi ?
-
         return $this;
     }
 
@@ -458,183 +542,224 @@ abstract class Field {
         return $this->bind($data);
     }
 
-    /**
-     * Génère le rendu du champ en utilisant le thème indiqué.
-     *
-     * @param string $theme Le nom du thème à utiliser pour faire le rendu
-     * de l'élément.
-     *
-     * @param string $template Optionnel, le nom du template à appeller.
-     *
-     * @param array|null $args Paramètres optionnels utilisés pour le rendu du
-     * formulaire ou bien transmis aux templates utilisés pour la génération.
-     *
-     * Actuellement, la seule option reconnue est la clé 'option'.
-     *
-     * Les options disponibles sont :
-     *
-     * - indent : chaine utilisée pour l'indentation du code html généré.
-     * Par défaut, le code html n'est pas indenté. Vous pouvez indiquer
-     * soit true (indenter de quatre espaces), soit un entier (indenter de x
-     * espaces) soit une chaine d'indentation personnalisée ("\t", "  ", etc.)
-     *
-     * - charset : jeu de caractères à utiliser pour la génération du code html.
-     * Par défaut, le formulaire est généré en UTF-8. Vous pouvez indiquer un
-     * charset différent dans cette option. Remarque : le charset indiqué doit
-     * être supporté par XMLWriter, consultez la doc.
-     *
-     * - comment : ajoute le nom des templates utilisés pour le rendu sous
-     * forme de commentaires insérés dans le code html généré.
-     *
-     * @param bool $inherit Optionnel True pour exécuter le template de la
-     * classe parent au lieu du template de la classe en cours.
-     */
-    public function render($theme = 'default', $template = 'container', $args = null, $inherit = false) {
-        // Premier appel : crée l'objet xmlwriter
-        if (is_null(self::$writer)) {
+    public function render($theme = 'default', array $options = array()) {
+        // Sanity check
+        if (self::$writer) {
+            throw new Exception('Rendering already started');
+        }
 
-            // Crée le XMLWriter
-            self::$writer = new XMLWriter();
-            self::$writer->openURI('php://output');
-            // Faire une option ?
-            $createdWriter = true;
+        // Stocke le thème utilisé
+        self::$theme = $theme;
 
-            // Gère les options indiquées
-            if (isset($args['options'])) {
-                $options = $args['options'];
+        // Crée le XMLWriter
+        self::$writer = new XMLWriter();
+        self::$writer->openURI('php://output');
 
-                // Option indent : indentation du code
-                // Le test ci-dessous ignore false, 0, '' (pas d'indentation)
-                self::$indent = isset($options['indent']) && $options['indent'];
+        // Options de rendu par défaut
+        $options += array(
+            'charset' => 'UTF-8',
+            'indent' => false,
+            'comment' => false,
+        );
 
-                if (self::$indent) {
-                    $indent = $options['indent'];
+        // Option 'charset' : jeu de caractère utilisé
 
-                    // true = 4 espaces par défaut
-                    if ($indent === true) {
-                        $indent = '    ';
+        // Pour que XMLWriter nous génère de l'utf-8, il faut obligatoirement
+        // appeller startDocument() et indiquer l'encoding. Sinon, xmlwriter
+        // génère des entités numériques (par exemple "M&#xE9;nard").
+        // Par contre, on ne veut pas que le prologue xml (<?xml ..>) apparaisse
+        // dans la sortie générée. Donc on bufferise le prologue et on l'ignore.
+        ob_start();
+        self::$writer->startDocument('1.0', $options['charset']);
+        self::$writer->flush();
+        ob_end_clean();
 
-                        // entier : n espaces
-                    } elseif (is_int($indent)) {
-                        $indent = str_repeat(' ', $indent);
-                    }
+        // Option indent : indentation du code
+        self::$indent = (bool)$options['indent'];
 
-                    // sinon : chaine litérale (tabulation, deux espaces, etc.)
+        // Le test ci-dessus ignore false, 0 et '' ( = pas d'indentation)
+        if (self::$indent) {
+            $indent = $options['indent'];
 
-                    // Demande au xmlwriter de nous indenter le code
-                    self::$writer->setIndent(true);
-                    self::$writer->setIndentString($indent);
+            // true = 4 espaces par défaut
+            if ($indent === true) {
+                $indent = '    ';
 
-                }
-
-                // Option 'charset' : jeu de caractère utilisé
-                $charset = isset($options['charset']) ? $options['charset'] : 'UTF-8';
-
-                // Pour que XMLWriter nous génère de l'utf-8, il faut
-                // obligatoirement appeller startDocument() et indiquer
-                // l'encoding. Dans le cas contraire, xmlwriter génère des
-                // entités numériques (par exemple "M&#xE9;nard").
-                // Par contre, on ne veut pas que le prologue xml (<?xml ..>)
-                // apparaisse dans la sortie générée. Donc on bufferise
-                // l'écriture du prologue et on l'ignore.
-                ob_start();
-                self::$writer->startDocument('1.0', $charset);
-                self::$writer->flush();
-                ob_end_clean();
-
-                // Supprime les variables dont on n'a plus besoin pour qu'on
-                // n'ait dans les templates que les variables documentées.
-                // Vide également $args si on n'avait que options car on n'en
-                // aura plus besoin pour le rendu et ça évite de faire un
-                // extract à chaque exécution de template.
-                unset($indent, $charset);
-                unset($options['indent'], $options['charset']);
-                if (empty($options)) {
-                    unset($args['options']);
-                    if (empty($args)) {
-                        $args = null;
-                    }
-                }
-                unset($options);
+                // entier : n espaces
+            } elseif (is_int($indent)) {
+                $indent = str_repeat(' ', $indent);
             }
 
-            // Débogage : vérifie que les templates transmettent bien $args aux
-            // sous-templates
-            $args['dmdm'] = 1;
+            // Sinon : chaine litérale (tabulation, deux espaces, etc.)
+
+            // Demande au xmlwriter de nous indenter le code
+            self::$writer->setIndent(true);
+            self::$writer->setIndentString($indent);
+
         }
 
-        // Débogage - Vérifie que $args est correctement transmis
-        if (!isset($args['dmdm'])) {
-            $t = debug_backtrace();
-            $file = $t[0]['file'];
-            $file = basename(dirname($file)) . '/' . basename($file);
-            $line = $t[0]['line'];
-            echo "\nARGUMENTS NON TRANSMIS : $file ligne $line\n";
+        // Option comment
+        self::$comment = $options['comment'];
+
+        // Fait le rendu du champ
+        $this->block('container');
+
+        // Flushe et ferme le writer
+        self::$writer->endDocument();
+        self::$writer->flush();
+        self::$writer = null;
+    }
+
+    /**
+     * Exécute un template de rendu pour le champ en cours.
+     *
+     * Le nom exact du template exécuté est construit à partir du thème en
+     * cours (tel que passé lors de l'appel à la méthode render()), du type du
+     * champ (tel que retourné par la méthode type()) et du nom de bloc passé
+     * en paramétre.
+     *
+     * Par exemple, block('container') pour un champ Input exécutera le
+     * template input.container.php du thème en cours.
+     *
+     * @param string $block Nom du block à exécuter (container, label, etc.)
+     * @param array $args Paramètres à passer au tempalte.
+     */
+    protected function block($block, array $args = null) {
+        $path = $this->findBlock(get_class($this), $block);
+        $this->callBlock($path, $args);
+    }
+
+    /**
+     * Permet à un block "d'hériter" du template de son parent.
+     *
+     * La méthode fonctionne exactement comme la méthode block(), mais au lieu
+     * d'exécuter le bloc du champ en cours, elle exécute le bloc associé à la
+     * classe parent du champ en cours.
+     *
+     * Par exemple, parentBlock('container') pour un champ Input exécutera le
+     * template field.container.php du thème en cours (car la classe Input
+     * hérite de la classe Field).
+     *
+     * @param string $block Nom du block à exécuter (container, label, etc.)
+     * @param array $args Paramètres à passer au tempalte.
+     */
+    protected function parentBlock(array $args = null) {
+        $last = end($this->callStack);
+
+        $path = $this->findBlock(get_parent_class($last['class']), $last['block']);
+
+        $this->callBlock($path, $args);
+    }
+
+    /**
+     * Permet à un bloc d'hériter du bloc par défaut fourni par le thème parent.
+     *
+     * La méthode fonctionne exactement comme la méthode block(), mais au lieu
+     * d'exécuter le bloc du thème en cours, elle exécute le bloc présent dans
+     * le thème parent du thème en cours.
+     *
+     * Par exemple, avec le thème bootstrap, defaultBlock('container') pour
+     * un champ Input exécutera le template field.container.php du thème default
+     * puisque le thème bootstrap hérite du thème default.
+     *
+     * @param string $block Nom du block à exécuter (container, label, etc.)
+     * @param array $args Paramètres à passer au tempalte.
+     */
+    protected function defaultBlock(array $args = null) {
+        if (false === $theme = Themes::baseTheme(self::$theme)) {
+            throw new Exception('No parent theme for ' . self::$theme);
         }
 
-        // On commence soit avec la classe de l'objet, soit celle de son parent
-        $class = $inherit ? get_parent_class($this) : get_class($this);
+        $last = end($this->callStack);
 
-        // On remonte la hiérarchie des classes jusqu'à ce qu'on trouve $template
+        $path = Themes::path($theme) . $last['file'];
+        if (!file_exists($path)) {
+            throw new Exception("Default template $theme/$last[file] do not exist");
+        }
+
+        $this->callBlock($path, $args);
+    }
+
+    /**
+     * Exécute le template dont le path est passé en paramètre en lui passant
+     * les paramètres indiqués.
+     *
+     * @param string $path le path complet du template à exécuter.
+     * @param array les paramètres à passer au template.
+     */
+    protected function callBlock($path, array $args = null) {
+        $writer = self::$writer;
+        if (is_null($args)) {
+            $args = array();
+        } else {
+            extract($args, EXTR_SKIP);
+        }
+
+        // Exécute le template et met en commentaire le nom des blocs
+        if (self::$comment && false === strpos($path, 'attributes')) {
+            $templateFriendlyName = basename(dirname($path)) . '/' . basename($path);
+            self::$writer->writeComment(' start ' . $templateFriendlyName);
+            include $path;
+            self::$writer->writeComment(' end  ' . $templateFriendlyName);
+        }
+
+        // Exécute le template normallement
+        else {
+            include $path;
+        }
+
+        // Dépile le bloc ajouté à la pile par findBlock
+        array_pop($this->callStack);
+    }
+
+    /**
+     * Rercherche le template correspondant à un thème, une classe et un nom
+     * de cloc donné.
+     *
+     * La méthode remonte la hiérarchie des classes et des thèmes pour
+     * déterminer le path exact du template à exécuter. Si aucun template n'est
+     * trouvé, une Exception est levée.
+     *
+     * @param string $class La classe du champ à partir de laquelle on va
+     * commencer à remonter la hiérarchie.
+     * @param string $block le nom du bloc recherché.
+     *
+     * @return string le path absolu du template à exécuter.
+     *
+     * @throws Exception si aucun template n'a été trouvé.
+     */
+    protected function findBlock($class, $block) {
+        // On remonte la hiérarchie des classes
         do {
             // Détermine le nom du template recherché
-            $file = strtolower(substr(strrchr($class, '\\'), 1)) . ".$template.php";
+            $file = strtolower(substr(strrchr($class, '\\'), 1)) . ".$block.php";
 
-            // Détermine son path dans le thème (ou dans les thèmes parents)
-            $path = Themes::search($theme, $file);
-
-            // On a trouvé, on exécute le template
-            if ($path !== false) {
-
-                // Les variables accessibles depuis un template sont :
-                // - $this : l'objet Field en cours de rendu
-                // - $theme : le nom du thème en cours
-                // - $template : le nom du template en cours
-                // - $path : son path complet
-                // - $args : les paramètres du template
-                // - $writer : l'ojet XMLWriter utilisé pour générer le html
-                // - les varaibles définies dans le tableau $args.
-                //
-                // On a aussi $createdWriter, mais on est obligé de la garder.
-                unset($inherit, $class, $file);
-                $writer = self::$writer;
-                $args && extract($args, EXTR_SKIP);
-
-                // Exécute le template et ajoute en commentaire le nom des
-                // templates
-                if (isset($args['options']['comment']) && $args['options']['comment'] && $template !== 'attributes') {
-                    $templateFriendlyName = basename(dirname($path)) . '-' . basename($path);
-                    self::$writer->writeComment(' start ' . $templateFriendlyName);
-
-                    include $path;
-                    self::$writer->writeComment(' end  ' . $templateFriendlyName);
-                }
-
-                // Exécute le template normallement
-                else {
-                    include $path;
-                }
-
-                // Si c'est nous qui avons créé le writer, on le ferme
-                if (isset($createdWriter)) {
-                    self::$writer->endDocument();
+            // Teste s'il existe dans le thème ou dans les thèmes hérités
+            if (false !== $path = Themes::search(self::$theme, $file)) {
+                // Détection de boucles infinies
+                if (isset($this->callStack[$path])) {
                     self::$writer->flush();
-                    self::$writer = null;
+                    echo "<pre>Boucle infinie :\n\n";
+                    echo implode("\n", array_keys($this->callStack));
+                    echo "\n", $path, '</pre>';
+                    die();
                 }
 
-                // Terminé
-                return;
-            }
+                // Empile les infos sur le template en cours
+                // C'est la méthode callBlock qui se charge de dépiler le bloc
+                // après l'exécution de celui-ci.
+                $this->callStack[$path] = array(
+                    'class' => $class,
+                    'file' => $file,
+                    'block' => $block,
+                );
 
-            // Continue à remonter la hiérarchie
-            $class = get_parent_class($class);
-        } while($class);
+                return $path;
+            }
+        } while(false !== $class = get_parent_class($class));
 
         // Le template demandé n'existe pas dans ce thème
-        $class = $inherit ? get_parent_class($this) : get_class($this);
-        $file = strtolower(substr(strrchr($class, '\\'), 1)) . ".$template.php";
-        $msg = 'Unable to render template %s with theme %s';
-        throw new Exception(sprintf($msg, $file, $theme));
+        throw new Exception('Unable to render template');
     }
 
     public function generateId() {
@@ -649,79 +774,6 @@ abstract class Field {
             $this->attributes['id'] = $id;
         }
         return $this->attributes['id'];
-    }
-
-    /**
-     * Affiche le code html d'un attribut html.
-     *
-     * La méthode se charge de filtrer (escape) correctement le nom et la
-     * valeur de l'attribut. Le nom de l'attribut est toujours généré en
-     * minuscules.
-     *
-     * Elle prend également en charge les
-     * {@link http://www.w3.org/TR/html5/infrastructure.html#boolean-attribute
-     * attributs booléens} tels que selected="selected", checked="checked", etc.
-     *
-     * La chaine générée est de la forme ' name="valeur"' (avec un espace
-     * initial). Si l'attribut n'a pas besoin d'être généré (cas d'un attribut
-     * booléen à faux), la méthode n'affiche rien.
-     *
-     * @param string $name Le nom de l'attribut.
-     * @param string $value La valeur de l'attribut.
-     */
-    public function htmlAttribute($name, $value) {
-        // Liste des attributs booléen existants en html 5.
-        //
-        // cf http://www.w3.org/TR/html5/infrastructure.html#boolean-attribute
-        // Cette liste a été constituée "à la main" en recherchant la chaine
-        // "boolean attribute" dans la page :
-        // http://www.w3.org/TR/html5/index.html.
-        static $booleanAttributes = array(
-            'async' => true,
-            'autofocus' => true,
-            'autoplay' => true,
-            'checked' => true,
-            'controls' => true,
-            'default' => true,
-            'defer' => true,
-            'disabled' => true,
-            'formnovalidate' => true,
-            'hidden' => true,
-            'ismap' => true,
-            'loop' => true,
-            'multiple' => true,
-            'muted' => true,
-            'novalidate' => true,
-            'open' => true,
-            'readonly' => true,
-            'required' => true,
-            'reversed' => true,
-            'scoped' => true,
-            'seamless' => true,
-            'selected' => true,
-            'typemustmatch' => true,
-        );
-
-        // Minusculise le nom de l'attribut
-        $name = strtolower($name);
-        $name = htmlspecialchars($name, ENT_COMPAT, 'UTF-8', true);
-
-        // Attributs booléens
-        if (isset($booleanAttributes[$name])) {
-            // On ne génère quelque chose que si l'attribut est à vrai
-            if ($value === true || 0 === strcasecmp($value, $name) || $value === 'true') {
-                echo ' ', $name, '="', $name, '"';
-            }
-
-            // l'attribut booléen est à faux, on ne génére rien. On aurait pu
-            // aussi choisir de générer name="", mais ce n'est pas très utile.
-
-            // Autres attributs
-        } else {
-            $value = htmlspecialchars($value, ENT_COMPAT, 'UTF-8', true);
-
-            echo ' ', $name, '="', $value, '"';
-        }
     }
 
     public function toArray($withData = false) {

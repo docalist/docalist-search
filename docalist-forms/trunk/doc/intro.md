@@ -88,6 +88,8 @@ Mais si on veut manipuler des données dans ce format, il faut pouvoir les saisi
 
 ## Nos contraintes
 
+Les formulaires ont toujours eu un statut un peu hybride. Par exemple, en architecture MVC, ça "rentre pas bien" dans les boites car c'est à cheval sur les trois couches : sur le fond, c'est une vue, mais elle est liée au modèle car elle en gère les données et enfin, elle contient du code de validation qui relève plutôt de la logique métier...
+
 Notre formulaire va devoir :
 
 - gérer des champs simples (input text, select, textarea)
@@ -108,8 +110,9 @@ On a aussi quelques contraintes techniques :
 - etc.
 
 Et quelques contraintes humaines :
+
 - les formulaires ça enquiquinne tout le monde !
-- c'est infernal à coder à la main
+- c'est pénible à coder à la main
 - on n'a pas le temps d'y passer beaucoup de temps (M. le client, on a fait le devis pour votre formulaire : cinq jours...)
 - on a encore moins envie de mettre son nez dans le code écrit pas quelqu'un d'autre...
 
@@ -185,7 +188,7 @@ $form->submit('Go !');
 
 - La classe Fields est essentiellement une Factory (design pattern) = des méthodes pour créer des champs et les ajouter à la collection.
 
-- On suit de prête la terminologie html (les noms des contrôles, des attributs, etc.)
+- On suit de prêt la terminologie html (les noms des contrôles, des attributs, etc.)
 
 - Mais on "harmonise" : par exemple pour les `Fieldset` ce n'est pas `legend()` mais `label()`.
 
@@ -193,8 +196,12 @@ $form->submit('Go !');
 
 - Les id sont générés automatiquement en cas de besoin (et sont uniques). On peut aussi spécifier ses propres id.
 
-- L'API est extensible : vous pouvez facilement créer vos propres types de champ (par exemple les nouveaux types html5, des contrôles étendus comme [choosen](http://harvesthq.github.com/chosen/) ou [select2](http://ivaynberg.github.com/select2/)).
+- L'API est extensible : on peut facilement créer un nouveau type de champ (par exemple les nouveaux types html5, des contrôles étendus comme [choosen](http://harvesthq.github.com/chosen/) ou [select2](http://ivaynberg.github.com/select2/)).
 
+- Sérialisation. Un formulaire peut également être sérialisé (`$form->toArray()`; `$form = Form::fromArray()`; `$form->toJson()`; `$form = Form::fromJson()`, etc.)
+
+  * le formulaire peut être stocké dans la config de l'appli
+  * on peut envisager un "form builder" qui permet à l'utilisateur de le paramétrer
 
 ## Afficher le formulaire
 
@@ -276,7 +283,6 @@ if ($form->isValid()) {...}
 ```php
 function createForm() {} // crée le formulaire
 function getDefaults() {} // retourne un tableau contenant les valeurs par défaut
-function save() {} // Enregistre les données saisies
 
 // Crée le formulaire
 $form = createForm();
@@ -287,14 +293,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // Soumission de formulaire, charge et valide les données saisies
-else
-{
+else {
     // Charge les données fournies
     $form->bind($_POST);
 
     // Si les données sont valides, on les enregistre et c'est fini
     if ($form->valid()) {
-        save();
+        $post->post_content = json_encode($form->data()); // par exemple... à creuser.
         echo "Success";
         return;
     }
@@ -312,6 +317,10 @@ $form->render('default');
 ## Design technique
 
 - Open source, GPL V3 (produit d'appel)
+
+- Zéro dépendance php. Pour le js : librairies standard (jquery, bootstrap...)
+
+- Clean IP : 100% écrit içi.
 
 - Que de l'objet : aucune fonction globale, pas de define, pas de variables globales, etc.
 

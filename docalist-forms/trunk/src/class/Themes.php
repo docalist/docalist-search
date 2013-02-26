@@ -32,7 +32,6 @@ class Themes {
      *     'extends' => nom du thème de base de ce thème
      *     'assets' => liste des css et des js requis pour ce thème = array
      * )
-     *
      */
     protected static $themes = array();
 
@@ -48,7 +47,6 @@ class Themes {
             $msg = 'Theme not found "%s"';
             throw new Exception(sprintf($msg, $name));
         }
-
     }
 
     /**
@@ -94,13 +92,13 @@ class Themes {
      * Enregistre les thèmes par défaut du package.
      */
     public static function registerDefaultThemes() {
-        // on ne peut pas initialiser directement la propriété lors de sa
-        // déclaration parce qu'on utilise __DIR__ et une concaténation et
-        // php ne supporte pas ça.
+        // Répertoire de base des thèmes
         $dir = dirname(__DIR__) . '/themes/';
+
+        // Thèmes standard
         self::$themes = array(
-            'default' => array(
-                'path' => $dir . 'default/',
+            'base' => array(
+                'path' => $dir . 'base/',
                 'extends' => false,
                 'assets' => array(
                     'jquery' => array(
@@ -115,15 +113,36 @@ class Themes {
                     ),
                 ),
             ),
+
             'bootstrap' => array(
                 'path' => $dir . 'bootstrap/',
-                'extends' => 'default',
-                'assets' => array('bootstrap-css' => array(
+                'extends' => 'base',
+                'assets' => array(
+                    'bootstrap-css' => array(
                         'type' => 'css',
                         'name' => 'bootstrap-css',
                         'src' => '//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/css/bootstrap-combined.min.css',
-                    ), )
+                    ),
+                    'bootstrap-theme' => array(
+                        'type' => 'css',
+                        'name' => 'bootstrap-theme',
+                        'src' => 'themes/bootstrap/bootstrap-theme.css',
+                    ),
+                )
             ),
+
+            'default' => array(
+                'path' => $dir . 'default/',
+                'extends' => 'base',
+                'assets' => array(
+                    'default-theme' => array(
+                        'type' => 'css',
+                        'name' => 'default-theme',
+                        'src' => 'themes/default/default.css',
+                    ),
+                )
+            ),
+
             'form-table' => array(
                 'path' => $dir . 'form-table/',
                 'extends' => false,
@@ -149,7 +168,7 @@ class Themes {
     }
 
     /**
-     * Retourne le thème de base d'un thème.
+     * Retourne le thème parent d'un thème.
      *
      * @param string $theme Le nom du thème recherché.
      *
@@ -168,19 +187,21 @@ class Themes {
      *
      * @param string $theme Le nom du thème recherché.
      *
-     * @return array
+     * @return array Un tableau contenant tous les assets déclarés par le thème
+     * demandé ou par les thèmes dont il hérite.
      *
      * @throws Exception Si le thème indiqué n'existe pas.
      */
     public static function assets($name) {
         self::check($name);
 
-        $assets = self::$themes['default']['assets'];
-        if ($name !== 'default') {
-            $assets = array_merge($assets, self::$themes[$name]['assets']);
-        }
+        $assets = array();
+        do {
+            array_unshift($assets, self::$themes[$name]['assets']);
+            $name = self::$themes[$name]['extends'];
+        } while($name);
 
-        return $assets;
+        return call_user_func_array('array_merge', $assets);
     }
 
     /**

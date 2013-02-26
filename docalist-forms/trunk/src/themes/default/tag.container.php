@@ -1,5 +1,5 @@
 <?php
-$this->description && (! $this->descriptionAfter) && $this->render($theme, 'description', $args);
-$this->render($theme, 'errors', $args);
-$this->render($theme, 'values', $args);
-$this->description && $this->descriptionAfter && $this->render($theme, 'description', $args);
+$this->description && (! $this->descriptionAfter) && $this->block('description');
+$this->block('errors');
+$this->block('values');
+$this->description && $this->descriptionAfter && $this->block('description');

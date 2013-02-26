@@ -1,5 +1,5 @@
 <?php
 $writer->startElement('fieldset');
-$this->label && $writer->writeElement('legend', $this->label);
-$this->render($theme, 'widget', $args, true);
+$this->block('attributes', $args);
+$this->parentBlock($args);
 $writer->fullEndElement();

@@ -1,42 +1,59 @@
 <?php
-$writer->startElement('table');
-$this->render($theme, 'attributes', $args);
+// Tous les arguments passés en paramètre ($arg) sont considérés comme
+// des attributs qui sont ajoutés au tag <table>.
 
-// Entête du tableau : nom des champs
+$writer->startElement('table');
+foreach($args as $name => $value) {
+    $writer->writeAttribute($name, $value);
+}
+
+// THEAD - nom des champs
+$hasDescription = false;
 $writer->startElement('thead');
 $writer->startElement('tr');
 foreach($this->fields as $field) {
     $writer->startElement('th');
     $writer->writeAttribute('scope', 'col');
-    $writer->text($field->label ?: $field->name);
+    $writer->writeRaw($field->label ?: $field->name);
+    $hasDescription = $hasDescription || $field->description;
     $writer->fullEndElement(); // </th>
 }
 $writer->fullEndElement(); // </tr>
 $writer->fullEndElement(); // </thead>
 
-// Corps du tableau : liste des valeurs
+// TBODY - liste des valeurs
 $writer->startElement('tbody');
 $data = $this->data ?: array(null);
 foreach($data as $i=>$data) {
     $this->occurence($i);
     $this->bindOccurence($data);
-    $this->render($theme, 'widget', $args);
+    $this->block('widget');
 }
 $writer->fullEndElement(); // </tbody>
 
-// Pied du tableau : bouton "ajouter une ligne"
-if ($this->repeatable) {
+// TFOOT - bouton "ajouter une ligne"
+if ($this->repeatable || $hasDescription) {
     $writer->startElement('tfoot');
-
+    if ($hasDescription) {
+        $writer->startElement('tr');
+        foreach($this->fields as $field) {
+            $writer->startElement('td');
+            $writer->writeAttribute('class', 'description');
+            $writer->writeRaw($field->description);
+            $writer->fullEndElement(); // </td>
+        }
+        $writer->fullEndElement(); // </tr>
+    }
+/*
     $writer->startElement('tr');
     $writer->startElement('td');
     $writer->writeAttribute('colspan', count($this->fields));
-    $this->render($theme, 'add', $args);
-    $writer->fullEndElement(); // </th>
-
+    $this->block('add');
+    $writer->fullEndElement(); // </td>
     $writer->fullEndElement(); // </tr>
-
+*/
     $writer->fullEndElement(); // </foot>
 }
 
 $writer->fullEndElement(); // </table>
+$this->block('add');

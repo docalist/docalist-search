@@ -7,7 +7,7 @@ $selfClosing = 'area,base,br,col,command,embed,hr,img,input,keygen,link,metapara
 if ($this->tag) {
     $writer->startElement($this->tag);
     $this->name && $writer->writeAttribute('name', $this->controlName());
-    $this->render($theme, 'attributes', $args);
+    $this->block('attributes', $args);
 
     $writer->text($this->content);
 

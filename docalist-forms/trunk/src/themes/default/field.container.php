@@ -1,9 +1,15 @@
 <?php
 $writer->startElement('div');
-$writer->writeAttribute('class', 'field ' . $this->type());
-$this->label && $this->render($theme, 'label', $args);
-$this->description && (! $this->descriptionAfter) && $this->render($theme, 'description', $args);
-$this->render($theme, 'errors', $args);
-$this->render($theme, 'values', $args);
-$this->description && $this->descriptionAfter && $this->render($theme, 'description', $args);
+$writer->writeAttribute('class', 'dcl-row dcl-' . $this->type());
+$this->label && $this->block('label');
+
+$writer->startElement('div');
+$writer->writeAttribute('class', 'dcl-wrapper');
+
+$this->description && (! $this->descriptionAfter) && $this->block('description');
+$this->block('errors');
+$this->block('values');
+$this->description && $this->descriptionAfter && $this->block('description');
+$writer->fullEndElement();
+
 $writer->fullEndElement();

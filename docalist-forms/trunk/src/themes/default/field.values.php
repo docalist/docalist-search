@@ -1,15 +1,12 @@
 <?php
-if (! $this->repeatable) {
-    $this->render($theme, 'widget', $args);
-}
-
-else
-{
-    $data = $this->data ?: array(null);
-    foreach($data as $i=>$data) {
+if (!$this->repeatable) {
+    $this->block('widget');
+} else {
+    $data = $this->data ? : array(null);
+    foreach ($data as $i => $data) {
         $this->occurence($i);
         $this->bindOccurence($data);
-        $this->render($theme, 'widget', $args);
+        $this->block('widget');
     }
-    $this->render($theme, 'add', $args);
+    $this->block('add');
 }

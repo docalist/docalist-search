@@ -15,7 +15,7 @@ $writer->writeRaw($label);
 $writer->endElement();
 
 $writer->startElement('ul');
-$this->render($theme, 'optgroup', $args, true);
+$this->parentBlock($args);
 $writer->endElement();
 
 $writer->endElement(); // li

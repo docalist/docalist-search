@@ -6,10 +6,10 @@ $writer->startElement('button');
 $writer->writeAttribute('type', 'button');
 
 // Génère les attributs du bouton (class="cloner", data-clone, data-level)
-$this->render($theme, 'add.attributes', $args);
+$this->block('add.attributes');
 
 // Génère le contenu du champ. On passe par un template pour permettre aux
 // thèmes descendants de surcharger sans avoir à réécrire tout le bouton
-$this->render($theme, 'add.content', $args);
+$this->block('add.content');
 
 $writer->fullEndElement();

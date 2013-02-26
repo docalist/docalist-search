@@ -10,5 +10,5 @@
  */
 $writer->startElement('optgroup');
 $writer->writeAttribute('label', $label);
-$this->render($theme, 'optgroup', $args, true);
+$this->parentBlock($args);
 $writer->fullEndElement();

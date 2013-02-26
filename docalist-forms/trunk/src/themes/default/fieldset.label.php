@@ -1,2 +1,4 @@
 <?php
-// Ce widget affiche lui-même son label (dans .widget). On n'affiche rien ici.
+$writer->startElement('h4');
+$writer->writeRaw($this->label);
+$writer->fullEndElement();

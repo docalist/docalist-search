@@ -1,4 +1,4 @@
 <?php
 foreach($this->fields as $field) {
-    $field->render($theme, 'container', $args);
+    $field->block('container');
 }

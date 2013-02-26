@@ -33,9 +33,9 @@ $writer->writeAttribute('class', $class);
 
 // Génère data-clone (si différent de '<')
 // Les thèmes descendants peuvent nous appeller en passant un argument
-// "selector" indiquant le sélecteur à générer
-if (isset($selector) && $selector !== '<') {
-    $writer->writeAttribute('data-clone', $selector);
+// "data-clone" indiquant le sélecteur à générer
+if (isset($args['data-clone']) && $args['data-clone'] !== '<') {
+    $writer->writeAttribute('data-clone', $args['data-clone']);
 }
 
 // Génère data-level (si différent de 1)

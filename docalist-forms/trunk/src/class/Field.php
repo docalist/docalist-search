@@ -666,7 +666,7 @@ abstract class Field {
      * @param array $args Paramètres à passer au tempalte.
      */
     protected function defaultBlock(array $args = null) {
-        if (false === $theme = Themes::baseTheme(self::$theme)) {
+        if (false === $theme = Themes::parent(self::$theme)) {
             throw new Exception('No parent theme for ' . self::$theme);
         }
 

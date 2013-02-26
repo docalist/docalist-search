@@ -176,7 +176,7 @@ class Themes {
      *
      * @throws Exception Si le thème indiqué n'existe pas.
      */
-    public static function baseTheme($name) {
+    public static function parent($name) {
         self::check($name);
 
         return self::$themes[$name]['extends'];

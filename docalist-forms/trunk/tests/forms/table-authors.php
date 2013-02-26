@@ -2,19 +2,28 @@
 use Docalist\Forms\Form;
 
 $form = new Form();
-$form->label('Saisie des auteurs dans une table');
+$form->label('Saisie des auteurs dans une table')
+     ->description('Indiquez les auteurs du document en séparant les auteurs physiques (personnes) des auteurs moraux (organismes).');
 
 $form->input('test')->label('test');
 
-$author = $form->table('author')->repeatable(true)->label('Personnes');
+$author = $form->table('author')
+    ->repeatable(true)
+    ->label('Personnes')
+    ->description('Indiquez les personnes auteurs du document.');
+
 $author->input('surname')->label('Nom');
-$author->input('firstname')->label('Prenom')->repeatable(true);
+$author->input('firstname')->label('Prénom')->repeatable(true);
 $author->select('role')->label('Rôle')->options(array(
     'trad.',
     'pref.',
 ));
 
-$org = $form->table('organisation')->repeatable(true)->label('Organismes');
+$org = $form->table('organisation')
+    ->repeatable(true)
+    ->label('Organismes')
+    ->description('Indiquez les organismes auteurs du document.');
+
 $org->input('name')->label('Nom');
 $org->input('city')->label('Ville');
 $org->input('country')->label('Pays');

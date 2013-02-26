@@ -83,7 +83,7 @@
             <div id="render" class="well">
                 <?php
                     ob_start();
-                    $form->render($theme, 'container', array('options' => $options));
+                    $form->render($theme, $options);
                     $html = ob_get_flush();
                 ?>
             </div>
@@ -154,13 +154,11 @@ function choose() {
     $form->select('file')
          ->label('Formulaire à tester :')
          ->options($files)
-         ->multiple(true)
          ->attribute('size', 20);
 
     $form->select('theme')
          ->label('Thème à utiliser :')
          ->options(Themes::all())
-         ->multiple(true)
          ->attribute('size', 3);
 
     $form->checklist('options')
@@ -181,10 +179,8 @@ function assets($assets, $pos) {
 
         extract($asset);
 
-        switch($name) {
-            case 'docalist-forms':
-                $src = '../src/' . $src;
-                break;
+        if ( false === strpos($src, '//')) {
+            $src = '../src/' . $src;
         }
 
         if ($condition) echo "<!--[if $condition]>\n";

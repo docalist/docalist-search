@@ -17,6 +17,12 @@ namespace Docalist;
 use Exception;
 
 /**
+ * Remarque : Container ne devrait pas être une interface mais un Trait.
+ * Il faudra refactorer le code quand on aura migré en php5.4 (rechercher la
+ * chaine "TraitContainer" dans le code).
+ */
+
+/**
  * Représente une collection d'objets Registrable auxquels on accède via
  * leur nom.
  */

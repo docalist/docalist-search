@@ -14,6 +14,7 @@
  */
 
 namespace Docalist;
+use Exception;
 
 /**
  * Autoloader de Docalist.

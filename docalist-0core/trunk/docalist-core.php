@@ -1,9 +1,9 @@
 <?php
 /**
  * This file is part of the "Docalist Core" plugin.
- * 
+ *
  * Copyright (C) 2012 Daniel Ménard
- * 
+ *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -24,14 +24,19 @@
  */
 
 namespace Docalist\Core;
-use Docalist;
+use Docalist, Docalist\Autoloader;
 
-// Initialise le framework
+// Initialise l'autoloader
+require_once __DIR__ . '/class/Autoloader.php';
+
+// Charge la classe de base du framework
 require_once __DIR__ . '/class/Docalist.php';
-Docalist::initialize();
 
-// Enregistre notre espace de noms
-Docalist::registerNamespace(__NAMESPACE__, __DIR__ . '/class/Core');
+// Enregistre notre espace de nom
+Autoloader::register('Docalist', __DIR__ . '/class');
 
-// Charge le plugin
-Docalist::load('Docalist\\Core\\Plugin', __FILE__);
+// Enregistre docalist-forms
+Autoloader::register('Docalist\Forms', __DIR__ . '/lib/docalist-forms/class');
+
+// Charge le plugin "Core"
+Docalist::load('Docalist\Core', __FILE__);

@@ -3,7 +3,7 @@
  * This file is part of the "Docalist Core" plugin.
  *
  * Copyright (C) 2012 Daniel Ménard
- * 
+ *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -13,13 +13,13 @@
  * @version     SVN: $Id$
  */
 
-namespace Docalist\Core\Tools;
-use Docalist\Core\AbstractTool;
+namespace Docalist\Tools;
+use Docalist\Tool;
 
 /**
  * PhpInfo.
  */
-class PhpInfo extends AbstractTool {
+class PhpInfo extends Tool {
     /**
      * {@inheritdoc}
      */

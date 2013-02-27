@@ -2,8 +2,8 @@
 /**
  * This file is part of the "Docalist Core" plugin.
  *
- * Copyright (C) 2012 Daniel Ménard
- * 
+ * Copyright (C) 2012, 2013 Daniel Ménard
+ *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -13,13 +13,20 @@
  * @version     SVN: $Id$
  */
 
-namespace Docalist\Core;
-use Docalist;
+namespace Docalist;
+use Docalist\Tools\ToolsList;
 
 /**
  * Plugin core de Docalist.
  */
-class Plugin extends AbstractPlugin {
+class Core extends Plugin {
+    /**
+     * @inheritdoc
+     */
+     public function register() {
+
+     }
+
     /**
      * {@inheritdoc}
      */
@@ -31,7 +38,7 @@ class Plugin extends AbstractPlugin {
     /**
      * Crée dans Wordpress les pages "Outils Docalist" et "Options Docalist".
      *
-     * @return AbstractPlugin $this;
+     * @return Plugin $this;
      */
     protected function setupAdminPages() {
 
@@ -47,7 +54,7 @@ class Plugin extends AbstractPlugin {
                     $tool = Docalist::tool($_REQUEST['t']);
                     $back = sprintf('<a href="%s" style="float:right">%s</a>', menu_page_url('docalist-tools', false), __('Retour à la liste', 'docalist-core'));
                 } else {
-                    $tool = new Tools\ToolsList();
+                    $tool = new ToolsList();
                     $back = '';
                 }
 
@@ -99,6 +106,5 @@ class Plugin extends AbstractPlugin {
         return parent::setupAdminPages();
 
     }
-
 
 }

@@ -2,8 +2,8 @@
 /**
  * This file is part of the "Docalist Core" plugin.
  *
- * Copyright (C) 2012 Daniel Ménard
- * 
+ * Copyright (C) 2012, 2013 Daniel Ménard
+ *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -13,13 +13,13 @@
  * @version     SVN: $Id$
  */
 
-namespace Docalist\Core;
+namespace Docalist;
 use ReflectionObject, Exception;
 
 /**
  * Classe de base abstraite représentant un outil.
  */
-abstract class AbstractTool {
+abstract class Tool {
     /**
      * @var boolean Indique si l'outil s'exécute en ajax (dans un frame
      * thickbox) ou comme une page normale.
@@ -173,34 +173,34 @@ abstract class AbstractTool {
 
     /**
      * Retourne l'url à utiliser pour appeller une action dans de l'outil.
-     * 
+     *
      * Exemples d'utilisation :
-     * - url de l'action en cours : 
+     * - url de l'action en cours :
      *   <code>url()</code>
-     * 
+     *
      * - url de l'action en cours, en lui passant un paramètre :
      *   <code>url(array('arg'=>'value'))</code>
      *
      * - url pour appeller la méthode actionTest() sans paramètres :
      *   <code>url('test')</code>
-     * 
+     *
      * - url pour appeller la méthode actionTest() en lui passant un paramètre :
      *   <code>url('test', array('arg'=>'value'))</code>
-     * 
+     *
      * - url pour appeller la méthode actionOther() d'un autre outil :
      *   <code>url('other', array('t'=>'An.Other.Tool', 'arg' => 'value'))</code>
      *
      * @param string $method (optionnel) nom de la méthode à appeller.
      * @param array $params (optionnel) paramètres à passer à la méthode.
-     * 
-     * @todo En mode debug, vérifier que les arguments requis de la méthode 
-     * appelée sont bien présents dans les paramètres, générer une exception 
-     * sinon. Vérifier également que la méthode appellée existe et est 
+     *
+     * @todo En mode debug, vérifier que les arguments requis de la méthode
+     * appelée sont bien présents dans les paramètres, générer une exception
+     * sinon. Vérifier également que la méthode appellée existe et est
      * publique. Ces tests sont faits par run() mais on ne détecte les erreurs
      * que dans les liens qu'on clique. En le faisant également içi, cela
      * permettrait d'être sur que tous les liens qu'on génère sont valides (en
      * cas d'erreur, on le verrait immédiatement).
-     * @todo A faire également : ajouter un 3ème paramètre "conserver les 
+     * @todo A faire également : ajouter un 3ème paramètre "conserver les
      * paramètres actuels".
      */
     protected function url($method = null, $params = null) {
@@ -240,13 +240,13 @@ abstract class AbstractTool {
 
         // Construit la query string
         $query = http_build_query($args, '', '&');
-        
+
         // Détermine l'url de base
         if ($ajax)
             $base = admin_url('admin-ajax.php?action=docalist-tools');
         else
             $base = menu_page_url('docalist-tools', false);
-        
+
         // Retourne l'url complète
         return $base . '&' . $query;
     }

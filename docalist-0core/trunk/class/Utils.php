@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Core" plugin.
  *
- * Copyright (C) 2012 Daniel Ménard
+ * Copyright (C) 2012, 2013 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -13,7 +13,7 @@
  * @version     SVN: $Id$
  */
 
-namespace Docalist\Core;
+namespace Docalist;
 use Exception;
 
 /**
@@ -39,7 +39,7 @@ class Utils {
 
         // Détermine l'appellant (0=nous, 1=notre appellant, 2=ce qu'on veut)
         $caller = $trace[2];
-        
+
         // Dans certains cas, on peut ne pas avoir file
         if (!isset($caller['file'])) {
             if (isset($caller['function'])) {
@@ -47,7 +47,7 @@ class Utils {
             }
             return '';
         }
-        
+
         // Détermine le path du fichier et essaie de le mettre en relatif
         $file = $caller['file'];
 
@@ -83,9 +83,6 @@ class Utils {
      * @return array() un tableau de la forme slug => label
      */
     function choices($taxonomy, $addEmpty = false) {
-        // Ajoute le préfixe Docalist à la taxonomie demandée
-        $taxonomy = AbstractPlugin::PREFIX . $taxonomy;
-
         // Vérifie que cette taxonomie existe
         if (!taxonomy_exists($taxonomy)) {
             $message = __('Taxonomie inexistante : %s.', 'docalist-core');
@@ -107,6 +104,47 @@ class Utils {
         }
 
         return $terms;
+    }
+
+    /**
+     * Retourne le namespace de la classe indiquée
+     *
+     * @return string
+     */
+    public function ns($class) {
+        if (is_object($class))
+            $class = get_class($class);
+
+        return substr($class, 0, strrpos($class, '\\'));
+    }
+
+    /**
+     * Retourne le nom de base de la classe indiquée (sans le namespace)
+     *
+     * @return string
+     */
+    public function classname($class) {
+        if (is_object($class))
+            $class = get_class($class);
+
+        return substr($class, strrpos($class, '\\') + 1);
+    }
+
+    /**
+     * Vérifie que l'objet (ou la classe) passée en paramètre hérite d'une
+     * classe donnée et génère une exception si ce n'est pas le cas.
+     *
+     * @param string|object $object la classe ou l'objet à tester.
+     * @param string $class la classe attendue
+     *
+     * @throws Exception si $object n'est pas une sous-classe de $class.
+     */
+    public function checkClass($object, $class) {
+        if (!is_subclass_of($object, $class)) {
+            $message = __('La classe %s doit hériter de la classe %s.', 'docalist-core');
+            $bad = is_string($object) ? $object : get_class($object);
+            throw new Exception(sprintf($message, $bad, $class));
+        }
     }
 
 }

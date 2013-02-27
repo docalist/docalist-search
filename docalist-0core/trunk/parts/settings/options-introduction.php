@@ -17,7 +17,7 @@
  * @version     SVN: $Id$
  */
 
-namespace Docalist;
+namespace Docalist\Core;
 
 _e("
     <p>

@@ -3,7 +3,7 @@
  * This file is part of the "Docalist Core" plugin.
  *
  * Copyright (C) 2012 Daniel Ménard
- * 
+ *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
@@ -13,13 +13,13 @@
  * @version     SVN: $Id$
  */
 
-namespace Docalist\Core\Tools;
-use Docalist, Docalist\Core\AbstractTool;
+namespace Docalist\Tools;
+use Docalist, Docalist\Tool;
 
 /**
  * Listes des outils disponibles.
  */
-class ToolsList extends AbstractTool {
+class ToolsList extends Tool {
     /**
      * {@inheritdoc}
      */
@@ -40,6 +40,9 @@ class ToolsList extends AbstractTool {
      * Affiche la liste des outils disponibles.
      */
     public function actionIndex() {
+        // Pour les outils qui fonctionnent en ajax, on a besoin de thickbox
+        $thickboxAdded = false;
+
         // Intro
         echo '<p>', __('Le tableau ci-dessous vous donne accès à tous les outils disponibles dans les plugins Docalist.', 'docalist-core'), '</p>';
 
@@ -60,6 +63,10 @@ class ToolsList extends AbstractTool {
                 // Affiche le nom de l'outil
                 $name = $tool->name();
                 $ajax = $tool->ajax();
+                if ($ajax && ! $thickboxAdded) {
+                    \add_thickbox();
+                    $thickboxAdded = true;
+                }
                 $url = $ajax ? $ajaxUrl : $baseUrl;
                 $url .= '&t=' . Docalist::toolName($tool);
                 $args = $tool->extraArguments();
@@ -69,10 +76,10 @@ class ToolsList extends AbstractTool {
 
                 // @formatter:off
                 printf (
-                    '<td class="row-title"><a class="%s" href="%s" title="%s">%s</a></td>', 
+                    '<td class="row-title"><a class="%s" href="%s" title="%s">%s</a></td>',
                     $tool->ajax() ? 'thickbox' : '',
-                    esc_attr($url), 
-                    esc_attr($name), 
+                    esc_attr($url),
+                    esc_attr($name),
                     $name
                 );
                 // @formatter:on

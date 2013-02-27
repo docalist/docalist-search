@@ -147,4 +147,39 @@ class Utils {
         }
     }
 
+    /**
+     * Implémentation de la méthode get() pour un container.
+     */
+    public static function containerGet(Container $container, array & $items, $name){
+    // TraitContainer : supprimer cette méthode
+        if (! isset($items[$name])) {
+            $msg = __('Aucun objet %s dans ce container', 'docalist-core');
+            throw new Exception(sprintf($msg, $name));
+        }
+
+        return $items[$name];
+    }
+
+    /**
+     * Implémentation de la méthode add() pour un container.
+     */
+    public static function containerAdd(Container $container, array & $items, Registrable $object){
+    // TraitContainer : supprimer cette méthode
+        $name = $object->name();
+        if (isset($items[$name])) {
+            $msg = __('Il existe déjà un objet %s dans ce container', 'docalist-core');
+            throw new Exception(sprintf($msg, $name));
+        }
+
+        // Ajoute l'objet dans la collection
+        $object->parent($container);
+        $items[$name] = $object;
+
+        // Enregistre l'objet
+        $object->register();
+
+        return $container;
+    }
+
+
 }

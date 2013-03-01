@@ -819,26 +819,11 @@ abstract class Field {
      * Retourne les fichiers javascript et css qui sont nécessaires pour
      * afficher et faire fonctionner le formulaire.
      *
-     * @return array La méthode retourne un tableau (éventuellement vide)
-     * contenant des assets, c'est-à-dire un tableau de tableaux.
-     *
-     * Chaque asset contient (toujours) les clés suivantes :
-     * - type : type de l'asset, soit 'css', doit 'js'.
-     * - name : le nom de l'asset (jquery, bootstrap-css, etc.) lorsqu'il
-     *   s'agit d'une librairie connue. Dans ce cas, l'appellant doit gérer
-     *   lui-même la traduction de ce nom en url.
-     * - src  : l'url de l'asset lorsqu'il s'agit d'un asset spécifique.
-     * - version : le numéro de version de l'asset
-     * - position : soit 'top' (pour les css) soit 'bottom' (pours les js).
-     * - media : pour les css, le media auquel celle-ci s'applique (all,
-     *   screen etc.)
+     * @return Assets Une collection d'assets.
      */
-    public final function assets($theme = 'default') {
+    public final function assets() {
         // On va faire un parcourt non récursif de l'arbre en utilisant une
         // pile et en élagant lorsqu'on rencontre un type de champ déjà vu.
-
-        // La liste des assets qu'on va retourner
-        $assets = array();
 
         // Pile contenant les noeuds à visiter
         $stack = array($this);
@@ -846,34 +831,8 @@ abstract class Field {
         // Liste des types de noeud qu'on a déjà vu, pour l'élagage
         $seen = array();
 
-        // Propriétés par défaut
-        $defaults = array(
-            'css' => array(
-                'name' => null,
-                'src' => null,
-                'version' => null,
-                'position' => 'top',
-                'media' => 'all',
-                'condition' => null,
-            ),
-            'js' => array(
-                'name' => null,
-                'src' => null,
-                'version' => null,
-                'position' => 'bottom',
-                'condition' => null,
-            )
-        );
-
         // Commence avec les assets définis par le thème
-        if ($theme) {
-            foreach ((array) Themes::assets($theme) as $asset) {
-                $asset += $defaults[$asset['type']];
-                $key = $asset['name'] ? : $asset['src'];
-
-                $assets[$key] = $asset;
-            }
-        }
+        $assets = new Assets;
 
         // Tant qu'y'a de la pile ;-)
         while ($stack) {
@@ -889,11 +848,8 @@ abstract class Field {
             $type = get_class($field);
             if (!isset($seen[$type])) {
                 $seen[$type] = true;
-                foreach ((array) $field::getAssets() as $asset) {
-                    $asset += $defaults[$asset['type']];
-                    $key = $asset['src'] ? : $asset['name'];
-
-                    $assets[$key] = $asset;
+                if ($a = $field::getAssets()) {
+                    $assets->add($a);
                 }
             }
         }

@@ -92,16 +92,16 @@ class Assets implements Countable, IteratorAggregate {
     /**
      * Crée une nouvelle liste d'assets.
      *
-     * @param array $assets Une liste d'assets à ajouter à la collection.
+     * @param Assets|array $assets Une liste d'assets à ajouter à la collection.
      */
-    public function __construct(array $assets = null) {
+    public function __construct($assets = null) {
         $assets && $this->add($assets);
     }
 
     /**
      * Ajoute des assets à la liste
      *
-     * @param array $assets Les assets à ajouter à la collection.
+     * @param Assets|array $assets Les assets à ajouter à la collection.
      *
      * Remarque : $assets est une liste d'assets, donc un tableau de tableaux.
      * Si vous insérez un asset unique, vous devez le wrapper dans un tableau.
@@ -112,7 +112,10 @@ class Assets implements Countable, IteratorAggregate {
      *
      * @return Assets $this
      */
-    public function add(array $assets) {
+    public function add($assets) {
+        if (! is_array($assets) && !($assets instanceof Assets)) {
+            throw new Exception('Invalid assets, expected array or Assets');
+        }
         foreach ($assets as $asset) {
             // Type par défaut : JS
             $type = isset($asset['type']) ? $asset['type'] : self::JS;

@@ -20,6 +20,8 @@ use Exception;
  * Classe de base abstraite représentant un plugin Docalist.
  */
 abstract class Plugin extends Registrable implements Container {
+    // TraitContainer : remplacer implements par use
+
     /**
      * @var string Chemin absolu du répertoire de base du plugin, sans slash
      * final.
@@ -29,7 +31,7 @@ abstract class Plugin extends Registrable implements Container {
     /**
      * @var array Liste des objets déclarés par ce plugin.
      */
-    protected $objects = array();
+    protected $items = array(); // TraitContainer : à enlever
 
 
     /**
@@ -90,12 +92,8 @@ abstract class Plugin extends Registrable implements Container {
      * @inheritdoc
      */
     public function get($name) {
-        if (! isset($this->objects[$name])) {
-            $msg = __('Aucun objet %s dans le plugin %s', 'docalist-core');
-            throw new Exception(sprintf($msg, $name, $this->name()));
-        }
-
-        return $this->objects[$name];
+        // TraitContainer : supprimer cette méthode
+        return Utils::containerGet($this, $this->items, $name);
     }
 
     /**
@@ -104,20 +102,8 @@ abstract class Plugin extends Registrable implements Container {
      * @inheritdoc
      */
     public function add(Registrable $object) {
-        $name = $object->name();
-        if (isset($this->objects[$name])) {
-            $msg = __('Il existe déjà un objet %s dans le plugin %s', 'docalist-core');
-            throw new Exception(sprintf($msg, $name, $this->name()));
-        }
-
-        // Ajoute l'objet dans la collection
-        $object->parent($this);
-        $this->objects[$name] = $object;
-
-        // Demande à l'objet de faire son inscription
-        $object->register();
-
-        return $this;
+        // TraitContainer : supprimer cette méthode
+        return Utils::containerAdd($this, $this->items, $object);
     }
 
     /**

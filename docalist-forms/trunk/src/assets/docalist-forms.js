@@ -12,7 +12,7 @@
  * @version     SVN: $Id$
  */
 
-$(document).ready(function() {
+jQuery(document).ready(function($) {
 
     /**
      * Génère un effet highlight sur l'élément passé en paramètre : l'élément

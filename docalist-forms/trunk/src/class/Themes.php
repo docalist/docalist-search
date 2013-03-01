@@ -101,13 +101,8 @@ class Themes {
                 'path' => $dir . 'base/',
                 'extends' => false,
                 'assets' => array(
-                    'jquery' => array(
-                        'type' => 'js',
-                        'name' => 'jquery',
-                        'src' => '//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js',
-                    ),
-                    'docalist-forms' => array(
-                        'type' => 'js',
+                    array('name' => 'jquery'),
+                    array(
                         'name' => 'docalist-forms',
                         'src' => 'assets/docalist-forms.js',
                     ),
@@ -118,12 +113,12 @@ class Themes {
                 'path' => $dir . 'bootstrap/',
                 'extends' => 'base',
                 'assets' => array(
-                    'bootstrap-css' => array(
+                    array(
                         'type' => 'css',
                         'name' => 'bootstrap-css',
                         'src' => '//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/css/bootstrap-combined.min.css',
                     ),
-                    'bootstrap-theme' => array(
+                    array(
                         'type' => 'css',
                         'name' => 'bootstrap-theme',
                         'src' => 'themes/bootstrap/bootstrap-theme.css',
@@ -135,7 +130,7 @@ class Themes {
                 'path' => $dir . 'default/',
                 'extends' => 'base',
                 'assets' => array(
-                    'default-theme' => array(
+                    array(
                         'type' => 'css',
                         'name' => 'default-theme',
                         'src' => 'themes/default/default.css',
@@ -195,13 +190,17 @@ class Themes {
     public static function assets($name) {
         self::check($name);
 
-        $assets = array();
-        do {
-            array_unshift($assets, self::$themes[$name]['assets']);
-            $name = self::$themes[$name]['extends'];
-        } while($name);
+        $themes = array($name);
+        while ($name = self::$themes[$name]['extends']) {
+            array_unshift($themes, $name);
+        }
 
-        return call_user_func_array('array_merge', $assets);
+        $assets = new Assets;
+        foreach($themes as $name) {
+            $assets->add(self::$themes[$name]['assets']);
+        }
+
+        return $assets;
     }
 
     /**

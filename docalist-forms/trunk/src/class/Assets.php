@@ -168,7 +168,7 @@ class Assets implements Countable, IteratorAggregate {
         if (is_null($type) && is_null($position)) {
             return $this->assets;
         }
-echo "here";
+
         // Vérifie le type demandé
         if ($type) {
             if (! isset(self::$types[$type])) {

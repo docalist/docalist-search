@@ -23,6 +23,11 @@ abstract class Plugin extends Registrable implements Container {
     // TraitContainer : remplacer implements par use
 
     /**
+     * Nom du transient utilisé pour stocker les admin notices.
+     */
+    const ADMIN_NOTICE_TRANSIENT = 'dcl_admin_notices';
+
+    /**
      * @var string Chemin absolu du répertoire de base du plugin, sans slash
      * final.
      */
@@ -31,8 +36,8 @@ abstract class Plugin extends Registrable implements Container {
     /**
      * @var array Liste des objets déclarés par ce plugin.
      */
-    protected $items = array(); // TraitContainer : à enlever
-
+    protected $items = array();
+    // TraitContainer : à enlever
 
     /**
      * Initialise le plugin.
@@ -87,6 +92,15 @@ abstract class Plugin extends Registrable implements Container {
     }
 
     /**
+     * Registrable.
+     *
+     * @inheritdoc
+     */
+    public function plugin() {
+        return $this;
+    }
+
+    /**
      * Interface Container.
      *
      * @inheritdoc
@@ -107,18 +121,31 @@ abstract class Plugin extends Registrable implements Container {
     }
 
     /**
-     * Retourne la valeur d'une option de configuration.
+     * Interface Container.
      *
-     * Si aucun paramètre n'est fourni, la méthode retourne un tableau
-     * contenant toutes les options.
-     *
-     * @param string|null le nom de l'option à retourner.
-     * @param mixed $default la valeur à retourner si l'option n'existe pas.
-     *
-     * @return mixed
+     * @inheritdoc
      */
-    public function setting($option = null, $default = null) {
-        return $this->get('settings')->get($option, $default);
+    public function items() {
+        // TraitContainer : supprimer cette méthode
+        return $this->items;
+    }
+
+    /**
+     * Registrable.
+     *
+     * @inheritdoc
+     */
+    public function setting($setting) {
+        return $this->get('settings')->setting($setting);
+    }
+
+    /**
+     * Registrable.
+     *
+     * @inheritdoc
+     */
+    public function settings() {
+        return $this->get('settings')->settings();
     }
 
     /**
@@ -129,6 +156,29 @@ abstract class Plugin extends Registrable implements Container {
      */
     public function tools() {
         return array();
+    }
+
+    /**
+     * Affiche un message (admin notice) à l'utilisateur.
+     *
+     * @param string $message le message à afficher.
+     * @param bool $isError true=affiche un message d'erreur , false (par
+     * défaut), affiche un simple message d'information.
+     */
+    public function adminNotice($message, $isError = false) {
+        if (false === $notices = get_transient(self::ADMIN_NOTICE_TRANSIENT)) {
+            $notices = array();
+        }
+
+        $notices[] = array(
+            $message,
+            $isError
+        );
+        set_transient(self::ADMIN_NOTICE_TRANSIENT, $notices, 3600 * 24 * 10);
+        // 10 jours
+
+        // remarque : c'est le plugin docalist_core qui se charge d'afficher
+        // les notices via un add_action('admin_notices', ...)
     }
 
 }

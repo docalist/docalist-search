@@ -49,4 +49,17 @@ interface Container {
      * @return Container $this.
      */
     public function add(Registrable $object);
+
+    /**
+     * Retourne la liste des items
+     *
+     * @return Registrable[]
+     */
+    public function items();
+
+	// La méthode Registrable::plugin() appelle $this->parent->plugin()
+	// On doit donc garantir qu'un container a toujours une méthode plugin()
+	// Pour cela, il faut que la méthode figure dans l'interface.
+	// A revoir quand on passera aux traits.
+	// public function plugin() {}
 }

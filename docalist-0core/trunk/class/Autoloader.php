@@ -112,6 +112,8 @@ class Autoloader {
 
             // Chargement en mode normal
             require_once $path;
+            
+            return;
         }
     }
 

@@ -89,4 +89,12 @@ class Select extends Choice {
 
         return $name;
     }
+
+    /**
+     * @inheritdoc
+     */
+    protected function isArray() {
+        return $this->attribute('multiple');
+    }
+
 }

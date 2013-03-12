@@ -14,6 +14,7 @@
  */
 
 namespace Docalist;
+use Docalist\Forms\Assets;
 use Exception;
 
 /**
@@ -181,5 +182,23 @@ class Utils {
         return $container;
     }
 
+    public static function enqueueAssets(Assets $assets) {
+        foreach ($assets as $asset) {
+            if (isset($asset['src']) && false === strpos($asset['src'], '//')) {
+                //                $asset['src'] =
+                // plugins_url('docalist-0core/lib/docalist-forms/'.$asset['src']);
+                $asset['src'] = 'http://docalist-forms/src/' . $asset['src'];
+            }
 
+            // Fichiers JS
+            if ($asset['type'] === Assets::JS) {
+                wp_enqueue_script($asset['name'], $asset['src'], array(), $asset['version'], $asset['position'] === Assets::BOTTOM);
+            }
+
+            // Fichiers CSS
+            else {
+                wp_enqueue_style($asset['name'], $asset['src'], array(), $asset['version'], $asset['media']);
+            }
+        }
+    }
 }

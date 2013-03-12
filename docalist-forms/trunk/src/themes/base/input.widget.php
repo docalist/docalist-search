@@ -1,6 +1,13 @@
 <?php
 $writer->startElement('input');
-$this->name && $writer->writeAttribute('name', $this->controlName());
+
+if ($this->name) {
+    $args['name'] = $this->controlName();
+}
+
+if ($this->data && (!isset($this->attributes['value']))) {
+    $args['value'] = $this->data;
+}
 $this->block('attributes', $args);
-$this->data && $writer->writeAttribute('value', $this->data);
+
 $writer->endElement();

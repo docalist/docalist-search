@@ -221,7 +221,7 @@ abstract class Field {
             return $this->attributes;
 
         // @todo : tester si on a des attributs booléen dans la liste
-        foreach ($this->attributes as $name => $value) {
+        foreach ($attributes as $name => $value) {
             $this->attribute($name, $value);
         }
 
@@ -511,31 +511,77 @@ abstract class Field {
      *
      * @param array|ArrayAccess|Object|Scalar $data
      */
-    public function bind($data) {
-        $this->data = null;
-        if (is_array($data) || $data instanceof ArrayAccess) {
-            if (isset($data[$this->name])) {
-                $this->data = $data[$this->name];
+    public final function bind($data) {
+        $debug = false;
+
+        if($debug) echo $this->type(), '.', $this->name, '::bind(', var_export($data,true), ')<br />&rArr;';
+
+        // Si le champ n'a pas de nom, aucune liaison possible
+        if (! $this->name) {
+            if($debug) echo 'name=null, passe tel quel aux enfants<blockquote>';
+            $this->data = null;
+            if ($this instanceof Fields) {
+                foreach ($this->fields as $field) {
+                    $field->bind($data); // étage transparent, on passe data aux enfants
+                }
             }
+            if($debug) echo '</blockquote>';
 
-            return;
+            return $this;
         }
 
-        if (is_object($data)) {
-            $name = $this->name;
-            // le formatter d'aptana buggue si on utilise $data{$this->name}
-            if (isset($data->$name)) {
-                $this->data = $data->$name;
+        if (! isset($data[$this->name])) {
+            if($debug) echo "name=$this->name, mais data[$this->name] is not set, stocke <code>null</code> et reset de tous les enfants<blockquote>";
+            $this->data = null;
+            if ($this instanceof Fields) {
+                foreach ($this->fields as $field) {
+                    $field->bind(null); // reste de tous les enfants
+                }
             }
+            if($debug) echo '</blockquote>';
 
-            return;
+            return $this;;
         }
 
-        if (is_scalar($data)) {
-            $this->data = $data;
+        if($debug) echo "name=$this->name, data[$this->name] is set, stocke <code>", var_export($data[$this->name],true), "</code> et bind les enfants<blockquote>";
+        $this->data = $data[$this->name];
+        if ($this instanceof Fields) {
+            foreach ($this->fields as $field) {
+                $field->bind($this->data); // passe la section aux enfants
+            }
         }
+        if($debug) echo '</blockquote>';
 
         return $this;
+    }
+
+    public function clear() {
+        $this->bind(null);
+    }
+
+    /**
+     * Indique si la valeur d'une instance unique de ce type de champ est un
+     * scalaire ou un tableau. Autrement dit, indique si le champ est multivalué
+     * ou non.
+     *
+     * La majorité des champs sont des champs simples dont la valeur est un
+     * scalaire (input text, textarea, etc.)
+     *
+     * Lorsqu'un champ simple est répétable, il devient multivalué et sa
+     * valeur est alors un tableau.
+     *
+     * Certains champs sont multivalués même lorsqu'ils ne sont pas répétables.
+     * C'est le cas par exemple pour une checklist ou un select avec multiple
+     * à true. Dans ce cas, le champ est obligatoirement multivalué. (et si
+     * jamais il est répétable, alors sa valeur sera un tableau de tableaux).
+     *
+     * Une container (classe Fields) est toujours considéré comme multivalué :
+     * il contient les valeurs de tous les champs qu'il possède.
+     *
+     * @return bool
+     */
+    protected function isArray() {
+        return $this->repeatable;
     }
 
     protected function bindOccurence($data) {

@@ -89,16 +89,8 @@ abstract class Fields extends Field {
     /**
      * @inheritdoc
      */
-    public function bind($data) {
-        if ($this->repeatable) {
-            parent::bind($data);
-        } else {
-            foreach ($this->fields as $field) {
-                $field->bind($data);
-            }
-        }
-
-        return $this;
+    protected function isArray() {
+        return true;
     }
 
     protected function bindOccurence($data) {

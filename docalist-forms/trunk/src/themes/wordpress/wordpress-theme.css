@@ -1,0 +1,71 @@
+/* Modification du style form-table standard de WordPress */
+.form-table tbody th[scope=row] {
+    font-weight: bold;
+}
+
+
+/* Nouveau style field-table */
+.field-table {
+    width: 99%; /* comme pour input.large-text */
+    border-collapse: collapse;
+/*    background: yellow; */
+}
+
+.field-table tr {
+    vertical-align: top;
+}
+
+/* Corps de la table */
+.field-table tbody td {
+    padding: 0;
+    line-height: normal;
+}
+.field-table td+td {
+    padding-left: 10px; /* espace horizontal entre deux cellules */
+}
+
+/* Entête de la table */
+.field-table thead th {
+    padding: 0 0 0 5px; /* left:2px pour compenser le border-left des inputs */
+    width: auto;
+/*    font-size: smaller; */
+    line-height: normal;
+}
+
+.field-table th+th {
+    padding-left: 15px;
+    /* 10px = espace standard entre cellules + 2 px pour border-left input */
+}
+
+/* footer de la table */
+.field-table tfoot td {
+    padding: 0 0 0 5px; /* left:2px pour compenser le border-left des inputs */
+/*    width: auto; */
+    line-height: normal;
+}
+
+.field-table tfoot td+td {
+    padding-left: 15px;
+    /* 10px = espace standard entre cellules + 2 px pour border-left input */
+}
+
+.field-table .description {
+/*    font-size: smaller; */
+    margin: 0;
+}
+
+button.cloner {
+    padding: 2px;
+/*    height: 16px; */
+    background: transparent url('add-grey.png') left center no-repeat ;
+    padding-left: 20px;
+    cursor: pointer;
+    vertical-align: middle;
+    border: 1px solid transparent;
+    border-radius: 5px;
+}
+
+button.cloner:hover {
+/*    background-image: url('add.png'); */
+    border-color: #ccc;
+}

@@ -1,0 +1,29 @@
+<?php
+$this->label && $this->block('label');
+$this->description && (! $this->descriptionAfter) && $this->block('description');
+$this->block('errors');
+
+$writer->startElement('table');
+$writer->writeAttribute('class', 'form-table');
+//$writer->writeAttribute('border', '1');
+foreach($this->fields as $field) {
+    $writer->startElement('tr');
+
+        $writer->startElement('th');
+        $writer->writeAttribute('scope', 'row');
+        $writer->writeAttribute('valign', 'top');
+            $field->label && $field->block('label');
+        $writer->fullEndElement(); // </th>
+
+        $writer->startElement('td');
+        $writer->writeAttribute('valign', 'top');
+            $field->block('errors');
+            $field->block('values');
+            $field->block('description');
+        $writer->fullEndElement(); // </td>
+
+    $writer->fullEndElement(); // </tr>
+}
+$writer->fullEndElement(); // </table>
+
+$this->description && $this->descriptionAfter && $this->block('description');

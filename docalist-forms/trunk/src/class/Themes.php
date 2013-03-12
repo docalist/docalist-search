@@ -138,10 +138,16 @@ class Themes {
                 )
             ),
 
-            'form-table' => array(
-                'path' => $dir . 'form-table/',
-                'extends' => false,
-                'assets' => null,
+            'wordpress' => array(
+                'path' => $dir . 'wordpress/',
+                'extends' => 'base',
+                'assets' => array(
+                    array(
+                        'type' => 'css',
+                        'name' => 'wordpress-theme',
+                        'src' => 'themes/wordpress/wordpress-theme.css',
+                    ),
+                )
             ),
         );
     }

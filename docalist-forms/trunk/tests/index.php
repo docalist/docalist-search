@@ -1,5 +1,5 @@
 <?php
-    use Docalist\Forms\Form, Docalist\Forms\Themes;
+    use Docalist\Forms\Form, Docalist\Forms\Themes, Docalist\Forms\Assets;
 
     // charge docalist-form
     require __DIR__ . '/../src/autoload.php';
@@ -17,7 +17,6 @@
     $form = null; // l'objet formulaire
     $path = null; // son path
     $error = null; // message d'erreur
-    $assets = array(); // les css et les js requis par le formulaire
     $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
 
     $path = __DIR__ . '/forms/' . $file . '.php';
@@ -29,10 +28,10 @@
     $form = require $path;
     $source = file_get_contents($path);
 
-    // Prépare le rendu du formulaire, fait le bind, détermine les assets
+    // Prépare le rendu du formulaire, fait le bind
     if ($isPost) $form->bind($_POST);
-    $form->prepare($theme);
-    $assets = $form->assets($theme);
+
+    $assets = Themes::assets($theme)->add($form->assets());
 
 ?><!DOCTYPE html>
 <html>
@@ -174,9 +173,7 @@ function choose() {
 }
 
 function assets($assets, $pos) {
-    foreach($assets as $asset) {
-        if ($asset['position'] !== $pos) continue;
-
+    foreach($assets->get(null, $pos) as $asset) {
         extract($asset);
 
         if ( false === strpos($src, '//')) {
@@ -184,9 +181,9 @@ function assets($assets, $pos) {
         }
 
         if ($condition) echo "<!--[if $condition]>\n";
-        if ($type === 'css') {
+        if ($type === Assets::CSS) {
             printf('<link rel="stylesheet" id="%s" href="%s" type="text/css" media="%s" />', $name, $src, $media);
-        } elseif ($type === 'js') {
+        } elseif ($type === Assets::JS) {
             printf('<script id="%s" type="text/javascript" src="%s"></script>', $name, $src);
         }
         if ($condition) echo "<![endif]-->\n";
@@ -211,6 +208,6 @@ function prettyPrint($h, $lang='php') {
     echo $h;
 }
 
-function dumpArray(array $array, $name = '') {
+function dumpArray($array, $name = '') {
     prettyPrint("<?php $name\nreturn " . var_export($array, true));
 }

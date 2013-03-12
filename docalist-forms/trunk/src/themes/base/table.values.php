@@ -38,20 +38,11 @@ if ($this->repeatable || $hasDescription) {
         $writer->startElement('tr');
         foreach($this->fields as $field) {
             $writer->startElement('td');
-            $writer->writeAttribute('class', 'description');
-            $writer->writeRaw($field->description);
+            $field->block('description');
             $writer->fullEndElement(); // </td>
         }
         $writer->fullEndElement(); // </tr>
     }
-/*
-    $writer->startElement('tr');
-    $writer->startElement('td');
-    $writer->writeAttribute('colspan', count($this->fields));
-    $this->block('add');
-    $writer->fullEndElement(); // </td>
-    $writer->fullEndElement(); // </tr>
-*/
     $writer->fullEndElement(); // </foot>
 }
 

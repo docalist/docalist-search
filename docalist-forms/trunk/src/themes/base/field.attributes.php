@@ -5,8 +5,8 @@
 // avec un espace (comme pour class).
 
 foreach ($this->attributes as $name => $value) {
-    if (isset($$name)) {
-        $value .= ' ' . $$name;
+    if (isset($args[$name])) {
+        $value .= ' ' . $args[$name];
         unset($args[$name]);
     }
     $writer->writeAttribute($name, $value);

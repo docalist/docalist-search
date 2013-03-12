@@ -93,20 +93,6 @@ abstract class Metabox extends Registrable {
     }
 
     /**
-     * Crée les éléments de formulaire que contient cette metabox.
-     *
-     * Cette méthode est appellée par le constructeur dès que la metabox est
-     * créée (pour les classes descendantes, c'est plus simple de surcharger
-     * cette méthode plutôt que le constructeur).
-     *
-     * Exemple :
-     * (todo)
-     */
-    public function setup() {
-
-    }
-
-    /**
      * Retourne la position à laquelle cette metabox doit être affichée dans
      * l'écran d'édition. Cette propiété combine les arguments 'context' et
      * 'priority' de la fonction add_meta_box de WordPress, séparés par un
@@ -119,19 +105,6 @@ abstract class Metabox extends Registrable {
     }
 
     /**
-     * Retourne l'identifiant unique de cette metabox.
-     *
-     * Par défaut, il s'agit d'une chaine qui combine le nom de base de la
-     * classe du post type et le nom de base de la classe de la metabox, le
-     * tout en minuscules (par exemple : reference-type).
-     *
-     * @return string
-     */
-    public function id() {
-        return $this->parent->name() . '-' . $this->name();
-    }
-
-    /**
      * Retourne les fichiers javascript et css qui sont nécessaires pour
      * cette metabox.
      *
@@ -140,27 +113,5 @@ abstract class Metabox extends Registrable {
     public function getAssets() {
         return $this->form ? $this->form->assets() : null;
     }
-
-    /**
-     * Enregistre cette metabox dans WordPress.
-     */
-    /*
-     public function register() {
-     $context = strtok($this->position, '-') ?: 'advanced';
-     $priority = strtok('¤') ?: 'default';
-
-     $id = $this->id();
-     $title = $this->title();
-
-     if (WP_DEBUG && empty($title)) {
-     $msg = __('La metabox %s doit surcharger la méthode title()',
-     'docalist-biblio');
-     throw new Exception(sprintf($msg, get_class($this)));
-     }
-     //echo "appel de add_metabox pour ", $this->id(), "<br />";
-     add_meta_box($this->id(), $this->title(), array($this, 'render'),
-     $this->postType->id(), $context, $priority);
-     }
-     */
 
 }

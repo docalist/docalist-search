@@ -1,6 +1,5 @@
 <?php
-$this->label && $this->block('label');
-$this->description && (! $this->descriptionAfter) && $this->block('description');
-$this->block('errors');
-$this->block('values');
-$this->description && $this->descriptionAfter && $this->block('description');
+$writer->startElement('fieldset');
+$this->block('attributes', $args);
+$this->parentBlock($args);
+$writer->fullEndElement();

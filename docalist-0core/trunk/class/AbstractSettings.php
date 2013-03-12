@@ -10,98 +10,121 @@
  * @package     Docalist
  * @subpackage  Core
  * @author      Daniel Ménard <daniel.menard@laposte.net>
- * @version     SVN: $Id$
+ * @version     SVN: $Id: AbstractSettings.php 445 2013-02-27 14:50:48Z
+ * daniel.menard.35@gmail.com $
  */
 
 namespace Docalist;
 
 /**
- * Classe de base contenant les options de configuration d'un plugin.
+ * Classe de base permettant de gérer les options de configuration d'un plugin.
  */
 abstract class AbstractSettings extends Registrable {
     /**
      * @var array Valeurs par défaut des options de configuration.
+     *
+     * Cette propriété doit être surchargée par les classes descendantes,
+     * soit en redéfinissant la propriété (protected $defaults=array(...)),
+     * soit dans le constructeur pour des initialisations plus complexes
+     * (par exemple si vous avez besoin d'appeller des fonctions comme __()).
      */
     protected $defaults;
 
     /**
      * @var array Valeurs actuelles des options de configuration.
      */
-    protected $options;
-
-    /**
-     * Retourne la clé utilisée pour stocker les options du plugin dans la
-     * table wp_options de wordpress.
-     *
-     * Par défaut, il s'agit du nom du plugin mais les classes descendantes
-     * peuvent surcharger la propriété $id pour retourner une clé différente.
-     *
-     * @return string
-     */
-    public function id() {
-        return isset($this->id) ? $this->id : $this->parent->name();
-    }
+    protected $settings;
 
     /**
      * @inheritdoc
      */
     public function register() {
-        $this->options = $this->merge(get_option($this->id()), $this->defaults);
+        // Vérifie qu'on a des options
+        if (!isset($this->defaults)) {
+            $msg = __("La propriété %s de l'objet %s doit être initialisée", 'docalist-core');
+            throw new Exception(sprintf($msg, 'defaults', $this->name()));
+        }
+
+        // TODO: en mode debug, vérifier qu'aucune clé ne contient '.'
+
+        // Récupère les options stockées dans la base
+        $settings = get_option($this->id());
+
+        // Ignore false (clé inexistante), les scalaires, les tableaux vides
+        if (!is_array($settings) || empty($settings)) {
+            $this->settings = $this->defaults;
+        }
+
+        // Fusionne les options de la base avec les options par défaut
+        else {
+            $this->settings = $this->merge($settings, $this->defaults);
+        }
     }
 
     /**
-     * Fusionne la configuration aves les valeurs par défaut.
-     *
-     * Seules les options qui existent dans $default sont conservées (les
-     * options inexistantes sont ignorées).
-     *
-     * @param array $config Les options de configuration.
-     * @param array $default Les valeurs par défaut des options.
+     * Retourne la configuration par défaut.
      *
      * @return array
      */
-    protected function merge($config, array $default) {
-        if (empty($config)) {
-            return $default;
-        }
-
-        foreach ($default as $key => &$value) {
-            if (is_array($value) && isset($config[$key]) && is_array($config[$key])) {
-                $value = $this->merge($config[$key], $value);
-            } else {
-                isset($config[$key]) && $value = $config[$key];
-            }
-        }
-
-        return $default;
+    public function defaults() {
+        return $this->defaults;
     }
 
     /**
-     * Retourne la valeur actuelle d'une option de configuration.
-     *
-     * Si aucun paramètre n'est fourni, la méthode retourne un tableau
-     * contenant toutes les options de configuration.
-     *
-     * @param string|null le nom de l'option à retourner.
-     * @param mixed $default la valeur à retourner si l'option n'existe pas.
-     *
-     * @return mixed
+     * @inheritdoc
      */
-    public function get($option = null, $default = null) {
-        if (is_null($option)) {
-            return $this->options;
-        }
-
-        $options = $this->options;
-        foreach (explode('.', $option) as $option) {
-            if (!array_key_exists($option, (array)$options)) {
-                return $default;
-            }
-
-            $options = $options[$option];
-        }
-
-        return $options;
+    public function settings() {
+        return $this->settings;
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function setting($setting) {
+        $settings = $this->settings;
+        foreach (explode('.', $setting) as $setting) {
+            if (!array_key_exists($setting, (array)$settings)) {
+                return null;
+            }
+            $settings = $settings[$setting];
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Fusionne les options de configuration stockées dans la base avec
+     * les valeurs par défaut.
+     *
+     * Seules les options qui existent dans $defaults sont conservées
+     * (les options inexistantes sont ignorées).
+     *
+     * @param array $settings Les options de configuration.
+     * @param array $defaults Les valeurs par défaut des options.
+     *
+     * @return array
+     */
+    protected function merge(array $settings, array $defaults) {
+        if (empty($settings)) {
+            return $defaults;
+        }
+
+        foreach ($defaults as $key => &$value) {
+            if (is_array($value) && isset($settings[$key]) && is_array($settings[$key])) {
+                // liste de valeurs
+                if (empty($value) || is_int(key($value))) {
+                    $value = array_values($settings[$key]);
+                }
+
+                // liste de clés
+                else {
+                    $value = $this->merge($settings[$key], $value);
+                }
+            } else {
+                isset($settings[$key]) && $value = $settings[$key];
+            }
+        }
+
+        return $defaults;
+    }
 }

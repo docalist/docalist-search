@@ -22,13 +22,14 @@ namespace Docalist\Forms;
  * {@link http://www.w3.org/TR/html5/forms.html#the-fieldset-element The
  * fieldset element}.
  */
-class Fieldset extends Fields {
+class Fieldset extends Fragment {
     /**
      * Crée un nouveau Fieldset.
      *
      * @param string $label Le libellé (la légende) du fieldset.
      */
     public function __construct($label = null) {
+        parent::__construct();
         $this->label = $label;
     }
 

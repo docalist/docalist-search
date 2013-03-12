@@ -22,12 +22,7 @@ namespace Docalist\Forms;
  * {@link http://www.w3.org/TR/html5/forms.html#the-form-element The form
  * element}.
  */
-class Form extends Fields {
-    /**
-     * @inheritdoc
-     */
-    protected $descriptionAfter = false;
-
+class Form extends Fragment {
     /**
      * Crée un nouveau formulaire.
      *
@@ -36,6 +31,7 @@ class Form extends Fields {
      * par défaut.
      */
     public function __construct($action = '', $method = 'post') {
+        parent::__construct();
         $this->attributes = array(
             'action' => $action,
             'method' => $method

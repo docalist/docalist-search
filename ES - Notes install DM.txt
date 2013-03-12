@@ -1,0 +1,112 @@
+install windows
+---------------
+téléchargement à partir de
+http://www.elasticsearch.org/download/2013/02/26/0.90.0.Beta1.html
+(zip)
+
+extraction dans D:\elasticsearch-0.90.0.Beta1
+
+lancement de %es/bin/elasticsearch.bat
+
+-> erreur "JAVA_HOME" not defined
+
+Installation correcte de java sous win 7
+----------------------------------------
+en fait j'ai plusieurs java installé sur la machine :
+- java 6 (1.6), version 64 bits, qui devait être en standard avec windows 7 et
+qui n'a jamais été mis à jour alors que je fais régulièrement les updates java.
+installé dans c:\program files\java\jre6
+
+- java 7 (1.7), version 32 bits, qui est la version régulièrement mise à jour
+mais qui n'était pas utilisée en standard...
+installé dans C:\Program Files (x86)\Java\jre7
+
+Nettoyage :
+en fait il suffit de désintaller la version java installée par windows
+(ajout/suppression de programmes).
+jre7 devient alors la version active. (cela dit, java.exe n'est plus dans le path).
+cf http://www.java.com/fr/download/faq/remove_olderversions.xml
+
+Une autre solution serait d'installer la version 64 bits de java.
+Pas fait car apparemment, certains trucs ne marchent plus.
+
+définir JAVA_HOME
+ordinateur/propriétés/système/variables d'environnement
+nouvelle variable : JAVA_HOME=C:\Program Files (x86)\Java\jre7
+on en profite pour ajouter java dans le path :
+path=...ce qu'il y a déjà...;%JAVA_HOME%\bin
+
+Lancement de ElasticSearch :
+D:\elasticsearch-0.90.0.Beta1\bin\elasticsearch.bat
+ça marche !
+néanmoins, warning :
+jvm uses the client vm, make sure to run `java` with the server vm for best performance by adding `-server` to the command line
+
+cf.
+- http://www.oracle.com/technetwork/java/hotspotfaq-138619.html#compiler_types
+- http://victorpillac.com/2011/09/11/notes-on-the-java-server-flag/
+
+pour résoudre le problème, il faut installer la version serveur de la jvm
+(pas fait).
+Probablement ici :
+http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+Vérifier que ES fonctionne
+--------------------------
+il suffit d'appeller l'url suivante dans un navigateur :
+http://localhost:9200/
+    Dans mon cas, cela retourne :
+    {
+      "ok" : true,
+      "status" : 200,
+      "name" : "Trapster",
+      "version" : {
+        "number" : "0.90.0.Beta1",
+        "snapshot_build" : false
+      },
+      "tagline" : "You Know, for Search"
+    }
+
+Installer un front-end web pour ES
+----------------------------------
+Il y en a plusieurs :
+http://www.elasticsearch.org/guide/appendix/clients.html
+(fin de page)
+
+elasticsearch-head :
+https://github.com/mobz/elasticsearch-head
+
+L'installation est très simple :
+D:\elasticsearch-0.90.0.Beta1\bin\plugin.bat -install mobz/elasticsearch-head
+
+et c'est tout ! pas besoin de rédamrrer ES ou quoi que ce soit.
+Pour lancer es-head, il suffit d'appeller l'url suivante dans le navigateur :
+
+http://localhost:9200/_plugin/head/
+
+
+le reste est très facile à comprendre.
+
+elasticsearch-inquisitor :
+https://github.com/polyfractal/elasticsearch-inquisitor
+installation : plugin -install polyfractal/elasticsearch-inquisitor
+lancement : http://localhost:9200/_plugin/inquisitor/
+
+intéressant notamment pour tester les analyzers et les tokenizers.
+
+elasticsearch-browser :
+https://github.com/OlegKunitsyn/elasticsearch-browser
+installation : plugin -install OlegKunitsyn/elasticsearch-browser
+http://localhost:9200/_plugin/browser/
+(en indiquant index et table)
+
+bigdesk :
+https://github.com/lukas-vlcek/bigdesk
+http://bigdesk.org/
+plugin -install lukas-vlcek/bigdesk
+http://localhost:9200/_plugin/bigdesk/
+
+paramedic : une espèce de perf monitor
+https://github.com/karmi/elasticsearch-paramedic
+plugin -install karmi/elasticsearch-paramedic
+http://localhost:9200/_plugin/paramedic/index.html

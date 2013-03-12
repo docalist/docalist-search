@@ -10,7 +10,8 @@
  * @package     Docalist
  * @subpackage  Core
  * @author      Daniel Ménard <daniel.menard@laposte.net>
- * @version     SVN: $Id$
+ * @version     SVN: $Id: PostType.php 460 2013-03-01 17:40:28Z
+ * daniel.menard.35@gmail.com $
  */
 
 namespace Docalist;
@@ -45,13 +46,19 @@ abstract class PostType extends Registrable implements Container {
     /**
      * @var array Interface Container, liste des metaboxes de ce post type.
      */
-    protected $items = array(); // TraitContainer : à enlever
+    protected $items = array();
+    // TraitContainer : à enlever
 
     /**
      * @var Thème de formulaire à utiliser pour les metaboxes.
      */
     protected $theme = 'wordpress';
 
+    /**
+     * @var array Options du post type. Doit être surchargé par les classes
+     * descendantes.
+     */
+    static protected $options;
 
     /**
      * Retourne les options à utiliser pour définir ce type de contenu dans
@@ -60,7 +67,7 @@ abstract class PostType extends Registrable implements Container {
      * @return array les arguments à passer à la fonction register_post_type()
      * de WordPress.
      */
-    abstract protected function options();
+    abstract protected function registerOptions();
 
     /**
      * Retourne le thème de formulaire à utiliser pour les metaboxes.
@@ -71,25 +78,64 @@ abstract class PostType extends Registrable implements Container {
         return $this->theme;
     }
 
+    private function checkOptions() {
+        if (is_null(static::$options)) {
+            throw new Exception('Vous devez initialiser $options dans la classe ' . get_class($this));
+        }
+
+        $defaults = array(
+            // Nom du champ utilisé comme post_title
+            'post_title' => 'title',
+
+            // Nom du champ utilisé comme slug
+            'post_name' => 'ref',
+
+            // Statut par défaut des enregistrements
+            'post_status' => 'publish',
+        );
+
+        $options = (object)(static::$options + $defaults);
+
+        if (!$options->post_title) {
+            throw new Exception('post_title requis dans options');
+        }
+
+        if (!$options->post_name) {
+            throw new Exception('post_name requis dans options');
+        }
+
+        if (!$options->post_status) {
+            throw new Exception('post_status requis dans options');
+        }
+        static::$options = $options;
+    }
 
     /**
      * @inheritdoc
      */
     public function register() {
+        //
+        $this->checkOptions();
+
+        // L'id d'un CPT doit être définit une fois pour toute
+        if (!isset($this->id)) {
+            throw new Exception('Vous devez initialiser $id dans la classe ' . get_class($this));
+        }
+        $id = $this->id;
+
         // Récupère les paramètres du custom post type à créer
-        $id = $this->id();
-        $options = $this->options();
+        $options = $this->registerOptions();
 
         // Déclare le custom post type dans WordPress
-        register_post_type($id, $options);
+        register_post_type($this->id, $options);
 
         // Génère un nonce lorsque l'écran d'édition est affiché
-        add_action('edit_form_after_title', function () {
+        add_action('edit_form_after_title', function() {
             $this->createNonce();
         });
 
         // Définit le callback utilisé pour initialiser les metaboxes
-        add_action('add_meta_boxes_' . $id, function($post){
+        add_action('add_meta_boxes_' . $this->id, function($post) {
             $this->loadMetaboxes($post);
         });
 
@@ -98,8 +144,73 @@ abstract class PostType extends Registrable implements Container {
             if ($this->checkNonce()) {
                 $this->registerMetaboxes();
                 $this->saveMetaboxes($post, $previous);
-            } else die('nonce invalide');
+            }
         }, 10, 3);
+
+        add_filter('the_content', function($content) {
+            global $post;
+
+            if ($content)
+                return $content;
+            if ($post->post_type !== $this->id)
+                return $content;
+            if (!is_main_query())
+                return $content;
+
+            $data = \get_post_meta($post->ID, self::META, true);
+            $content .= $this->asContent($data);
+
+            return $content;
+        }, 1);
+
+    }
+
+    /**
+     * Formatte le contenu de l'enregistrement pour l'afficher sous forme
+     * de chaine lorsque the_content() est appellée.
+     * = représentation par défaut d'un enreg quel que soit le thème
+     * Peut être surchargée par les classes descendantes.
+     */
+    protected function asContent(array $data) {
+        $ol = count(array_filter(array_keys($data), 'is_string')) === 0;
+
+        $content = $ol ? '<ol>' : '<ul style="list-style-type: none; padding: 0; margin: 0;">';
+        foreach ($data as $key => $value) {
+            //
+            $content .= '<li>';
+
+            // Nom du champ
+            if (is_string($key))
+                $content .= "<b>$key</b> : ";
+
+            // Valeur simple
+            if (is_scalar($value)) {
+                $content .= $value;
+            }
+
+            // Tableaux
+            else {
+                $allScalar = count(array_filter($value, 'is_array')) === 0;
+                $hasKeys = count(array_filter(array_keys($value), 'is_string')) !== 0;
+
+                $canImplode = $allScalar && !$hasKeys;
+                $canInline = $allScalar && $hasKeys && (count($value) < 5);
+
+                if ($canImplode) {
+                    $content .= implode(', ', $value);
+                } elseif ($canInline) {
+                    foreach ($value as $key => $value) {
+                        $content .= "<i>$key</i>=$value, ";
+                    }
+                    $content = rtrim($content, ', ');
+                } else {
+                    $content .= $this->asContent($value);
+                }
+            }
+            $content .= '</li>';
+        }
+        $content .= $ol ? '</ol>' : '</ul>';
+        return $content;
     }
 
     /**
@@ -122,7 +233,7 @@ abstract class PostType extends Registrable implements Container {
      * est affiché.
      */
     protected function createNonce() {
-        if (get_post_type() === $this->id()) {
+        if (get_post_type() === $this->id) {
             wp_nonce_field('edit-post', self::NONCE);
         }
     }
@@ -157,34 +268,9 @@ abstract class PostType extends Registrable implements Container {
             $metabox->bind($data);
             $assets->add($metabox->getAssets());
         }
+
         // Insère tous les assets dans la page
-        foreach ($assets as $asset) {
-            if (isset($asset['src']) && false === strpos($asset['src'], '//')) {
-                $asset['src'] = plugins_url('docalist-0core/lib/docalist-forms/'.$asset['src']);
-            }
-
-            // Fichiers JS
-            if ($asset['type'] === Assets::JS) {
-                wp_enqueue_script(
-                    $asset['name'],
-                    $asset['src'],
-                    array(),
-                    $asset['version'],
-                    $asset['position'] === Assets::BOTTOM
-                );
-            }
-
-            // Fichiers CSS
-            else {
-                wp_enqueue_style(
-                    $asset['name'],
-                    $asset['src'],
-                    array(),
-                    $asset['version'],
-                    $asset['media']
-                );
-            }
-        }
+        Utils::enqueueAssets($assets);
     }
 
     /**
@@ -211,17 +297,38 @@ abstract class PostType extends Registrable implements Container {
      * @param array $data Les données à enregistrer.
      */
     private function filterData(array & $data) {
-        foreach ($data as $key => & $value) {
-            if (is_array($value)) {
-                $this->filterData($value);
-            }
+        // Détermine s'il s'agit d'une liste de valeurs (i.e les différentes
+        // occurences d'un champ répétable) ou bien d'un groupe de champs.
+        // Les clés sont des entiers dans le 1er cas, des chaines dans le 2nd.
+        $isValues = is_int(key($data));
+
+        // Si c'est une liste de valeurs, on a besoin de connaître la taille
+        // initiale du tableau pour le renuméroter si jamais des éléments sont
+        // supprimés (cf plus bas).
+        $isValues && $count = count($data);
+
+        // Filtre les données en supprimant tous les éléments vides du tableau
+        foreach($data as $key => &$value) {
+            is_array($value) && $this->filterData($value);
             if (empty($value)) {
                 unset($data[$key]);
             }
         }
-        if (empty($data)) $data = null;
-    }
 
+        // On ne stocke pas les champs vides
+        if (empty($data)) {
+            $data = null;
+        }
+
+        // Si le tableau contient une liste d'occurences et qu'on a supprimé
+        // des éléments, il faut renuméroter le tableau pour garantir que les
+        // clés sont croissantes et sans trous, sinon, json_encode() va
+        // considérer que c'est un objet et non pas un tableau, ce qui génère
+        // alors une exception dans ElasticSearch.
+        elseif ($isValues && $count != count($data)) {
+            $data = array_values($data);
+        }
+    }
 
     /**
      * Interface Container. A remplacer par un Trait.
@@ -243,51 +350,112 @@ abstract class PostType extends Registrable implements Container {
         return Utils::containerAdd($this, $this->items, $object);
     }
 
+    /**
+     * Interface Container.
+     *
+     * @inheritdoc
+     */
+    public function items() {
+        // TraitContainer : supprimer cette méthode
+        return $this->items;
+    }
 
-/*
-        // Crée les custom post statuses
-        //todo
+    /**
+     * Ajoute ou met à jour un enregistrement.
+     *
+     * Si le record a déjà un ID, l'enregistrement existant est mis à jour,
+     * sinon un nouvel enregistrement est créé.
+     */
+    public function store($record) {
+        if (is_object($record)) {
+            $record = (array)$record;
+        }
 
-        // Définit le hook wordpress pour créer les metaboxes de ce post type
-        add_action('add_meta_boxes_' . $this->id(), function() {
-            global $post;
+        $id = isset($record['id']) ? $record['id'] : null;
 
-            // Crée toutes les metaboxes définies pour ce post type
-            $this->createMetaboxes(true);
-
-            // Nouveau post, charge les valeurs par défaut du post type
-            if ($post->post_status === 'auto-draft') {
-                $defaults = $this->defaults();
-                foreach ($this->items as $metabox) {
-                    $metabox->bind($defaults);
-                }
+        if ($id) {
+            $post = \WP_Post::get_instance($id);
+            if ($post === false) {
+                throw new Exception("Post id $id not found");
             }
+        } else {
+            $name = static::$options->post_name;
+            $title = static::$options->post_title;
 
-            // Edition pour modification d'un enregistrement existant
-            else {
-                foreach ($this->items as $metabox) {
-                    $metabox->bind($post);
-                }
+            $post = array(
+                'post_type' => $this->id,
+                'post_status' => 'publish',
+                'post_name' => isset($record[$name]) ? $record[$name] : '',
+                'post_title' => isset($record[$title]) ? $record[$title] : '',
+            );
+            if (\is_wp_error($id = \wp_insert_post($post, true))) {
+                throw new Exception($id->get_error_message());
             }
-        });
+            $post = \get_post($id);
+        }
 
-        // Sauvegarde les données quand l'enreg ets mis à jour
-        add_action('post_updated', function($id, WP_Post $post, WP_Post $previous) {
-            if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-                return;
-            }
+        $this->filterData($record);
+        update_post_meta($id, self::META, $record);
+    }
 
-            // Crée toutes les metaboxes sans les référencer
-            $this->createMetaboxes(false);
+    /**
+     * Retourne l'enreg dont l'ID est passé en paramètre
+     */
+    public function retrieve($id) {// fetch
+        return \WP_Post::get_instance($id);
+    }
 
-            foreach ($this->items as $metabox) {
-                $metabox->bind($_POST);
-                var_export($metabox->data());
+    /**
+     * Supprime l'enregistrement dont l'ID est passé en paramètre
+     */
+    public function delete($id) {
+        \wp_delete_post($id, true);
+    }
 
-                foreach ($metabox->data() as $key => $value) {
-                    \update_post_meta($post->ID, $key, $value);
-                }
-            }
-        }, 10, 3);
- */
+    /*
+     // Crée les custom post statuses
+     //todo
+
+     // Définit le hook wordpress pour créer les metaboxes de ce post type
+     add_action('add_meta_boxes_' . $this->id(), function() {
+     global $post;
+
+     // Crée toutes les metaboxes définies pour ce post type
+     $this->createMetaboxes(true);
+
+     // Nouveau post, charge les valeurs par défaut du post type
+     if ($post->post_status === 'auto-draft') {
+     $defaults = $this->defaults();
+     foreach ($this->items as $metabox) {
+     $metabox->bind($defaults);
+     }
+     }
+
+     // Edition pour modification d'un enregistrement existant
+     else {
+     foreach ($this->items as $metabox) {
+     $metabox->bind($post);
+     }
+     }
+     });
+
+     // Sauvegarde les données quand l'enreg ets mis à jour
+     add_action('post_updated', function($id, WP_Post $post, WP_Post $previous) {
+     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+     return;
+     }
+
+     // Crée toutes les metaboxes sans les référencer
+     $this->createMetaboxes(false);
+
+     foreach ($this->items as $metabox) {
+     $metabox->bind($_POST);
+     var_export($metabox->data());
+
+     foreach ($metabox->data() as $key => $value) {
+     \update_post_meta($post->ID, $key, $value);
+     }
+     }
+     }, 10, 3);
+     */
 }

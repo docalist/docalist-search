@@ -34,4 +34,10 @@ class Checklist extends Choice {
         return parent::controlName() . '[]';
     }
 
+    /**
+     * @inheritdoc
+     */
+    protected function isArray() {
+        return true;
+    }
 }

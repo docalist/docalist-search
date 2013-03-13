@@ -131,7 +131,7 @@ abstract class AbstractActions extends Registrable {
      * @inheritdoc
      */
     public function register() {
-        if (current_user_can($this->capability('Index'))) {
+        if (current_user_can($this->capability())) {
             add_action('admin_action_' . $this->id(), function() {
                 $this->run();
             });
@@ -186,16 +186,38 @@ abstract class AbstractActions extends Registrable {
      * @see http://codex.wordpress.org/Roles_and_Capabilities
      */
     public function capability($action = null) {
+        // Si aucune action n'a été indiquée, on prend l'action en cours
         is_null($action) && $action = $this->action();
+
+        // Extrait la capacité depuis le docblock de l'action
         $tags = DocBlock::ofMethod($this, "action$action")->tags;
         if (isset($tags['capability'])) {
             return $tags['capability'][0];
         }
 
-        if ($action !== 'Index') {
-            return $this->capability();
+        // Retourne la capacité par défaut du module
+        return $this->defaultCapability();
+    }
+
+    /**
+     * Retourne la capacit par défaut requise pour exécuter une des actions
+     * du module.
+     *
+     * La capacité est lue à partir de l'annotation @capability présente
+     * dans le docblock de la classe.
+     *
+     * Si la classe n'a pas définit de capacité, la méthode retourne
+     * "manage_options" (i.e. accès restreint aux administrateurs).
+     *
+     * @return string
+     */
+    public function defaultCapability() {
+        $tags = DocBlock::ofClass($this)->tags;
+        if (isset($tags['capability'])) {
+            return $tags['capability'][0];
         }
 
+        // Aucune capacité définie nulle part : accès administrateurs uniquement
         return 'manage_options';
     }
 
@@ -365,6 +387,11 @@ abstract class AbstractActions extends Registrable {
 
             // Ignore la méthode action(), ce n'est pas une action
             if (empty($name)) {
+                continue;
+            }
+
+            // Ne liste que les action que l'utilisateur peut appeller
+            if (! current_user_can($this->capability($name))) {
                 continue;
             }
 

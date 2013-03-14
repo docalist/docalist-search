@@ -46,6 +46,10 @@ abstract class Metabox extends Registrable {
 
     }
 
+    protected function hookName() {
+        return 'add_meta_boxes_' . $this->parent->id();
+    }
+
     /**
      * @inheritdoc
      */

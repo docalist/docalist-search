@@ -16,7 +16,12 @@ namespace Docalist\Search;
 use Docalist\AbstractAdminPage;
 use Docalist\Forms\Form;
 
-class Actions extends AbstractAdminPage{
+class ToolsPage extends AbstractAdminPage{
+    /**
+     * @inheritdoc
+     */
+    protected $parentPage = 'tools.php';
+
     /**
      * Réindexation complète.
      *

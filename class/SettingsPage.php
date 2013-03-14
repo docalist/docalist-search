@@ -32,7 +32,7 @@ class SettingsPage extends AbstractSettingsPage {
     /**
      * @inheritdoc
      */
-    public function __construct() {
+    public function load() {
         $box = new Fragment();
 
         //@formatter:off

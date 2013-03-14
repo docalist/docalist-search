@@ -10,7 +10,8 @@
  * @package     Docalist
  * @subpackage  Core
  * @author      Daniel Ménard <daniel.menard@laposte.net>
- * @version     SVN: $Id$
+ * @version     SVN: $Id: AbstractActions.php 506 2013-03-13 16:30:08Z
+ * daniel.menard.35@gmail.com $
  */
 
 namespace Docalist;
@@ -250,8 +251,14 @@ abstract class AbstractActions extends Registrable {
         if ($action === 'Index') {
             return $this->pageTitle();
         }
-        $title = DocBlock::ofMethod($this, "action$action")->desc;
-        if (is_null($title)) {
+
+        try {
+            $title = DocBlock::ofMethod($this, "action$action")->desc;
+        } catch(Exception $e) {
+            return $action;
+        }
+
+        if (empty($title)) {
             return $action;
         }
         if (preg_match('~^(.*?)[\r\n]{2}~s', $title, $match)) {
@@ -276,7 +283,12 @@ abstract class AbstractActions extends Registrable {
             return '';
         }
 
-        $description = DocBlock::ofMethod($this, "action$action")->desc;
+        try {
+            $description = DocBlock::ofMethod($this, "action$action")->desc;
+        } catch(Exception $e) {
+            return '';
+        }
+
         if (!preg_match('~[\r\n]{2}(.*)~s', $description, $match)) {
             return '';
         }
@@ -391,7 +403,7 @@ abstract class AbstractActions extends Registrable {
             }
 
             // Ne liste que les action que l'utilisateur peut appeller
-            if (! current_user_can($this->capability($name))) {
+            if (!current_user_can($this->capability($name))) {
                 continue;
             }
 
@@ -426,7 +438,17 @@ abstract class AbstractActions extends Registrable {
         echo '</ul>';
     }
 
-    // adapté de AbstractSettingsPage
+    /**
+     * Retourne le titre de la page.
+     *
+     * Par défaut, la méthode retourne un titre construit à partir de
+     * l'id de la page et de son parent.
+     *
+     * Les classes descendantes peuvent surcharger cette méthode pour
+     * retourner un titre différent.
+     *
+     * @return string
+     */
     protected function pageTitle() {
         return ucfirst(strtr($this->parent->id(), '-', ' '));
     }
@@ -512,9 +534,11 @@ abstract class AbstractActions extends Registrable {
      * @return false
      */
     protected function notFound($method) {
-        header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
-        header('Status: 404 Not Found');
-        header('Content-type: text/html; charset=UTF-8');
+        if (! headers_sent()) {
+            header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
+            header('Status: 404 Not Found');
+            header('Content-type: text/html; charset=UTF-8');
+        }
         echo "<h1>404 Not Found</h1>\n";
         echo "<p>Method <code>$method</code> does not exist.</p>\n";
 
@@ -528,9 +552,11 @@ abstract class AbstractActions extends Registrable {
      * @return false
      */
     protected function badRequest($reason = '') {
-        header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request');
-        header('Status: 400 Bad Request');
-        header('Content-type: text/html; charset=UTF-8');
+        if (! headers_sent()) {
+            header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request');
+            header('Status: 400 Bad Request');
+            header('Content-type: text/html; charset=UTF-8');
+        }
         echo "<h1>400 Bad Request</h1>\n";
         if ($reason) {
             echo "<p>$reason</p>\n";

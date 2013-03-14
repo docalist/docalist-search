@@ -29,12 +29,13 @@ class Search extends Plugin {
         // Client ElasticSearch
         $this->add(new ElasticSearch);
 
-        // Page outils
-        $this->add(new Actions);
-
-        // Page de configuration
+        // Back office
         add_action('admin_menu', function() {
+            // Configuration
             $this->add(new SettingsPage);
+
+            // Outils
+            $this->add(new ToolsPage);
         });
     }
 

@@ -46,9 +46,36 @@ abstract class Registrable {
     protected $id;
 
     /**
+     * @var string Le nom du hook WordPress qui doit être utilisé pour
+     * créer des objets de ce type.
+     */
+    static protected $hookName = 'init';
+
+    /**
      * Initialise et enregistre l'objet dans WordPress.
      */
     abstract public function register();
+
+    /**
+     * Retourne le nom du hook qui doit être utilisé pour créer des objets
+     * de ce type.
+     *
+     * Cette méthode sert à vérifier que les objets sont créés "au bon moment"
+     * (par exemple ne pas créer des pages d'administration quand on est coté
+     * front-office).
+     *
+     * Lorsque l'objet est ajouté à un container, un test est effectué pour
+     * vérifier que l'action WordPress en cours correspond au hook indiqué
+     * ici et une erreur est générée si ce n'est pas le cas.
+     *
+     * C'est la méthode parent() qui fait ce test.
+     *
+     * @return string le nom de l'action WordPress (init, admin_menu, etc.)
+     * qui doit être utilisée pour créer des objets de ce type.
+     */
+    protected function hookName() {
+        return static::$hookName;
+    }
 
     /**
      * Retourne ou modifie le container de cet objet.
@@ -78,13 +105,53 @@ abstract class Registrable {
             return $this->parent;
         }
 
-        // Setter
+        // Setter. Le parent d'un objet ne peut pas être changé
         if (!is_null($this->parent)) {
             $msg = __("L'objet %s a déjà un parent", 'docalist-core');
             throw new Exception(sprintf($msg, $this->name()));
         }
 
+        // Stocke le parent
         $this->parent = $parent;
+
+        // Vérifie que l'objet a été créé au bon moment (cf doc de hookName())
+        // TODO : en mode debug uniquement ?
+        $hook = $this->hookName();
+        $current = current_filter();
+        if ($current !== $hook) {
+            $title = sprintf('Erreur dans le plugin %s',$this->plugin()->id());
+            $msg = '
+                <h1>%s</h1>
+                <p>
+                    L\'objet <code>%s</code> est instancié trop tôt ou trop
+                    tard (pendant l\'action <code>%s</code>).
+                </p>
+                <p>
+                    Vous devez encapsuler la création de votre objet dans un
+                    appel à <a href="%s"><code>add_action()</code></a> et
+                    utiliser le hook <code>%s</code>.
+                </p>
+
+                <p>Par exemple :</p>
+
+                <pre>
+                add_action(\'%s\', function() {
+                    $this->add(new %s);
+                });
+                </pre>
+            ';
+            $msg = sprintf($msg,
+                $title,
+                get_class($this),
+                $current,
+                'http://codex.wordpress.org/Function_Reference/add_action',
+                $hook,
+                $hook,
+                Utils::classname($this)
+            );
+
+            wp_die($msg, $title);
+        }
 
         return $this;
     }

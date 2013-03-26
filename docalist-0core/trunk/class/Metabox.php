@@ -38,6 +38,19 @@ abstract class Metabox extends Registrable {
      */
     protected $position = 'normal-default';
 
+    public function taxonomy($name) {
+        $terms = get_terms($name, array(
+            'hide_empty' => false,
+        ));
+
+        $result = array();
+        foreach ($terms as $term) {
+            $result[$term->slug] = $term->name;
+        }
+
+        return $result;
+    }
+
     /**
      * Crée le formulaire à afficher pour cette metabox et initialise
      * {@link $forms}.

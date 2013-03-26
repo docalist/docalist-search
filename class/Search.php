@@ -48,7 +48,7 @@ class Search extends Plugin {
             $this->add(new SettingsPage);
 
             // Outils
-            $this->add(new ToolsPage);
+            $this->add(new Tools);
         });
 
         // Si l'utilisateur n'a pas encore activé la recherche, terminé

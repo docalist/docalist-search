@@ -16,7 +16,7 @@ namespace Docalist\Search;
 use Docalist\AbstractAdminPage;
 use Docalist\Forms\Form;
 
-class ToolsPage extends AbstractAdminPage{
+class Tools extends AbstractAdminPage{
     /**
      * @inheritdoc
      */

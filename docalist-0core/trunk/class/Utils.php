@@ -151,9 +151,9 @@ class Utils {
     /**
      * Implémentation de la méthode get() pour un container.
      */
-    public static function containerGet(Container $container, array & $items, $name){
-    // TraitContainer : supprimer cette méthode
-        if (! isset($items[$name])) {
+    public static function containerGet(Container $container, array & $items, $name) {
+        // TraitContainer : supprimer cette méthode
+        if (!isset($items[$name])) {
             $msg = __('Aucun objet %s dans ce container', 'docalist-core');
             throw new Exception(sprintf($msg, $name));
         }
@@ -164,8 +164,8 @@ class Utils {
     /**
      * Implémentation de la méthode add() pour un container.
      */
-    public static function containerAdd(Container $container, array & $items, Registrable $object){
-    // TraitContainer : supprimer cette méthode
+    public static function containerAdd(Container $container, array & $items, Registrable $object) {
+        // TraitContainer : supprimer cette méthode
         $name = $object->name();
         if (isset($items[$name])) {
             $msg = __('Il existe déjà un objet %s dans ce container', 'docalist-core');
@@ -201,4 +201,101 @@ class Utils {
             }
         }
     }
+
+    /**
+     * Génère un UUID (Universally Unique IDentifiers) version 4 compatible
+     * aved la RFC 4211.
+     *
+     * @return string
+     *
+     * @author Andrew Moore http://php.net/uniqid#94959
+     */
+    public function uuid() {
+        //@formatter:off
+        return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            // 32 bits for "time_low"
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+
+            // 16 bits for "time_mid"
+            mt_rand(0, 0xffff),
+
+            // 16 bits for "time_hi_and_version",
+            // four most significant bits holds version number 4
+            mt_rand(0, 0x0fff) | 0x4000,
+
+            // 16 bits, 8 bits for "clk_seq_hi_res",
+            // 8 bits for "clk_seq_low",
+            // two most significant bits holds zero and one for variant DCE1.1
+            mt_rand(0, 0x3fff) | 0x8000,
+
+            // 48 bits for "node"
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+        );
+        //@formatter:on
+    }
+
+    /**
+     * Génère les liens permettant d'accèder aux différentes pages de résultat.
+     *
+     */
+    function pagesLinks($nb = 11, $first = false, $prev = true, $next = true, $last = false) {
+        /**
+         * @var WP_Query
+         */
+        global $wp_query;
+
+        // Numéro de la page en cours
+        $current = max(1, get_query_var('paged'));
+
+        // Numéro de la première page à générer
+        $firstPage = max(1, $current - intval($nb / 2));
+
+        // Numéro de la dernière page à générer
+        $lastPage = $firstPage + $nb - 1;
+
+        // Ajustement des limites
+        if ($lastPage > $wp_query->max_num_pages) {
+            $lastPage = $wp_query->max_num_pages;
+            $firstPage = max(1, $lastPage - $nb + 1);
+        }
+
+        // Liens Début et Précédent
+        if ($current > 1 && ($first || $prev)) {
+            if ($first) {
+                $url = get_pagenum_link(1, false);
+                $first === true && $first = 'Début';
+                printf('<a class="page-numbers first" href="%s">%s</a> ', $url, $first);
+            }
+            if ($prev) {
+                $url = get_pagenum_link($current - 1, false);
+                $prev === true && $prev = 'Précédent';
+                printf('<a class="page-numbers previous" href="%s">%s</a> ', $url, $prev);
+            }
+        }
+
+        // Liens 1 2 3 4 ...
+        for ($link = $firstPage ; $link <= $lastPage ; $link++) {
+            $url = get_pagenum_link($link, false);
+            if ($link === $current) {
+                printf('<span class="page-numbers current">%d</span> ', $link);
+            } else {
+                printf('<a class="page-numbers" href="%s">%d</a> ', $url, $link);
+            }
+        }
+
+        // Liens Suivant et Fin
+        if ($current < $wp_query->max_num_pages && ($next || $last)) {
+            if ($next) {
+                $url = get_pagenum_link($current + 1, false);
+                $next === true && $next = 'Suivant';
+                printf('<a class="page-numbers next" href="%s">%s</a> ', $url, $next);
+            }
+            if ($last) {
+                $url = get_pagenum_link($wp_query->max_num_pages, false);
+                $last === true && $last = 'Fin';
+                printf('<a class="page-numbers last" href="%s">%s</a> ', $url, $last);
+            }
+        }
+    }
+
 }

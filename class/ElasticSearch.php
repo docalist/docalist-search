@@ -105,7 +105,12 @@ class ElasticSearch extends Registrable {
         $debug = false;
         $pretty = $debug ? JSON_PRETTY_PRINT : 0;
 
-        $url = $this->server . $path;
+        if ($path && $path[0] === '/') {
+            $url = $this->server . ltrim($path, '/');
+        }
+        else {
+            $url = $this->server . $this->index . '/' . $path;
+        }
 
         if ($debug) {
             $url .= strpos($path, '?') === false ? '?pretty' : '&pretty';

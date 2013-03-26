@@ -68,7 +68,7 @@ final class Docalist {
         add_action('init', array(
             $plugin,
             'register'
-        ));
+        ), 1, 999);
     }
 
     /**

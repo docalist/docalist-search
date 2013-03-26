@@ -39,29 +39,30 @@ class ToolsPage extends AbstractAdminPage{
         $es = $this->parent->get('elasticsearch');
         $index = $this->setting('server.index');
 
-        // Teste si l'index existe déjà
-        if ($es->exists($index)) {
-            echo "<p>L'index $index existe déjà, SUPPRESSION.</p>";
-            $es->delete($index);
-        }
-        echo "<p>Création de l'index <code>$index</code>.</p>";
-        $es->put($index);
-
         $type = 'dclref';
-        $bulk = false;
+        $bulk = true;
+        $batchSize = 10000;
 
-        $mapping = apply_filters("dclsearch_{$type}_mapping", null);
-        if (is_null($mapping)) {
-            echo "<p>Aucun plugin n'a retourné de mapping pour le type <code>$type</code>.</p>";
+        // Teste si l'index existe déjà
+        if ($es->exists("/$index")) {
+            echo "<p>L'index $index existe déjà, SUPPRESSION.</p>";
+            $es->delete("/$index");
         }
-        $mapping['_meta']['docalist-search'] = 0.1; // this version
-        $mapping = array($type => $mapping);
 
+        $settings = apply_filters("dclsearch_{$type}_mapping", null);
+        if (is_null($settings)) {
+            echo "<p>Aucun plugin n'a retourné de mapping pour le type <code>$type</code>.</p>";
+            $settings = array();
+        }
+        $settings['_meta']['docalist-search'] = 0.1; // this version
+
+        echo "<p>Création de l'index <code>$index</code>.</p>";
+        $es->put("/$index", $settings);
+/*
         echo "<p>Création d'un mapping pour le type <code>$type</code>.</p>";
-        $es->put("$index/$type/_mapping", $mapping);
-
+        $es->put("/$index/$type/_mapping", $mapping);
+*/
         $nb = 0;
-        $batchSize = 1000;
 
         echo '<pre>';
         echo 'Temps écoulé (sec) ; Nb de notices chargées ; memory_get_usage() ; memory_get_usage(true) ; memory_get_peak_usage() ; memory_get_peak_usage(true)', '<br />';
@@ -105,15 +106,15 @@ class ToolsPage extends AbstractAdminPage{
                         "\n"
                     );
                 } else {
-                    $es->put("$index/$type/$id", $post);
+                    $es->put("/$index/$type/$id", $post);
                 }
             }
 
             if ($bulk) {
-                $es->bulk("$index/$type/_bulk", $data);
+                $es->bulk("/$index/$type/_bulk", $data);
             }
 
-            if ($nb>=5000) break;
+//            if ($nb>=100) break;
         }
         $time = microtime(true) - $time;
 
@@ -281,7 +282,7 @@ class ToolsPage extends AbstractAdminPage{
 
         printf('<h3>Résultat de la requête %s %s :</h3>', $_REQUEST['method'],$_REQUEST['endpoint']);
         $es = $this->parent->get('elasticsearch');
-        $this->dump($es->request($_REQUEST['method'], ltrim($_REQUEST['endpoint'], '/')));
+        $this->dump($es->request($_REQUEST['method'], $_REQUEST['endpoint']));
     }
 
     private function dump($data) {

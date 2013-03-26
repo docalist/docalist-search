@@ -178,7 +178,7 @@ abstract class AbstractAdminPage extends AbstractActions {
     protected function run() {
         echo '<div class="wrap">';
         screen_icon($this->parentPage ? '' : 'generic');
-        printf('<h2>%s</h2>', $this->title());
+        printf('<h2>%s</h2>', $this->pageTitle());
         printf('<p class="description">%s</p>', $this->description());
 
         parent::run();
@@ -207,5 +207,24 @@ abstract class AbstractAdminPage extends AbstractActions {
      */
     public function getAssets() {
         return new Assets();
+    }
+
+    /**
+     * Ajoute une ou plusieurs actions de ce module comme options dans
+     * le menu dont le slug est passé en paramètre.
+     *
+     * @param string|string[] L'action ou les actions à ajouter au menu.
+     * @param string Le slug du menu dans lequel il faut ajouter les actions.
+     */
+    public function addToMenu($action, $menuSlug) {
+        foreach((array) $action as $action) {
+            add_submenu_page(
+                $menuSlug,
+                '',
+                $this->title($action),
+                $this->capability($action),
+                $this->url($action, true)
+            );
+        }
     }
 }

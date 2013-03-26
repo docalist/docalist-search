@@ -226,12 +226,13 @@ abstract class AbstractActions extends Registrable {
      * Retourne l'url d'une action.
      *
      * @param string $action
-     *
+     * @param boolean $relative true = url relative à wp-admin (false par défaut)
      * @return string
      */
-    public function url($action = null) {
+    public function url($action = null, $relative = false) {
         is_null($action) && $action = $this->action();
-        $url = admin_url($this->parentPage ? : 'admin.php');
+        $url = $this->parentPage ? : 'admin.php';
+        !$relative && $url = admin_url($url);
         $args = array(static::$parameterName => $this->id());
         $action !== 'Index' && $args['m'] = $action;
 
@@ -246,7 +247,7 @@ abstract class AbstractActions extends Registrable {
      *
      * @return string
      */
-    protected function title($action = null) {
+    public function title($action = null) {
         is_null($action) && $action = $this->action();
         if ($action === 'Index') {
             return $this->pageTitle();
@@ -505,7 +506,7 @@ abstract class AbstractActions extends Registrable {
         $form->submit('Go !');
 
         $form->bind($_REQUEST);
-        $form->render('wordpress');
+        $form->render('wordpress', array('indent'=>true, 'comment'=>true));
     }
 
     /**
@@ -514,7 +515,7 @@ abstract class AbstractActions extends Registrable {
      * @param string $message Le message à afficher.
      * @return bool True si l'utilisateur a déjà confirmé, false sinon.
      */
-    public function confirm($message = null) {
+    public function confirm($message = null, $button = null) {
         if (isset($_REQUEST['confirm']) && $_REQUEST['confirm'] === '1') {
             return true;
         }
@@ -522,8 +523,12 @@ abstract class AbstractActions extends Registrable {
         if ($message) {
             printf('<p><strong>%s</strong></p>', $message);
         }
-        $this->ask('hidden', 'confirm', '', '', array('value' => '1'));
-
+        $this->ask(array(
+            'type' => 'hidden',
+            'name' => 'confirm',
+            'attributes' => array('value' => '1'),
+        ));
+// Bouton : continuer
         return false;
     }
 

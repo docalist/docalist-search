@@ -6,7 +6,12 @@ $this->block('errors');
 $writer->startElement('table');
 $writer->writeAttribute('class', 'form-table');
 //$writer->writeAttribute('border', '1');
+$hidden = array();
 foreach($this->fields as $field) {
+    if ($field->type() === 'hidden') {
+        $hidden[] = $field;
+        continue;
+    }
     $writer->startElement('tr');
 
         $writer->startElement('th');
@@ -25,5 +30,7 @@ foreach($this->fields as $field) {
     $writer->fullEndElement(); // </tr>
 }
 $writer->fullEndElement(); // </table>
-
+foreach($hidden as $field) {
+    $field->block('values');
+}
 $this->description && $this->descriptionAfter && $this->block('description');

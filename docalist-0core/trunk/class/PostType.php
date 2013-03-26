@@ -55,10 +55,15 @@ abstract class PostType extends Registrable implements Container {
     protected $theme = 'wordpress';
 
     /**
-     * @var array Options du post type. Doit être surchargé par les classes
-     * descendantes.
+     * @var array Permet de recopier dans l'enregistremt Post géré par
+     * WordPress un ou plusieurs des champs du type de contenu personnalisé.
+     *
+     * Doit être surchargé par les classes descendantes.
+     *
+     * Format du tableau :
+     * champ Wordpress => champ du custom post type
      */
-    static protected $options;
+    protected $copyFields = array();
 
     /**
      * Retourne les options à utiliser pour définir ce type de contenu dans
@@ -78,11 +83,11 @@ abstract class PostType extends Registrable implements Container {
         return $this->theme;
     }
 
-    private function checkOptions() {
-        if (is_null(static::$options)) {
-            throw new Exception('Vous devez initialiser $options dans la classe ' . get_class($this));
+    private function checkCopyFields() {
+        if (is_null($this->copyFields)) {
+            throw new Exception('Vous devez initialiser $copyFields dans la classe ' . get_class($this));
         }
-
+/*
         $defaults = array(
             // Nom du champ utilisé comme post_title
             'post_title' => 'title',
@@ -94,20 +99,21 @@ abstract class PostType extends Registrable implements Container {
             'post_status' => 'publish',
         );
 
-        $options = (object)(static::$options + $defaults);
+        $copyFields = (object)(static::$copyFields + $defaults);
 
-        if (!$options->post_title) {
-            throw new Exception('post_title requis dans options');
+        if (!$copyFields->post_title) {
+            throw new Exception('post_title requis dans copyFields');
         }
 
-        if (!$options->post_name) {
-            throw new Exception('post_name requis dans options');
+        if (!$copyFields->post_name) {
+            throw new Exception('post_name requis dans copyFields');
         }
 
-        if (!$options->post_status) {
-            throw new Exception('post_status requis dans options');
+        if (!$copyFields->post_status) {
+            throw new Exception('post_status requis dans copyFields');
         }
-        static::$options = $options;
+        static::$copyFields = $copyFields;
+*/
     }
 
     /**
@@ -115,7 +121,7 @@ abstract class PostType extends Registrable implements Container {
      */
     public function register() {
         //
-        $this->checkOptions();
+        $this->checkcopyFields();
 
         // L'id d'un CPT doit être définit une fois pour toute
         if (!isset($this->id)) {
@@ -146,23 +152,6 @@ abstract class PostType extends Registrable implements Container {
                 $this->saveMetaboxes($post, $previous);
             }
         }, 10, 3);
-
-        add_filter('the_content', function($content) {
-            global $post;
-
-            if ($content)
-                return $content;
-            if ($post->post_type !== $this->id)
-                return $content;
-            if (!is_main_query())
-                return $content;
-
-            $data = \get_post_meta($post->ID, self::META, true);
-            $content .= $this->asContent($data);
-
-            return $content;
-        }, 1);
-
     }
 
     /**
@@ -367,9 +356,16 @@ abstract class PostType extends Registrable implements Container {
      * sinon un nouvel enregistrement est créé.
      */
     public function store($record) {
+        /**
+         * @var \wpdb
+         */
+        global $wpdb;
+        global $user_ID;
+
         if (is_object($record)) {
             $record = (array)$record;
         }
+        $this->filterData($record);
 
         $id = isset($record['id']) ? $record['id'] : null;
 
@@ -379,23 +375,52 @@ abstract class PostType extends Registrable implements Container {
                 throw new Exception("Post id $id not found");
             }
         } else {
-            $name = static::$options->post_name;
-            $title = static::$options->post_title;
-
-            $post = array(
-                'post_type' => $this->id,
-                'post_status' => 'publish',
-                'post_name' => isset($record[$name]) ? $record[$name] : '',
-                'post_title' => isset($record[$title]) ? $record[$title] : '',
-            );
-            if (\is_wp_error($id = \wp_insert_post($post, true))) {
-                throw new Exception($id->get_error_message());
+            $post = get_class_vars('WP_POST');
+            unset($post['filter']);
+            foreach($this->copyFields as $wp => $field) {
+                if (isset($record[$field])) {
+                    $post[$wp] = $record[$field];
+                } else {
+                    // donner une valeur par défaut
+                }
             }
-            $post = \get_post($id);
+            $post['post_type'] = $this->id;
+            $post['post_status'] = 'publish'; // TODO: config
+            $post['post_author'] = $user_ID; // TODO: config
+            $post['post_date'] = $post['post_modified'] = \current_time('mysql');
+            $post['post_date_gmt'] = $post['post_modified_gmt'] = \current_time('mysql', true);
+            $post['comment_status'] = 'closed'; // TODO: config ?
+            $post['ping_status'] = 'closed'; // TODO: config ?
+            $post['guid'] = 'http://' . Utils::uuid();
+            // le guid wp doit obligatoirement commencer par http://
+            // cf. http://alexking.org/blog/2011/08/13/wordpress-guid-format
+
+            // Insertion normale via wordpress
+            $useWordpress = false;
+            if ($useWordpress) {
+                $id = \wp_insert_post($post, true);
+                if (is_wp_error($id)) {
+                    throw new Exception($id->get_error_message());
+                }
+            }
+
+            // Insertion directe dans la base
+            else {
+                if ( false === $wpdb->insert($wpdb->posts, $post) ) {
+                    throw new Exception($wpdb->last_error);
+                }
+                $id = (int) $wpdb->insert_id;
+
+//                echo "ID=$id<br />Post=<pre>", print_r($post,true), '</pre>';
+//die();
+            }
         }
 
-        $this->filterData($record);
         update_post_meta($id, self::META, $record);
+    }
+
+    private function createPost($record) {
+
     }
 
     /**
@@ -411,51 +436,4 @@ abstract class PostType extends Registrable implements Container {
     public function delete($id) {
         \wp_delete_post($id, true);
     }
-
-    /*
-     // Crée les custom post statuses
-     //todo
-
-     // Définit le hook wordpress pour créer les metaboxes de ce post type
-     add_action('add_meta_boxes_' . $this->id(), function() {
-     global $post;
-
-     // Crée toutes les metaboxes définies pour ce post type
-     $this->createMetaboxes(true);
-
-     // Nouveau post, charge les valeurs par défaut du post type
-     if ($post->post_status === 'auto-draft') {
-     $defaults = $this->defaults();
-     foreach ($this->items as $metabox) {
-     $metabox->bind($defaults);
-     }
-     }
-
-     // Edition pour modification d'un enregistrement existant
-     else {
-     foreach ($this->items as $metabox) {
-     $metabox->bind($post);
-     }
-     }
-     });
-
-     // Sauvegarde les données quand l'enreg ets mis à jour
-     add_action('post_updated', function($id, WP_Post $post, WP_Post $previous) {
-     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-     return;
-     }
-
-     // Crée toutes les metaboxes sans les référencer
-     $this->createMetaboxes(false);
-
-     foreach ($this->items as $metabox) {
-     $metabox->bind($_POST);
-     var_export($metabox->data());
-
-     foreach ($metabox->data() as $key => $value) {
-     \update_post_meta($post->ID, $key, $value);
-     }
-     }
-     }, 10, 3);
-     */
 }

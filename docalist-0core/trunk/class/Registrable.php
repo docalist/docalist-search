@@ -23,7 +23,7 @@ use Exception;
  */
 abstract class Registrable {
     /**
-     * @var Container L'objet container auquel est rattaché cet objet.
+     * @var ContainerInterface L'objet container auquel est rattaché cet objet.
      */
     protected $parent;
 
@@ -93,13 +93,13 @@ abstract class Registrable {
      * plus être ajouté à un autre objet. Une exception sera levée si on
      * essaie de modifier le parent d'un objet qui a déjà un parent.
      *
-     * @param Container $container Le container de l'objet.
+     * @param ContainerInterface $container Le container de l'objet.
      *
      * @throws Exception Si l'objet a déjà un container.
      *
-     * @return Container|$this
+     * @return ContainerInterface|$this
      */
-    public function parent(Container $parent = null) {
+    public function parent(ContainerInterface $parent = null) {
         // Getter
         if (is_null($parent)) {
             return $this->parent;

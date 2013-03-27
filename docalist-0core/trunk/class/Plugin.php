@@ -19,8 +19,8 @@ use Exception;
 /**
  * Classe de base abstraite représentant un plugin Docalist.
  */
-abstract class Plugin extends Registrable implements Container {
-    // TraitContainer : remplacer implements par use
+abstract class Plugin extends Registrable implements ContainerInterface {
+    use ContainerTrait;
 
     /**
      * Nom du transient utilisé pour stocker les admin notices.
@@ -32,12 +32,6 @@ abstract class Plugin extends Registrable implements Container {
      * final.
      */
     protected $directory;
-
-    /**
-     * @var array Liste des objets déclarés par ce plugin.
-     */
-    protected $items = array();
-    // TraitContainer : à enlever
 
     /**
      * Initialise le plugin.
@@ -101,36 +95,6 @@ abstract class Plugin extends Registrable implements Container {
     }
 
     /**
-     * Interface Container.
-     *
-     * @inheritdoc
-     */
-    public function get($name) {
-        // TraitContainer : supprimer cette méthode
-        return Utils::containerGet($this, $this->items, $name);
-    }
-
-    /**
-     * Interface Container.
-     *
-     * @inheritdoc
-     */
-    public function add(Registrable $object) {
-        // TraitContainer : supprimer cette méthode
-        return Utils::containerAdd($this, $this->items, $object);
-    }
-
-    /**
-     * Interface Container.
-     *
-     * @inheritdoc
-     */
-    public function items() {
-        // TraitContainer : supprimer cette méthode
-        return $this->items;
-    }
-
-    /**
      * Registrable.
      *
      * @inheritdoc
@@ -146,16 +110,6 @@ abstract class Plugin extends Registrable implements Container {
      */
     public function settings() {
         return $this->get('settings')->settings();
-    }
-
-    /**
-     * Retourne la liste des outils disponibles pour ce plugin.
-     *
-     * @return array un tableau d'objets de type
-     * {@link Tool}.
-     */
-    public function tools() {
-        return array();
     }
 
     /**

@@ -26,7 +26,7 @@ use Exception;
  * Représente une collection d'objets Registrable auxquels on accède via
  * leur nom.
  */
-interface Container {
+interface ContainerInterface {
     /**
      * Retourne l'objet dont le nom est passé en paramètre.
      *

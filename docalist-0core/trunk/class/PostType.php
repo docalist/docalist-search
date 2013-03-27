@@ -23,8 +23,8 @@ use Docalist\Forms\Assets, Docalist\Forms\Themes;
  *
  * C'est un Container qui gère les metaboxes associées.
  */
-abstract class PostType extends Registrable implements Container {
-    // TraitContainer : remplacer implements par use
+abstract class PostType extends Registrable implements ContainerInterface {
+    use ContainerTrait;
 
     /*
      * Notes
@@ -42,12 +42,6 @@ abstract class PostType extends Registrable implements Container {
      * Le nom du meta utilisé pour stocker les données de l'enregistrement.
      */
     const META = 'dcl_data';
-
-    /**
-     * @var array Interface Container, liste des metaboxes de ce post type.
-     */
-    protected $items = array();
-    // TraitContainer : à enlever
 
     /**
      * @var Thème de formulaire à utiliser pour les metaboxes.
@@ -317,36 +311,6 @@ abstract class PostType extends Registrable implements Container {
         elseif ($isValues && $count != count($data)) {
             $data = array_values($data);
         }
-    }
-
-    /**
-     * Interface Container. A remplacer par un Trait.
-     *
-     * @inheritdoc
-     */
-    public function get($name) {
-        // TraitContainer : supprimer cette méthode
-        return Utils::containerGet($this, $this->items, $name);
-    }
-
-    /**
-     * Interface Container. A remplacer par un Trait.
-     *
-     * @inheritdoc
-     */
-    public function add(Registrable $object) {
-        // TraitContainer : supprimer cette méthode
-        return Utils::containerAdd($this, $this->items, $object);
-    }
-
-    /**
-     * Interface Container.
-     *
-     * @inheritdoc
-     */
-    public function items() {
-        // TraitContainer : supprimer cette méthode
-        return $this->items;
     }
 
     /**

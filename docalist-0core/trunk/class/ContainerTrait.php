@@ -26,6 +26,18 @@ trait ContainerTrait {
     protected $items = array();
 
     /**
+     * Indique si la collection contient l'objet dont le nom est passé en
+     * paramètre.
+     *
+     * @param string $name Le nom de l'objet recherché.
+     *
+     * @return bool
+     */
+    public function has($name) {
+        return isset($this->items[$name]);
+    }
+
+    /**
      * Retourne l'objet dont le nom est passé en paramètre.
      *
      * @param string $name Le nom de l'objet à retourner.

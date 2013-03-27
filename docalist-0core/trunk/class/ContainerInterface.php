@@ -17,16 +17,20 @@ namespace Docalist;
 use Exception;
 
 /**
- * Remarque : Container ne devrait pas être une interface mais un Trait.
- * Il faudra refactorer le code quand on aura migré en php5.4 (rechercher la
- * chaine "TraitContainer" dans le code).
- */
-
-/**
  * Représente une collection d'objets Registrable auxquels on accède via
  * leur nom.
  */
 interface ContainerInterface {
+    /**
+     * Indique si la collection contient l'objet dont le nom est passé en
+     * paramètre.
+     *
+     * @param string $name Le nom de l'objet recherché.
+     *
+     * @return bool
+     */
+    public function has($name);
+
     /**
      * Retourne l'objet dont le nom est passé en paramètre.
      *

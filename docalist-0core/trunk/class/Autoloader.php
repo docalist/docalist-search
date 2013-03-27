@@ -101,7 +101,7 @@ class Autoloader {
                 require_once $path;
 
                 // Vérifie que désormais la classe existe
-                if (!class_exists($class, false) && ! interface_exists($class, false)) {
+                if (!class_exists($class, false) && ! interface_exists($class, false) && ! trait_exists($class)) {
                     $msg = __('Erreur dans %s : classe %s inexistante', 'docalist-core');
                     throw new Exception(sprintf($msg, $path, $class));
                 }
@@ -112,7 +112,7 @@ class Autoloader {
 
             // Chargement en mode normal
             require_once $path;
-            
+
             return;
         }
     }

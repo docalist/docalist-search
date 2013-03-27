@@ -129,7 +129,7 @@ abstract class AbstractActions extends Registrable {
     protected $parentPage = 'admin.php';
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function register() {
         if (current_user_can($this->capability())) {

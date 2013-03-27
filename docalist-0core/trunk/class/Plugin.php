@@ -88,7 +88,7 @@ abstract class Plugin extends Registrable implements ContainerInterface {
     /**
      * Registrable.
      *
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function plugin() {
         return $this;
@@ -97,7 +97,7 @@ abstract class Plugin extends Registrable implements ContainerInterface {
     /**
      * Registrable.
      *
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setting($setting) {
         return $this->get('settings')->setting($setting);
@@ -106,7 +106,7 @@ abstract class Plugin extends Registrable implements ContainerInterface {
     /**
      * Registrable.
      *
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function settings() {
         return $this->get('settings')->settings();

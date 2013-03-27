@@ -36,7 +36,7 @@ abstract class AbstractSettings extends Registrable {
     protected $settings;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function register() {
         // Vérifie qu'on a des options
@@ -71,14 +71,14 @@ abstract class AbstractSettings extends Registrable {
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function settings() {
         return $this->settings;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setting($setting) {
         $settings = $this->settings;

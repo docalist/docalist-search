@@ -64,7 +64,7 @@ abstract class Metabox extends Registrable {
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function register() {
         // Détermine le titre de la metabox

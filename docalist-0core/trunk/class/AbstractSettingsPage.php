@@ -21,7 +21,7 @@ use Docalist\Forms\Themes, Docalist\Forms\Fields;
  */
 abstract class AbstractSettingsPage extends AbstractAdminPage {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected $parentPage = 'options-general.php';
 
@@ -46,7 +46,7 @@ abstract class AbstractSettingsPage extends AbstractAdminPage {
     protected $settings;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function register() {
         // Indique à WordPress le nom de notre setting
@@ -72,7 +72,7 @@ abstract class AbstractSettingsPage extends AbstractAdminPage {
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getAssets() {
         $assets = parent::getAssets();

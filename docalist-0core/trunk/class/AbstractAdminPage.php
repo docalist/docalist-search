@@ -23,17 +23,17 @@ use Docalist\Forms\Assets;
  */
 abstract class AbstractAdminPage extends AbstractActions {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     static protected $hookName = 'admin_menu';
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     static protected $parameterName = 'page';
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected $parentPage = '';
 
@@ -64,7 +64,7 @@ abstract class AbstractAdminPage extends AbstractActions {
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function register() {
         // One fait quelque chose que si l'utilisateur a les droits requis
@@ -173,7 +173,7 @@ abstract class AbstractAdminPage extends AbstractActions {
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function run() {
         echo '<div class="wrap">';

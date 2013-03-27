@@ -28,7 +28,7 @@ abstract class Taxonomy extends Registrable {
     protected $postTypes;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function register() {
         register_taxonomy($this->id(), $this->postTypes, $this->options());

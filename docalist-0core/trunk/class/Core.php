@@ -21,7 +21,7 @@ use Docalist\Tools\ToolsList;
  */
 class Core extends Plugin {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
      public function register() {
         add_action('admin_notices', function(){

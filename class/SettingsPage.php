@@ -20,7 +20,7 @@ use Docalist\AbstractSettingsPage, Docalist\Forms\Fragment;
  */
 class SettingsPage extends AbstractSettingsPage {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function validate(&$settings) {
 
@@ -30,7 +30,7 @@ class SettingsPage extends AbstractSettingsPage {
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function load() {
         $box = new Fragment();

@@ -20,7 +20,7 @@ use Docalist\AbstractSettings;
  */
 class Settings extends AbstractSettings {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected $defaults = array(
         // Paramètres généraux

@@ -18,7 +18,7 @@ use Docalist\Forms\Form;
 
 class Tools extends AbstractAdminPage{
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected $parentPage = 'tools.php';
 

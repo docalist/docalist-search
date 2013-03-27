@@ -33,7 +33,7 @@ class Search extends Plugin {
     protected $response;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function register() {
         // Configuration du plugin

@@ -53,7 +53,7 @@ class ElasticSearch extends Registrable {
     protected $time;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function register() {
         $this->server = $this->setting('server.url'); // DOIT AVOIR UN SLASH FINAL

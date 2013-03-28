@@ -14,12 +14,14 @@
  */
 namespace Docalist\Search;
 use Exception;
-use Docalist\Registrable;
+use Docalist\RegistrableInterface,Docalist\RegistrableTrait;
 
 /**
  * Classe client pour se connecter à un serveur ElasticSearch.
  */
-class ElasticSearch extends Registrable {
+class ElasticSearch implements RegistrableInterface {
+    use RegistrableTrait;
+
     /**
      * @var string Url du serveur ElasticSearch.
      */

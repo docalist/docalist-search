@@ -20,6 +20,8 @@ use Exception;
  * Implémentation standard de l'interface {@link ContainerInterface}.
  */
 trait ContainerTrait {
+    use RegistrableTrait;
+
     /**
      * @var array Liste des objets présents dans ce containeur.
      */
@@ -56,29 +58,29 @@ trait ContainerTrait {
     }
 
     /**
-     * Ajoute un objet enregistranle à la collection et appelle sa méthode
+     * Ajoute un objet enregistrable à la collection et appelle sa méthode
      * register().
      *
-     * @param Registrable $object L'objet à ajouter.
+     * @param Registrable $registrable L'objet à ajouter.
      *
      * @throws Exception Si le conteneur contient déjà un objet ayant le
      * même nom que l'objet à ajouter.
      *
      * @return Container $this.
      */
-    public function add(Registrable $object) {
-        $name = $object->name();
+    public function add(RegistrableInterface $registrable) {
+        $name = $registrable->name();
         if (isset($this->items[$name])) {
             $msg = __('Il existe déjà un objet %s dans ce container', 'docalist-core');
             throw new Exception(sprintf($msg, $name));
         }
 
         // Ajoute l'objet dans la collection
-        $object->parent($this);
-        $this->items[$name] = $object;
+        $registrable->parent($this);
+        $this->items[$name] = $registrable;
 
         // Enregistre l'objet
-        $object->register();
+        $registrable->register();
 
         return $this;
     }
@@ -91,10 +93,4 @@ trait ContainerTrait {
     public function items() {
         return $this->items;
     }
-
-	// La méthode Registrable::plugin() appelle $this->parent->plugin()
-	// On doit donc garantir qu'un container a toujours une méthode plugin()
-	// Pour cela, il faut que la méthode figure dans l'interface.
-	// A revoir quand on passera aux traits.
-	// public function plugin() {}
 }

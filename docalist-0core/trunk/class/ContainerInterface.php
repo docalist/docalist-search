@@ -17,10 +17,13 @@ namespace Docalist;
 use Exception;
 
 /**
- * Représente une collection d'objets Registrable auxquels on accède via
- * leur nom.
+ * Représente un container.
+ *
+ * Un container est un registrable {@link RegistrableInterface enregistrable}
+ * qui peut lui-même contenir d'autres objets enregistrables
+ * (c'est une collection).
  */
-interface ContainerInterface {
+interface ContainerInterface extends RegistrableInterface {
     /**
      * Indique si la collection contient l'objet dont le nom est passé en
      * paramètre.
@@ -36,7 +39,7 @@ interface ContainerInterface {
      *
      * @param string $name Le nom de l'objet à retourner.
      *
-     * @return Registrable
+     * @return RegistrableInterface
      *
      * @throws Exception si l'objet demandé n'existe pas dans la collection.
      */
@@ -45,25 +48,19 @@ interface ContainerInterface {
     /**
      * Ajoute un objet nommé à la collection et appelle sa méthode register().
      *
-     * @param Registrable $object L'objet à ajouter.
+     * @param RegistrableInterface $registrable L'objet à ajouter.
      *
      * @throws Exception Si le conteneur contient déjà un objet ayant le
      * même nom que l'objet à ajouter.
      *
-     * @return Container $this.
+     * @return ContainerInterface $this.
      */
-    public function add(Registrable $object);
+    public function add(RegistrableInterface $registrable);
 
     /**
      * Retourne la liste des items
      *
-     * @return Registrable[]
+     * @return RegistrableInterface[]
      */
     public function items();
-
-	// La méthode Registrable::plugin() appelle $this->parent->plugin()
-	// On doit donc garantir qu'un container a toujours une méthode plugin()
-	// Pour cela, il faut que la méthode figure dans l'interface.
-	// A revoir quand on passera aux traits.
-	// public function plugin() {}
 }

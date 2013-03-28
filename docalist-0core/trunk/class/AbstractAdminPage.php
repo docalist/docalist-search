@@ -25,7 +25,7 @@ abstract class AbstractAdminPage extends AbstractActions {
     /**
      * {@inheritdoc}
      */
-    static protected $hookName = 'admin_menu';
+    protected $hookName = 'admin_menu';
 
     /**
      * {@inheritdoc}

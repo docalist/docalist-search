@@ -18,7 +18,9 @@ namespace Docalist;
 /**
  * Représente une nouvelle taxonomie personnalisée WordPress
  */
-abstract class Taxonomy extends Registrable {
+abstract class Taxonomy implements RegistrableInterface {
+    use RegistrableTrait;
+
     /**
      * @var string|string[] Liste des post types auxquels s'applique la
      * taxonomie.

@@ -103,7 +103,9 @@ use Docalist\Forms\Form;
  * - http://core.trac.wordpress.org/ticket/7283
  * - http://core.trac.wordpress.org/changeset/8315
  */
-abstract class AbstractActions extends Registrable {
+abstract class AbstractActions implements RegistrableInterface {
+    use RegistrableTrait;
+
     /**
      * @var string nom du paramètre de la query string qui contiendra le
      * nom de l'action ou de la page à exécuter dans l'url (cf {@link url()}).
@@ -201,7 +203,7 @@ abstract class AbstractActions extends Registrable {
     }
 
     /**
-     * Retourne la capacit par défaut requise pour exécuter une des actions
+     * Retourne la capacité par défaut requise pour exécuter une des actions
      * du module.
      *
      * La capacité est lue à partir de l'annotation @capability présente

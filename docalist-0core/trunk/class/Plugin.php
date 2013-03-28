@@ -19,7 +19,7 @@ use Exception;
 /**
  * Classe de base abstraite représentant un plugin Docalist.
  */
-abstract class Plugin extends Registrable implements ContainerInterface {
+abstract class Plugin implements ContainerInterface {
     use ContainerTrait;
 
     /**
@@ -94,11 +94,6 @@ abstract class Plugin extends Registrable implements ContainerInterface {
         return $this;
     }
 
-    /**
-     * Registrable.
-     *
-     * {@inheritdoc}
-     */
     public function setting($setting) {
         return $this->get('settings')->setting($setting);
     }

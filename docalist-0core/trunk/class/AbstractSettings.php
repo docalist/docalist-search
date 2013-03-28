@@ -19,7 +19,9 @@ namespace Docalist;
 /**
  * Classe de base permettant de gérer les options de configuration d'un plugin.
  */
-abstract class AbstractSettings extends Registrable {
+abstract class AbstractSettings implements RegistrableInterface {
+    use RegistrableTrait;
+
     /**
      * @var array Valeurs par défaut des options de configuration.
      *

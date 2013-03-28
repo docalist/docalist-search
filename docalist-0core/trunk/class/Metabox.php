@@ -22,7 +22,9 @@ use Exception, WP_Post;
 /**
  * Représente une metabox
  */
-abstract class Metabox extends Registrable {
+abstract class Metabox implements RegistrableInterface {
+    use RegistrableTrait;
+
     /**
      * @var Fields Le formulaire à afficher pour cette metabox.
      */
@@ -59,7 +61,7 @@ abstract class Metabox extends Registrable {
 
     }
 
-    protected function hookName() {
+    public function hookName() {
         return 'add_meta_boxes_' . $this->parent->id();
     }
 

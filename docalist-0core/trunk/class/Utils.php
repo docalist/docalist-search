@@ -230,12 +230,12 @@ class Utils {
             if ($first) {
                 $url = get_pagenum_link(1, false);
                 $first === true && $first = 'Début';
-                printf('<a class="page-numbers first" href="%s">%s</a> ', $url, $first);
+                printf('<a class="page-numbers first" href="%s">%s</a> ', htmlspecialchars($url), $first);
             }
             if ($prev) {
                 $url = get_pagenum_link($current - 1, false);
                 $prev === true && $prev = 'Précédent';
-                printf('<a class="page-numbers previous" href="%s">%s</a> ', $url, $prev);
+                printf('<a class="page-numbers previous" href="%s">%s</a> ', htmlspecialchars($url), $prev);
             }
         }
 
@@ -245,7 +245,7 @@ class Utils {
             if ($link === $current) {
                 printf('<span class="page-numbers current">%d</span> ', $link);
             } else {
-                printf('<a class="page-numbers" href="%s">%d</a> ', $url, $link);
+                printf('<a class="page-numbers" href="%s">%d</a> ', htmlspecialchars($url), $link);
             }
         }
 
@@ -254,12 +254,12 @@ class Utils {
             if ($next) {
                 $url = get_pagenum_link($current + 1, false);
                 $next === true && $next = 'Suivant';
-                printf('<a class="page-numbers next" href="%s">%s</a> ', $url, $next);
+                printf('<a class="page-numbers next" href="%s">%s</a> ', htmlspecialchars($url), $next);
             }
             if ($last) {
                 $url = get_pagenum_link($wp_query->max_num_pages, false);
                 $last === true && $last = 'Fin';
-                printf('<a class="page-numbers last" href="%s">%s</a> ', $url, $last);
+                printf('<a class="page-numbers last" href="%s">%s</a> ', htmlspecialchars($url), $last);
             }
         }
     }

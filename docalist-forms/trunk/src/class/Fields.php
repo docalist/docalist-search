@@ -74,6 +74,7 @@ abstract class Fields extends Field {
                 if ($field->name && $field->data) {
                     $data[$field->name] = $field->data;
                 }
+                // BUG : si le champ n'a pas de nom et qu'il a des enfants, on ne récupère pas leur valeur (exemple : facet widget)
             }
 
             return $data;

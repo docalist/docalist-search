@@ -106,7 +106,7 @@ abstract class AbstractSettings implements RegistrableInterface {
      *
      * @return array
      */
-    protected function merge(array $settings, array $defaults) {
+    public function merge(array $settings, array $defaults) {
         if (empty($settings)) {
             return $defaults;
         }

@@ -58,9 +58,26 @@ abstract class AbstractSettingsPage extends AbstractAdminPage {
             $id,                  // Codex : "make $option_group match $option_name"
             $id,                  // Clé dans la table wp_options
             function($settings) { // Filtre et valide les données avant le save
+                $settings = $this->settings->merge($settings,$this->settings->settings());
                 $defaults = $this->settings->defaults();
                 $settings = $this->filterSettings($settings, $defaults);
                 $this->validate($settings);
+
+                // todo : à revoir
+                // metre dans validate ce que fait filter settings :
+                // suprimer les settings qui n'existent pas, caster les valeurs, etc.
+                //
+                // les classes descendantes pourront surcharger validate() si besoin,
+                // en appellant parent::validate().
+                //
+                // filtersettings devient : enlever les settings qui ont leur la valeur par défaut.
+                //
+                // l'ordre d'appel devient :
+                // - récupérer les settings saisis par l'utilisateur
+                // - fusionner avec les settings qui figurent dans la base options
+                // - appeller validate
+                // - appeller filterSettings
+                // - faire save
 
                 return $settings;
             }

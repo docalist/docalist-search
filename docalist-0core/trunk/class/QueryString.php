@@ -26,13 +26,25 @@ class QueryString extends Parameters {
 	 * initiaux de la query string.
 	 */
 	public function __construct($queryString = null) {
-		$parameters = array();
+		parent::__construct();
 
+	    /**
+	     * Remarque : un espace peut être encodé soit par un "+" soit par "%20".
+	     * Pour décoder la query string, on utilise urldecode(), qui teste les
+	     * deux plutôt que rawaurldecode() qui ne décode que %20.
+	     */
 		if ($queryString) {
-		    parse_str(ltrim($queryString, '?'), $parameters);
+		    foreach (explode('&', $queryString) as $arg) {
+		        if (false === $pt = strpos($arg, '=')) {
+		            $key = urldecode($arg);
+		            $value = null;
+		        } else {
+		            $key = urldecode(substr($arg, 0, $pt));
+		            $value = urldecode(substr($arg, $pt + 1));
+		        }
+		        $this->add($key, $value);
+		    }
 		}
-
-		parent::__construct($parameters);
 	}
 
 	/**
@@ -48,32 +60,37 @@ class QueryString extends Parameters {
             return new self(substr($url, $pt + 1));
         }
 
-	    return new self();
-	}
+        return new self();
+    }
 
-	/**
-	 * Génère une chaine encodée contenant les paramètres actuels.
-	 *
-     * @param int $encoding Vous pouvez passer soit :
+    /**
+     * Génère une query string à partir des paramètres actuels.
      *
-     * - PHP_QUERY_RFC3986 : les espaces sont encodés sous la forme "%20".
-     *   C'est la valeur par défaut. (cf http://www.faqs.org/rfcs/rfc3986).
+     * @return string La méthode retourne une chaine vide s'il n'y a aucun
+     * paramètre. Dans le cas contraire, la chaine obtenue commence par "?".
      *
-     * - PHP_QUERY_RFC1738 : les espaces sont encodés sous forme de "+"
-     *   (cf http://www.faqs.org/rfcs/rfc1738).
-	 *
-	 * @return string La méthode retourne une chaine vide s'il n'y a aucun
-	 * paramètre. Dans le cas contraire, la chaine obtenue commence par "?".
-	 *
-	 * Important : la chaine retournée est encodée mais elle n'est pas
-	 * "escapée". Si vous insérez cette chaine dans un attribut html, vous
-	 * devez appeller htmlspecialchars().
-	 */
-	public function encode($encoding = PHP_QUERY_RFC3986) {
-	    if (empty($this->parameters)) {
-    	    return '';
-	    }
+     * Important : la chaine retournée est encodée avec rawurlencode() mais
+     * elle n'est pas "escapée". Si vous insérez cette chaine dans un attribut
+     * html, vous devez appeller htmlspecialchars().
+     */
+    public function encode() {
+        if (empty($this->parameters)) {
+            return '';
+        }
 
-        return '?' . http_build_query($this->parameters, null, '&', $encoding);
-	}
+        $query = '' ;
+        foreach($this->parameters as $key => $value) {
+            if (is_null($value)) {
+                $query .= '&' . rawurlencode($key);
+            } else {
+                foreach((array) $value as $value) {
+                    $query .= '&' . rawurlencode($key) . '=' . rawurlencode($value);
+                }
+            }
+        }
+
+        $query[0] = '?';
+
+        return $query;
+    }
 }

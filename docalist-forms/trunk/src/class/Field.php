@@ -380,7 +380,7 @@ abstract class Field {
      *
      * @return int|$this
      */
-    protected function occurence($occurence = null) {
+    public function occurence($occurence = null) {
         if (is_null($occurence)) {
             return $this->occurence;
         }
@@ -417,7 +417,7 @@ abstract class Field {
      *
      * @param string $label
      *
-     * @return string|$this
+     * @return string|self
      */
     public function label($label = null) {
         if (is_null($label)) {
@@ -514,7 +514,7 @@ abstract class Field {
     public final function bind($data) {
         $debug = false;
 
-        if($debug) echo $this->type(), '.', $this->name, '::bind(', var_export($data,true), ')<br />&rArr;';
+        if($debug) echo $this->type(), '.', $this->name, '::bind(', htmlspecialchars(var_export($data,true)), ')<br />&rArr;';
 
         // Si le champ n'a pas de nom, aucune liaison possible
         if (! $this->name) {
@@ -543,7 +543,7 @@ abstract class Field {
             return $this;;
         }
 
-        if($debug) echo "name=$this->name, data[$this->name] is set, stocke <code>", var_export($data[$this->name],true), "</code> et bind les enfants<blockquote>";
+        if($debug) echo "name=$this->name, data[$this->name] is set, stocke <code>", htmlspecialchars(var_export($data[$this->name],true)), "</code> et bind les enfants<blockquote>";
         $this->data = $data[$this->name];
         if ($this instanceof Fields) {
             foreach ($this->fields as $field) {

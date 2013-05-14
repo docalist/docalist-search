@@ -22,9 +22,10 @@ foreach($this->fields as $field) {
 
         $writer->startElement('td');
         $writer->writeAttribute('valign', 'top');
+            $field->description && (! $field->descriptionAfter) && $field->block('description');
             $field->block('errors');
             $field->block('values');
-            $field->block('description');
+            $field->description && $field->descriptionAfter && $field->block('description');
         $writer->fullEndElement(); // </td>
 
     $writer->fullEndElement(); // </tr>

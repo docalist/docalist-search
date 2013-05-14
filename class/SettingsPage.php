@@ -22,26 +22,14 @@ class SettingsPage extends AbstractSettingsPage {
     /**
      * {@inheritdoc}
      */
-    protected function validate(&$settings) {
-
-        $this->error('un message');
-        $this->error('un autre message');
-        $this->error('et encore un autre message');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function load() {
         $box = new Fragment();
 
         //@formatter:off
 
         $box->label(__('Docalist Search', 'docalist-search'))
-            ->description('Modifiez les options ci-dessous. bla bla.')
-//            ->attribute('notab', true)
-            ;
-//$box->input('test');
+            ->description('Modifiez les options ci-dessous pour paramétrer le moteur de recherche.');
+
         $box->fieldset('General')
             ->name('general')
                 ->checkbox('enabled')

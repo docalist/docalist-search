@@ -83,7 +83,7 @@ final class Docalist {
      *
      * @throws Exception Si le plugin demandé n'est pas chargé.
      */
-    public static function get($id) {
+    public static function get($id = null) {
         if (!$id) {
             return self::$plugins;
         }

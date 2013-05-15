@@ -123,7 +123,7 @@ class FacetsWidget extends WP_Widget {
 
         // Phase 2 - Calcule et stocke les facettes qui nous manquent
         if ($missing) {
-            echo "<p>La requête doit être relancée pour calculer les facettes <code>", implode(', ', array_keys($missing)), '</code></p>';
+//            echo "<p>La requête doit être relancée pour calculer les facettes <code>", implode(', ', array_keys($missing)), '</code></p>';
 
             // Ajoute les facettes qui manquent à la requête
             foreach($missing as $name => $setting) {

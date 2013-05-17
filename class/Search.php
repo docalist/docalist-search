@@ -296,6 +296,7 @@ class Search extends Plugin {
                 'label' => __('Auteur', 'docalist-biblio'),
                 'facet' => array(
                     'field' => 'author.keyword',
+                    'exclude' => array('et al.'),
                 )
             ),
             'ref.genre' => array(

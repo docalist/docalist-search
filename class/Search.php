@@ -130,7 +130,16 @@ class Search extends Plugin {
         if (! $args->has('page')) {
             $args->set('page', ((int) $query->get('paged') ?: 1) - 1);
         }
+        if ($args->has('size')) {
+            $query->set('posts_per_page', $args->get('size'));
+        }
         $this->request = new SearchRequest($this->get('elasticsearch'), $args);
+
+        // Synchronize size et post_per_page pour que le page fonctionne
+        $size = $this->request->size();
+        if ($size !== $query->get('posts_per_page')) {
+            $query->set('posts_per_page', $size);
+        }
 
         // Exécute la recherche
         try {

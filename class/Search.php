@@ -300,6 +300,12 @@ class Search extends Plugin {
                 )
             ),
             'ref.genre' => array(
+                'label' => __('Producteur de la notice', 'docalist-biblio'),
+                'facet' => array(
+                    'field' => 'owner.keyword',
+                )
+            ),
+            'ref.owner' => array(
                 'label' => __('Genre de document', 'docalist-biblio'),
                 'facet' => array(
                     'field' => 'genre.keyword',

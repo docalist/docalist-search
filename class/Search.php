@@ -13,10 +13,9 @@
  * @version     SVN: $Id$
  */
 namespace Docalist\Search;
-use Docalist\Plugin;
+use Docalist\Plugin, Docalist\QueryString;
 use StdClass, Exception;
 use WP_Query;
-use Docalist\QueryString;
 
 /* Documentation : doc/search-design.md */
 
@@ -210,6 +209,78 @@ class Search extends Plugin {
      */
     protected function NUfilters() {
         $facets = apply_filters("dclsearch_facets", array());
+    }
+
+    /**
+     * Génère un code html contenant la liste des filtres de recherche actifs.
+     *
+     * @param string $format Une chaine au format sprintf décrivant le code générer
+     * pour chaque filtre. Par défaut, la chaine suivante est utilisée :
+     *
+     * <code>
+     * <a href="%3$s" class="%4$s">%2$s</a>
+     * </code>
+     *
+     * Cette chaine recevra en paramètre :
+     * - %1$s : le nom du filtre (par exemple "author.keyword")
+     * - %2$s : la valeur du filtre
+     * - %3$s : l'url permettant de désactiver le filtre
+     * - %4$s : un nom de classe css de la forme "filter-xxx" contruit à partir du
+     *   nom du filtre (par exemple "filter-author-keyword").
+     *
+     * @param string $separator Code html à insérer entre deux filtre (", " par
+     * défaut).
+     *
+     * @param string $wrapper Une chaine au format sprintf décrivant le code html à
+     * générer pour le containeur contenant les filtres en cours. Par défaut, c'est :
+     *
+     * <code>
+     * <p class="current-search-filters">Filtres en cours : %s.</p>
+     * </code>
+     *
+     * Cette chaine reçoit en paramètre :
+     * - %s : la liste des filtres en cours.
+     *
+     * @return string Retourne le code html généré ou une chaine vide si aucun
+     * filtre n'est actif.
+     */
+    public function theCurrentFilters($format = null, $separator = null, $wrapper = null) {
+        /* @var $request Docalist\Search\SearchRequest */
+        $request = $this->request();
+
+        // Retourne une chaine vide si on n'a aucun filtre actif
+        $request && $filters = $request->filters();
+        if (empty($filters)) return '';
+
+        // Format par défaut
+        if (is_null($format)) {
+            $format = '<a href="%3$s" class="%4$s">%2$s</a>';
+        }
+
+        // Séparateur par défaut
+        if (is_null($separator)) {
+            $separator = ', ';
+        }
+
+        // Wrapper par défaut
+        if (is_null($wrapper)) {
+            $label = __('Filtres en cours : %s', 'docalist-biblio');
+            $wrapper = sprintf('<p class="current-search-filters">%s.</p>', $label);
+        }
+
+        $currentUrl = QueryString::fromCurrent();
+        $result = '';
+        $first = true;
+        foreach($filters as $filter => $values) {
+            $class = 'filter-' . strtr($filter, '.', '-');
+            foreach ($values as $value) {
+                $url = $currentUrl->copy()->clear("filter.$filter", $value)->encode();
+                if ($first) $first = false; else $result .= $separator;
+                $result .= sprintf($format, $filter, $value, $url, $class);
+            }
+        }
+
+        return sprintf($wrapper, $result);
     }
 
     /**

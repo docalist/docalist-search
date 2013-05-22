@@ -225,15 +225,21 @@ class Utils {
             $firstPage = max(1, $lastPage - $nb + 1);
         }
 
+        $currentUrl = Uri::fromCurrent();
+
         // Liens Début et Précédent
         if ($current > 1 && ($first || $prev)) {
             if ($first) {
-                $url = get_pagenum_link(1, false);
+                $url = $currentUrl->clear('page')->encode();
                 $first === true && $first = 'Début';
                 printf('<a class="page-numbers first" href="%s">%s</a> ', htmlspecialchars($url), $first);
             }
             if ($prev) {
-                $url = get_pagenum_link($current - 1, false);
+                if ($current === 2) {
+                    $url = $currentUrl->clear('page')->encode();
+                } else {
+                    $url = $currentUrl->set('page', $current - 1)->encode();
+                }
                 $prev === true && $prev = 'Précédent';
                 printf('<a class="page-numbers previous" href="%s">%s</a> ', htmlspecialchars($url), $prev);
             }
@@ -241,10 +247,15 @@ class Utils {
 
         // Liens 1 2 3 4 ...
         for ($link = $firstPage ; $link <= $lastPage ; $link++) {
-            $url = get_pagenum_link($link, false);
             if ($link === $current) {
                 printf('<span class="page-numbers current">%d</span> ', $link);
             } else {
+                if ($link === 1) {
+                    $url = $currentUrl->clear('page')->encode();
+                } else {
+                    $url = $currentUrl->set('page', $link)->encode();
+                }
+
                 printf('<a class="page-numbers" href="%s">%d</a> ', htmlspecialchars($url), $link);
             }
         }
@@ -252,16 +263,15 @@ class Utils {
         // Liens Suivant et Fin
         if ($current < $wp_query->max_num_pages && ($next || $last)) {
             if ($next) {
-                $url = get_pagenum_link($current + 1, false);
+                $url = $currentUrl->set('page', $current + 1)->encode();
                 $next === true && $next = 'Suivant';
                 printf('<a class="page-numbers next" href="%s">%s</a> ', htmlspecialchars($url), $next);
             }
             if ($last) {
-                $url = get_pagenum_link($wp_query->max_num_pages, false);
+                $url = $currentUrl->set('page', $wp_query->max_num_pages)->encode();
                 $last === true && $last = 'Fin';
                 printf('<a class="page-numbers last" href="%s">%s</a> ', htmlspecialchars($url), $last);
             }
         }
     }
-
 }

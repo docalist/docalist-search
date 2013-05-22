@@ -114,9 +114,12 @@ class SearchRequest {
 
         if ($args) {
             // Arguments dont le nom correspond à un setter de notre classe
-            foreach (array('page', 'size', 'search', 'sort') as $arg) {
+            foreach (array('page', 'size', 'sort') as $arg) {
                 isset($args[$arg]) && $this->$arg($args[$arg]);
             }
+
+            // Arguments dont le nom diffère
+            isset($args['s']) && $this->search($args['s']);
 
             // Arguments utilisables sans valeur
             isset($args['explain-hits']) && $this->explainHits(true);

@@ -225,7 +225,7 @@ class Utils {
             $firstPage = max(1, $lastPage - $nb + 1);
         }
 
-        $currentUrl = Uri::fromCurrent();
+        $currentUrl = QueryString::fromCurrent();
 
         // Liens Début et Précédent
         if ($current > 1 && ($first || $prev)) {

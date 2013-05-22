@@ -28,11 +28,11 @@ class SearchRequest {
     protected $server;
 
     /**
-     * Numéro de la page de résultats à retourner (0-based)
+     * Numéro de la page de résultats à retourner (1-based)
      *
      * @var int
      */
-    protected $page = 0;
+    protected $page = 1;
 
     /**
      * Nombre de réponses par page
@@ -142,7 +142,7 @@ class SearchRequest {
     }
 
     /**
-     * Retourne ou modifie le numéro de la page de résultats à retourner (0-based)
+     * Retourne ou modifie le numéro de la page de résultats à retourner (1-based)
      *
      * @param int $page
      * @return int|self
@@ -150,6 +150,10 @@ class SearchRequest {
     public function page($page = null) {
         if (is_null($page)) return $this->page;
 
+        $page = (int) $page;
+        if ($page < 1) {
+            throw new Exception(__('Page incorrecte', 'docalist-search'));
+        }
         $this->page = $page;
 
         return $this;
@@ -164,6 +168,10 @@ class SearchRequest {
     public function size($size = null) {
         if (is_null($size)) return $this->size;
 
+        $size = (int) $size;
+        if ($size < 1) {
+            throw new Exception(__('Size incorrect', 'docalist-search'));
+        }
         $this->size = $size;
 
         return $this;
@@ -357,8 +365,8 @@ class SearchRequest {
         }
 
         // Numéro du premier hit
-        if (0 !== $from = $this->page * $this->size) {
-            $request['from'] = $from;
+        if ($this->page > 1) {
+            $request['from'] = ($this->page - 1) * $this->size;
         }
 
         // Expliquer les hits obtenus

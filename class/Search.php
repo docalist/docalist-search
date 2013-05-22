@@ -192,7 +192,7 @@ class Search extends Plugin {
         $size = $this->request->size();
 
         $query->found_posts = $total;
-        $query->max_num_pages = ceil($total / $size);
+        $query->max_num_pages = (int) ceil($total / $size);
 
         return $posts;
     }

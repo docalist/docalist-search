@@ -123,26 +123,17 @@ class Search extends Plugin {
         $query->query_vars['no_found_rows'] = true;
 
         // Construit la requête qu'on va envoyer à ElasticSearch
-        // On traduit l'argument "s" utilisé par wp en "search" et
-        // l'argument "paged" en "page".
         $args = QueryString::fromCurrent();
-        $args->set('search', $args->get('s'))->clear('s'); // ???
-        if (! $args->has('page')) {
-            $args->set('page', ((int) $query->get('paged') ?: 1) - 1);
-        }
-        if ($args->has('size')) {
-            $query->set('posts_per_page', $args->get('size'));
-        }
         $this->request = new SearchRequest($this->get('elasticsearch'), $args);
 
-        // Synchronize size et post_per_page pour que le pager fonctionne
+        // Synchronize size et posts_per_page pour que le pager fonctionne
         $size = $this->request->size();
         if ($size !== $query->get('posts_per_page')) {
             $query->set('posts_per_page', $size);
         }
 
         // Synchronize page et paged pour que le pager fonctionne
-        $page = $this->request->page() + 1;
+        $page = $this->request->page();
         if ($page !== $query->get('paged')) {
             $query->set('paged', $page);
         }
@@ -154,14 +145,17 @@ class Search extends Plugin {
             return null;
         }
 
+        // Récupère les hits obtenus
+        $hits = $results->hits();
+
         // Aucune réponse : retourne sql=null pour que wpdb::query() ne fasse aucune requête
-        if ($results->total() === 0) {
+        if (empty($hits)) {
             return null;
         }
 
         // Construit la liste des ID des réponses obtenues
         $id = array();
-        foreach($results->hits() as $hit) {
+        foreach($hits as $hit) {
             $id[] = $hit->_id;
         }
 

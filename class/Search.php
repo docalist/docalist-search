@@ -135,10 +135,16 @@ class Search extends Plugin {
         }
         $this->request = new SearchRequest($this->get('elasticsearch'), $args);
 
-        // Synchronize size et post_per_page pour que le page fonctionne
+        // Synchronize size et post_per_page pour que le pager fonctionne
         $size = $this->request->size();
         if ($size !== $query->get('posts_per_page')) {
             $query->set('posts_per_page', $size);
+        }
+
+        // Synchronize page et paged pour que le pager fonctionne
+        $page = $this->request->page() + 1;
+        if ($page !== $query->get('paged')) {
+            $query->set('paged', $page);
         }
 
         // Exécute la recherche

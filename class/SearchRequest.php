@@ -428,7 +428,7 @@ class SearchRequest {
             $filters[] = array(
                 'terms' => array(
                     $name => $filter,
-//                    'execution' => 'or', // TODO: options
+                    'execution' => 'and', // TODO: options
                 ),
             );
         }

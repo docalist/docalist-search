@@ -3,7 +3,7 @@ namespace Docalist\Search;
 use StdClass;
 use WP_Widget;
 use Docalist;
-use Docalist\Uri;
+use Docalist\QueryString;
 use Docalist\Forms\Fragment;
 use Docalist\Forms\Themes;
 use Docalist\Utils;
@@ -152,7 +152,7 @@ class FacetsWidget extends WP_Widget {
 
         // Phase 3 - Affiche les facettes
         $html = $settings['html'];
-        $currentUrl = Uri::fromCurrent();
+        $currentUrl = QueryString::fromCurrent()->clear('page');
         $first = true;
         foreach ($facets as $name => $facet) {
             // Si la facette est vide, on n'affiche rien. Autrement dit : on

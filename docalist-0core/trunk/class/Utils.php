@@ -151,9 +151,8 @@ class Utils {
     public static function enqueueAssets(Assets $assets) {
         foreach ($assets as $asset) {
             if (isset($asset['src']) && false === strpos($asset['src'], '//')) {
-                //                $asset['src'] =
-                // plugins_url('docalist-0core/lib/docalist-forms/'.$asset['src']);
-                $asset['src'] = 'http://docalist-forms/src/' . $asset['src'];
+                $asset['src'] = plugins_url('docalist-0core/lib/docalist-forms/'.$asset['src']);
+                // $asset['src'] = 'http://docalist-forms/src/' . $asset['src'];
             }
 
             // Fichiers JS

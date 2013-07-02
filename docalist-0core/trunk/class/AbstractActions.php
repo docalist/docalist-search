@@ -57,7 +57,7 @@ use Docalist\Forms\Form;
  * Une erreur est générée si les arguments passés en query string ne
  * permettent pas d'appeller votre action :
  * - l'action indiquée ne désigne pas une méthode de votre classe
- * - paramètres obligatoire snon fournis en query string
+ * - paramètres obligatoires non fournis en query string
  *
  * Lorsque votre méthode commence à s'exécuter, aucun contenu n'a été envoyé
  * au navigateur (même pas un content-type). Il vous appartient :

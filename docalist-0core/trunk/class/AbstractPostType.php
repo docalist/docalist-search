@@ -23,7 +23,7 @@ use Docalist\Forms\Assets, Docalist\Forms\Themes;
  *
  * C'est un Container qui gère les metaboxes associées.
  */
-abstract class PostType implements ContainerInterface {
+abstract class AbstractPostType implements ContainerInterface {
     use ContainerTrait;
 
     /*

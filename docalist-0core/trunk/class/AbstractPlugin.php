@@ -19,7 +19,7 @@ use Exception;
 /**
  * Classe de base abstraite représentant un plugin Docalist.
  */
-abstract class Plugin implements ContainerInterface {
+abstract class AbstractPlugin implements ContainerInterface {
     use ContainerTrait;
 
     /**

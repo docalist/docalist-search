@@ -13,16 +13,16 @@
  * @version     SVN: $Id$
  */
 namespace Docalist\Search;
-use Docalist\Plugin, Docalist\QueryString;
+use Docalist\AbstractPlugin, Docalist\QueryString;
 use StdClass, Exception;
 use WP_Query;
 
 /* Documentation : doc/search-design.md */
 
 /**
- * Plugin elastic-search.
+ * Plugin Docalist Search.
  */
-class Search extends Plugin {
+class Search extends AbstractPlugin {
     /**
      * @var SearchRequest la requête adressée à ElasticSearch
      */

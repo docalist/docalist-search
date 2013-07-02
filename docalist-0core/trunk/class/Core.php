@@ -19,7 +19,7 @@ use Docalist\Tools\ToolsList;
 /**
  * Plugin core de Docalist.
  */
-class Core extends Plugin {
+class Core extends AbstractPlugin {
     /**
      * {@inheritdoc}
      */
@@ -31,7 +31,7 @@ class Core extends Plugin {
 
     /**
      * Affiche les admin-notices qui ont été enregistrés
-     * (cf Plugin::adminNotice).
+     * (cf AbstractPlugin::adminNotice).
      */
     protected function showAdminNotices() {
         // Adapté de : http://www.dimgoto.com/non-classe/wordpress-admin_notice/
@@ -62,7 +62,7 @@ class Core extends Plugin {
     /**
      * Crée dans Wordpress les pages "Outils Docalist" et "Options Docalist".
      *
-     * @return Plugin $this;
+     * @return AbstractPlugin $this;
      */
     protected function setupAdminPages() {
 

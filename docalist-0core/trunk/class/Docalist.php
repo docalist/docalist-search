@@ -13,7 +13,7 @@
  * @version     SVN: $Id$
  */
 
-use Docalist\Plugin, Docalist\Tool, Docalist\Utils;
+use Docalist\AbstractPlugin, Docalist\Tool, Docalist\Utils;
 
 /**
  * Gestionnaire de plugins Docalist.
@@ -23,7 +23,7 @@ use Docalist\Plugin, Docalist\Tool, Docalist\Utils;
  */
 final class Docalist {
     /**
-     * @var array Liste des plugins Docalist actuellement chargés.
+     * @var AbstractPlugin[] Liste des plugins Docalist actuellement chargés.
      *
      * Les clés du tableau contiennent le nom du plugin (core, biblio, etc.)
      * et les valeurs contiennent l'instance.
@@ -38,10 +38,11 @@ final class Docalist {
      * @param string $file le path complet du fichier principal du plugin
      * (typiquement : __FILE__).
      *
-     * @return Plugin le plugin.
+     * @return AbstractPlugin le plugin.
      *
      * @throws Exception si le plugin indiqué est introuvable, s'il a déjà été
-     * chargé ou si la classe indiquée n'hérite pas de la classe {@link Plugin}.
+     * chargé ou si la classe indiquée n'hérite pas de la classe
+     * {@link AbstractPlugin}.
      */
     public static function load($class, $file) {
         // Détermine l'identifiant du plugin et son répertoire de base
@@ -51,7 +52,7 @@ final class Docalist {
         // Sanity check en mode debug
         if (WP_DEBUG) {
             // Vérifie que la classe existe et que c'est bien un plugin
-            Utils::checkClass($class, 'Docalist\Plugin');
+            Utils::checkClass($class, 'Docalist\AbstractPlugin');
 
             // Vérifie que le plugin n'est pas déjà chargé
             if (isset(self::$plugins[$id])) {
@@ -79,7 +80,7 @@ final class Docalist {
      * Si aucun paramètre n'est indiqué, get() retourne un tableau contenant
      * tous les plugins docalist actuellement chargés.
      *
-     * @return Plugin|Plugin[]
+     * @return AbstractPlugin|AbstractPlugin[]
      *
      * @throws Exception Si le plugin demandé n'est pas chargé.
      */

@@ -22,7 +22,7 @@ use Exception, WP_Post;
 /**
  * Représente une metabox
  */
-abstract class Metabox implements RegistrableInterface {
+abstract class AbstractMetabox implements RegistrableInterface {
     use RegistrableTrait;
 
     /**

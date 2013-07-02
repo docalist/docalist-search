@@ -55,7 +55,7 @@ abstract class AbstractMetabox implements RegistrableInterface {
 
     /**
      * Crée le formulaire à afficher pour cette metabox et initialise
-     * {@link $forms}.
+     * {@link $form}.
      */
     public function __construct() {
 

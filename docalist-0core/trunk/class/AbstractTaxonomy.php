@@ -18,7 +18,7 @@ namespace Docalist;
 /**
  * Représente une nouvelle taxonomie personnalisée WordPress
  */
-abstract class Taxonomy implements RegistrableInterface {
+abstract class AbstractTaxonomy implements RegistrableInterface {
     use RegistrableTrait;
 
     /**

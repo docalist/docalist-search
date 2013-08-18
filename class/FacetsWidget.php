@@ -61,7 +61,7 @@ class FacetsWidget extends WP_Widget {
      *
      * @see http://codex.wordpress.org/Function_Reference/register_sidebar
      */
-    public function widget(array $context, array $settings) {
+    public function widget($context, $settings) {
         /* @var $plugin Search */
         /* @var $request SearchRequest */
         /* @var $results Results */
@@ -456,7 +456,7 @@ class FacetsWidget extends WP_Widget {
      *
      * @return array La version corrigée des paramètres.
      */
-    public function update(array $new, array $old) {
+    public function update($new, $old) {
         $settings= $this->settingsForm()->bind($new)->data();
         foreach($settings['facets'] as $i => & $facet) {
             if (empty($facet['name'])) {

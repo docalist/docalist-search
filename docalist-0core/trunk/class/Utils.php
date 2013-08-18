@@ -124,7 +124,7 @@ class Utils {
      *
      * @return string
      */
-    public function classname($class) {
+    public static function classname($class) {
         if (is_object($class))
             $class = get_class($class);
 
@@ -140,7 +140,7 @@ class Utils {
      *
      * @throws Exception si $object n'est pas une sous-classe de $class.
      */
-    public function checkClass($object, $class) {
+    public static function checkClass($object, $class) {
         if (!is_subclass_of($object, $class)) {
             $message = __('La classe %s doit hériter de la classe %s.', 'docalist-core');
             $bad = is_string($object) ? $object : get_class($object);
@@ -175,7 +175,7 @@ class Utils {
      *
      * @author Andrew Moore http://php.net/uniqid#94959
      */
-    public function uuid() {
+    public static function uuid() {
         //@formatter:off
         return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             // 32 bits for "time_low"

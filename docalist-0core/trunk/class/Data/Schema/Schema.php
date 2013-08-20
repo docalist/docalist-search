@@ -38,8 +38,8 @@ class Schema implements SchemaInterface {
 
     protected function setFields(array $fields = null, $entity) {
         if (empty($fields)) {
-            $msg = "No fields defined";
-            throw new InvalidArgumentException($msg);
+            $msg = 'No fields defined in schema "%s"';
+            throw new InvalidArgumentException(sprintf($msg, $entity));
         }
         $this->fields = array();
         foreach ($fields as $key => $field) {

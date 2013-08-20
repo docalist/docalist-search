@@ -112,7 +112,7 @@ class Utils {
      *
      * @return string
      */
-    public function ns($class) {
+    public static function ns($class) {
         if (is_object($class))
             $class = get_class($class);
 

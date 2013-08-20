@@ -55,7 +55,8 @@ class Field extends Schema implements FieldInterface {
         $this->setName(isset($data['name']) ? $data['name'] : null);
 
         // Type
-        $this->setType(isset($data['type']) ? $data['type'] : 'string', $rootEntityClass);
+        $default = isset($data['fields']) ? 'object' : 'string';
+        $this->setType(isset($data['type']) ? $data['type'] : $default, $rootEntityClass);
 
         // Repeatable
         $this->setRepeatable(isset($data['repeatable']) ? $data['repeatable'] : null);

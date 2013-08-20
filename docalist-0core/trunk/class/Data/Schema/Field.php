@@ -14,7 +14,7 @@ namespace Docalist\Data\Schema;
 
 use Docalist\Utils;
 use Docalist\Data\Entity\Property;
-use Exception;
+use InvalidArgumentException;
 
 /**
  * Implémentation standard de l'interface FieldInterface.
@@ -48,7 +48,7 @@ class Field extends Schema implements FieldInterface {
         // Teste si le champ contient des propriétés qu'on ne connait pas
         if ($unknown = array_diff_key($data, get_object_vars($this))) {
             $msg = 'Unknown field property(es): "%s"';
-            throw new Exception(sprintf($msg, implode(', ', array_keys($unknown))));
+            throw new InvalidArgumentException(sprintf($msg, implode(', ', array_keys($unknown))));
         }
 
         // Nom
@@ -59,7 +59,7 @@ class Field extends Schema implements FieldInterface {
         $this->setType(isset($data['type']) ? $data['type'] : $default, $rootEntityClass);
 
         // Repeatable
-        $this->setRepeatable(isset($data['repeatable']) ? $data['repeatable'] : null);
+        $this->setRepeatable(isset($data['repeatable']) ? $data['repeatable'] : $this->repeatable);
 
         // Default
         $this->setDefaultValue(isset($data['default']) ? $data['default'] : null);
@@ -82,13 +82,13 @@ class Field extends Schema implements FieldInterface {
         // Le nom du champ est obligatoire
         if (empty($name)) {
             $msg = 'Field must have a name';
-            throw new Exception(sprintf($msg));
+            throw new InvalidArgumentException(sprintf($msg));
         }
 
         // Le nom de champ ne doit contenir que des lettres
         if (!ctype_alpha($name)) {
             $msg = 'Invalid field name "%s": must contain only letters';
-            throw new Exception(sprintf($msg, $name));
+            throw new InvalidArgumentException(sprintf($msg, $name));
         }
 
         $this->name = $name;
@@ -122,9 +122,7 @@ class Field extends Schema implements FieldInterface {
     }
 
     protected function setRepeatable($repeatable) {
-        if (! is_null($repeatable)) {
-            $this->repeatable = (bool) $repeatable;
-        }
+        $this->repeatable = (bool) $repeatable;
     }
 
     public function repeatable() {
@@ -168,7 +166,7 @@ class Field extends Schema implements FieldInterface {
 
             if (! $ok) {
                 $msg = 'Bad default value for field "%s": expected %s';
-                throw new Exception(sprintf($msg, $this->name, $expected));
+                throw new InvalidArgumentException(sprintf($msg, $this->name, $expected));
             }
         }
         $this->default = $default;
@@ -193,7 +191,7 @@ class Field extends Schema implements FieldInterface {
         // Seuls les champs objets peuvent avoir une entité
         if ($this->type !== 'object') {
             $msg = 'Field "%s" can not have an entity property: not an object';
-            throw new Exception(sprintf($msg, $this->name));
+            throw new InvalidArgumentException(sprintf($msg, $this->name));
         }
 
         // Vérifie que la classe indiquée existe
@@ -202,7 +200,7 @@ class Field extends Schema implements FieldInterface {
             $class = Utils::ns($rootEntityClass) . '\\' . $entity;
             if (! class_exists($class)) {
                 $msg = 'Invalid entity type "%s" for field "%s": class not found';
-                throw new Exception(sprintf($msg, $entity, $this->name));
+                throw new InvalidArgumentException(sprintf($msg, $entity, $this->name));
             }
             $entity = $class;
         }
@@ -210,7 +208,7 @@ class Field extends Schema implements FieldInterface {
         // Vérifie que la classe est une entité
         if (! is_a($entity, 'Docalist\Data\Entity\EntityInterface', true)) {
             $msg = 'Invalid entity type "%s" for field "%s": not an EntityInterface';
-            throw new Exception(sprintf($msg, $entity, $this->name));
+            throw new InvalidArgumentException(sprintf($msg, $entity, $this->name));
         }
 
         $this->entity = $entity;
@@ -239,15 +237,19 @@ class Field extends Schema implements FieldInterface {
     protected function setFields(array $fields = null, $rootEntityClass) {
         if ($fields && $this->type !== 'object') {
             $msg = 'Field "%s" can not have fields: not an object';
-            throw new Exception(sprintf($msg, $this->name));
+            throw new InvalidArgumentException(sprintf($msg, $this->name));
         }
 
         if ($fields && $this->entity) {
             $msg = 'Field "%s" can not have fields: fields are already defined by entity type';
-            throw new Exception(sprintf($msg, $this->name));
+            throw new InvalidArgumentException(sprintf($msg, $this->name));
         }
 
         if ($this->type === 'object' && empty($this->entity)) {
+            if (empty($fields)) {
+                $msg = 'No fields defined for field "%s"';
+                throw new InvalidArgumentException(sprintf($msg, $this->name));
+            }
             parent::setFields($fields, $rootEntityClass);
         }
     }
@@ -259,7 +261,7 @@ class Field extends Schema implements FieldInterface {
     public function field($field) {
         if (!isset($this->fields[$field])) {
             $msg = 'Field "%s" does not exist';
-            throw new Exception(sprintf($msg, $field));
+            throw new InvalidArgumentException(sprintf($msg, $field));
         }
 
         // @todo : vérifier que type = object ou document

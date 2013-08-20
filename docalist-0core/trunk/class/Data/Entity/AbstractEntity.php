@@ -98,7 +98,9 @@ abstract class AbstractEntity extends ArrayObject implements EntityInterface {
 
                 // Essaie de charger le schéma à partir du cache WordPress
                 if (!WP_DEBUG) {
-                    $schema = wp_cache_get($cacheKey);
+                    if (false === $schema = wp_cache_get($cacheKey)) {
+                        unset($schema);
+                    }
                 }
 
                 if (! isset($schema)) {

@@ -98,7 +98,7 @@ class Property extends ArrayObject implements PropertyInterface {
             }
 
             // Retourne la valeur
-            return parent::offsetGet($name);
+            return parent::offsetGet($key);
         }
     }
 

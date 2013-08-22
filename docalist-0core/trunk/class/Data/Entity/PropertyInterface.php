@@ -15,5 +15,5 @@ namespace Docalist\Data\Entity;
 /**
  * Interface d'une propriété au sein d'une entité.
  */
-interface PropertyInterface extends SchemaBasedInterface {
+interface PropertyInterface extends SchemaBasedObjectInterface {
 }

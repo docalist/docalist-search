@@ -14,6 +14,7 @@ namespace Docalist\Data\Schema;
 
 use Docalist\Utils;
 use Docalist\Data\Entity\Property;
+use Docalist\Data\Entity\Collection;
 use InvalidArgumentException;
 
 /**
@@ -47,8 +48,9 @@ class Field extends Schema implements FieldInterface {
     public function __construct(array $data, $rootEntityClass) {
         // Teste si le champ contient des propriétés qu'on ne connait pas
         if ($unknown = array_diff_key($data, get_object_vars($this))) {
-            $msg = 'Unknown field property(es): "%s"';
-            throw new InvalidArgumentException(sprintf($msg, implode(', ', array_keys($unknown))));
+            $msg = 'Unknown field property(es) in field "%s": "%s"';
+            $name = isset($data['name']) ? $data['name'] : '';
+            throw new InvalidArgumentException(sprintf($msg, $name, implode(', ', array_keys($unknown))));
         }
 
         // Nom
@@ -293,30 +295,21 @@ class Field extends Schema implements FieldInterface {
 
     public function instantiate($value = null, $single = false) {
         is_null($value) && $value = $this->defaultValue();
+
+        if (! $single && $this->repeatable) {
+            return new Collection($this, $value);
+        }
+
         if ($this->type === 'object') {
-            // Collection d'objets anonymes ou d'entités
-            if (! $single && $this->repeatable) {
-                $value = new Property($this, $value);
-            } else {
-
-                // Une entité non répétable
-                if ($this->entity) {
-                    $value = new $this->entity($value);
-                }
-
-                // Un objet anonyme
-                else {
-                    $value = new Property($this, $value);
-                }
-            }
-        } else {
-            // Collection de scalaires
-            if ($this->repeatable) {
-                $value = new Property($this, $value);
+            // Une entité
+            if ($this->entity) {
+                $value = new $this->entity($value);
             }
 
-            // else : scalaire simple, non répétable
-            // $value = $value;
+            // Un objet anonyme
+            else {
+                $value = new Property($this, $value);
+            }
         }
 
         return $value;

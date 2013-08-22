@@ -20,9 +20,8 @@ use InvalidArgumentException;
 /**
  * Interface d'un objet dont les données suivent un schéma prédéfini.
  *
- * Les propriétés de l'objet peuvent être manipulées de plusieurs façons :
- * - comme champs de l'objet : $entity->title
- * - comme éléments de tableau : $entity['title']
+ * Les champs de l'entité peuvent être manipulés comme s'il s'agissait de
+ * propriétés de l'objet (e.g. $entity->title).
  *
  * Les propriétés de l'objet sont itérables : l'interface étend
  * IteratorAggregate
@@ -33,7 +32,7 @@ use InvalidArgumentException;
  *
  * L'objet est sérialisable
  */
-interface SchemaBasedInterface extends Countable, ArrayAccess, IteratorAggregate, Serializable {
+interface SchemaBasedInterface extends Countable, IteratorAggregate, Serializable {
 
     /**
      * Retourne le schéma de l'objet ou d'une propriété donnée de l'objet.
@@ -63,70 +62,6 @@ interface SchemaBasedInterface extends Countable, ArrayAccess, IteratorAggregate
      */
     public function count();
 
-    // Interface ArrayAccess
-
-    /**
-     * Indique si la propriété indiquée existe.
-     *
-     * Cette méthode fait partie de l'interface {@link ArrayAccess} qui permet
-     * d'accéder aux propriétés de l'objet comme s'il s'agissait d'un tableau.
-     *
-     * @param string $property Le nom de la propriété à tester.
-     *
-     * @return bool Retourne true si la propriété indiquée est définie dans le
-     * schéma, false sinon.
-     */
-    public function offsetExists($property);
-
-    /**
-     * Retourne la valeur actuelle de la propriété indiquée.
-     *
-     * Cette méthode fait partie de l'interface {@link ArrayAccess} qui permet
-     * d'accéder aux propriétés de l'objet comme s'il s'agissait d'un tableau.
-     *
-     * @param string $property Le nom de la propriété à retourner.
-     *
-     * @throws InvalidArgumentException Si la propriété indiquée n'existe pas
-     * dans le schéma.
-     *
-     * @return scalar|Property
-     */
-    public function offsetGet($property);
-
-    /**
-     * Modifie la valeur de la propriété indiquée.
-     *
-     * Cette méthode fait partie de l'interface {@link ArrayAccess} qui permet
-     * d'accéder aux propriétés de l'objet comme s'il s'agissait d'un tableau.
-     *
-     * Remarque : si $value vaut null, la méthode se comporte comme si
-     * offsetUnset avait été appellé.
-     *
-     * @param string $property Le nom de la propriété à modifier.
-     *
-     * @param scalar|array $value La nouvelle valeur de la propriété.
-     *
-     * @throws InvalidArgumentException Si la propriété indiquée n'existe pas
-     * dans le schéma.
-     */
-    public function offsetSet($property, $value);
-
-    /**
-     * Supprime la propriété indiquée.
-     *
-     * Cette méthode fait partie de l'interface {@link ArrayAccess} qui permet
-     * d'accéder aux propriétés de l'objet comme s'il s'agissait d'un tableau.
-     *
-     * La propriété n'est pas réellement supprimée : la valeur existante si elle
-     * existe est effacée et la propriété retrouve sa valeur par défaut telle
-     * que définie dans le schéma.
-     *
-     * @param string $property Le nom de la propriété à supprimer.
-     *
-     * @throws InvalidArgumentException Si la propriété indiquée n'existe pas
-     * dans le schéma.
-     */
-    public function offsetUnset($property);
 
     // Interface IteratorAggregate
 

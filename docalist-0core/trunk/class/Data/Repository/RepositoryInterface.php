@@ -23,14 +23,14 @@ interface RepositoryInterface {
      * Retourne le type des entités gérées par ce dépôt.
      *
      * @return string Le nom complet de la classe PHP utilisée pour représenter
-     * les entités.
+     * les entités de ce dépôt.
      */
     public function type();
 
     /**
      * Charge une entité depuis le dépôt.
      *
-     * @param scalar $key La clé de l'entité à charger.
+     * @param scalar|EntityInterface $entity L'entité à charger.
      *
      * @param string $type Optionnel. En général, toutes les entités d'un dépôt
      * ont le même type : celui retourné par la méthode type(). Cependant, dans
@@ -40,7 +40,7 @@ interface RepositoryInterface {
      *
      * @return EntityInterface
      */
-    public function load($key, $type = null);
+    public function load($entity, $type = null);
 
     /**
      * Enregistre une entité dans le dépôt.

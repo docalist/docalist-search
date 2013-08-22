@@ -64,19 +64,19 @@ class PostTypeRepository extends AbstractRepository {
         return $this->postType;
     }
 
-    public function load($id, $type = null) {
-        // Vérifie qu'on a un ID
-        $id = $this->checkId($id, true);
+    public function load($entity, $type = null) {
+        // Vérifie qu'on a une clé
+        $primaryKey = $this->checkPrimaryKey($entity, true);
 
         // Vérifie le type d'entité
-        $id = $this->checkType($type);
+        $this->checkType($type);
 
-        // WP_Post::get_instance($id); erreur si existe pas ?
+        // WP_Post::get_instance($primaryKey); erreur si existe pas ?
 
-        $data = get_post_meta($id, static::META_KEY, true);
+        $data = get_post_meta($primaryKey, static::META_KEY, true);
         $data = json_decode($data, true);
         $entity = new $type($data);
-        $entity->id($id);
+        $entity->primaryKey($primaryKey);
 
         return $entity;
     }
@@ -111,12 +111,12 @@ class PostTypeRepository extends AbstractRepository {
         $this->checkType($entity);
 
         // Récupère la clé de l'entité
-        $id = $entity->id();
+        $primaryKey = $entity->primaryKey();
 
-        // Charge le post existant si on a un id, créée un nouveau post sinon
-        if ($id) {
-            if (false === $post = WP_Post::get_instance($id)) {
-                throw new Exception("Post ID $id not found");
+        // Charge le post existant si on a une clé, créée un nouveau post sinon
+        if ($primaryKey) {
+            if (false === $post = WP_Post::get_instance($primaryKey)) {
+                throw new Exception("Post $primaryKey not found");
             }
         } else {
             $post = new WP_Post(new StdClass()); // wp oblig à passer un objet vide...
@@ -133,12 +133,12 @@ class PostTypeRepository extends AbstractRepository {
         unset($post['filter']);
         unset($post['format_content']);
 
-        // Met à jour le post si on a un id
-        if ($id) {
-            if (false === $wpdb->update($wpdb->posts, $post, array('ID' => $id))) {
+        // Met à jour le post si on a une clé
+        if ($primaryKey) {
+            if (false === $wpdb->update($wpdb->posts, $post, array('ID' => $primaryKey))) {
                 throw new Exception($wpdb->last_error);
             }
-            echo "L'enreg $id a été mis à jour<br />";
+            echo "L'enreg $primaryKey a été mis à jour<br />";
         }
 
         // Crée un nouveau post sinon
@@ -146,28 +146,28 @@ class PostTypeRepository extends AbstractRepository {
             if (false === $wpdb->insert($wpdb->posts, $post)) {
                 throw new Exception($wpdb->last_error);
             }
-            $id = (int) $wpdb->insert_id;
-            $entity->id($id);
-            echo "L'enreg $id a été créé<br />";
+            $primaryKey = (int) $wpdb->insert_id;
+            $entity->primaryKey($primaryKey);
+            echo "L'enreg $primaryKey a été créé<br />";
         }
 
         // Enregistre les données de l'entité sous forme de meta json
         $data = json_encode($entity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        update_post_meta($id, static::META_KEY, $data);
+        update_post_meta($primaryKey, static::META_KEY, $data);
     }
 
     public function delete($entity) {
         global $wpdb;
 
-        $id = $this->checkId($entity, true);
+        $primaryKey = $this->checkPrimaryKey($entity, true);
 
-        $result = $wpdb->delete($wpdb->posts, array('ID' => $entity));
+        $result = $wpdb->delete($wpdb->posts, array('ID' => $primaryKey));
         if ($result === false) {
             $msg = 'Unable to delete entity %s : %s';
-            throw new Exception($msg, $entity, $wpdb->last_error);
+            throw new Exception($msg, $primaryKey, $wpdb->last_error);
         } elseif ($result === 0) {
             $msg = 'Entity %s not found';
-            throw new Exception($msg, $entity);
+            throw new Exception($msg, $primaryKey);
         }
     }
 }

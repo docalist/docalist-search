@@ -13,26 +13,29 @@
 namespace Docalist\Data\Entity;
 
 /**
- * Une entité est un objet structuré selon un schéma et qui dispose d'une
- * identité (il possède un identifiant unique).
+ * Une entité est un SchemaBasedObject qui peut être stocké dans un Repository
+ * et qui dispose d'une clé primaire.
  */
-interface EntityInterface extends SchemaBasedInterface {
+interface EntityInterface extends SchemaBasedObjectInterface {
 
     /**
-     * Retourne ou modifie l'identifiant unique de l'entité (sa clé).
+     * Retourne ou modifie la clé primaire de l'entité.
      *
-     * Appellée sans paramètre, id() retourne l'identifiant de l'entité ou une
-     * valeur vide (empty) si l'entité n'a pas encore d'identifiant (null,
-     * false, 0 ou '').
+     * Appellée sans paramètre, la méthode retourne la clé primaire de l'entité
+     * ou une valeur vide (empty) si l'entité n'a pas encore été enregistrée
+     * dans un dépôt..
      *
-     * Si un id est passé en paramètre, celui-ci devient le nouvel identifiant
-     * de l'entité. L'identifiant ne peut être définit qu'une seule fois : une
-     * exception est générée si vous essayez de changer l'id d'une entité qui a
-     * déjà un identifiant non vide.
+     * Si un paramètre est fourni, celui-ci devient la clé primaire de l'entité.
      *
-     * @param string $id Optionnel, le nouvel identifiant de l'entité.
+     * @param scalar $primarykey Optionnel, la clé primaire à affecter à
+     * l'entité.
      *
-     * @return scalar L'identifiant de l'entité.
+     * @throws LogicException La clé primaire ne peut être définie qu'une seule
+     * fois : une exception est générée si vous essayez de changer la clé
+     * primaire d'une entité qui a déjà été enregistrée dans un dépôt.
+     *
+     * @return scalar La clé primaire de l'entité ou vide s'il s'agit d'une
+     * nouvelle entité.
      */
-    public function id($id = null);
+    public function primaryKey($primarykey = null);
 }

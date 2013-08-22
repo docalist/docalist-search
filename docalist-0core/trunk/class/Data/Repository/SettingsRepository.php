@@ -70,7 +70,7 @@ class SettingsRepository extends AbstractRepository {
         $this->checkType($entity);
 
         // Pour un dépôt Settings, l'entité doit obligatoirement avoir une clé
-        $primaryKey = $this->checkId($entity, true);
+        $primaryKey = $this->checkPrimaryKey($entity, true);
 
         // Enregistre les données de l'entité en json
         $data = json_encode($entity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

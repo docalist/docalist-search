@@ -40,15 +40,15 @@ class SettingsRepository extends AbstractRepository {
         parent::__construct('Docalist\Data\Entity\AbstractSettingsEntity');
     }
 
-    public function load($id, $type = null) {
-        // Vérifie qu'on a un ID
-        $id = $this->checkId($id, true);
+    public function load($entity, $type = null) {
+        // Vérifie qu'on a un clé
+        $primaryKey = $this->checkPrimaryKey($entity, true);
 
         // Vérifie le type d'entité
-        $type = $this->checkType($type);
+        $this->checkType($type);
 
         // Récupère les options stockées dans la base
-        $data = get_option($id);
+        $data = get_option($primaryKey);
 
         // Décode les données
         $data = json_decode($data, true);
@@ -60,7 +60,7 @@ class SettingsRepository extends AbstractRepository {
 
         // Crée une entité sinon
         $entity = new $type($data);
-        $entity->id($id);
+        $entity->primaryKey($primaryKey);
 
         return $entity;
     }
@@ -69,18 +69,18 @@ class SettingsRepository extends AbstractRepository {
         // Vérifie que l'entité est du bon type
         $this->checkType($entity);
 
-        // L'entité doit obligatoirement avoir un ID
-        $id = $this->checkId($entity, true);
+        // Pour un dépôt Settings, l'entité doit obligatoirement avoir une clé
+        $primaryKey = $this->checkId($entity, true);
 
         // Enregistre les données de l'entité en json
         $data = json_encode($entity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        update_option($id, $data);
+        update_option($primaryKey, $data);
     }
 
     public function delete($entity) {
         // L'entité doit obligatoirement avoir un ID
-        $id = $this->checkId($entity, true);
+        $primaryKey = $this->checkId($entity, true);
 
-        delete_option($id);
+        delete_option($primaryKey);
     }
 }

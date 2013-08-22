@@ -6,6 +6,6 @@ $GLOBALS['wp_tests_options'] = array(
     ),
 );
 
-// The path to wordpress-tests
-require_once 'D:/web/wordpress-tests/includes/bootstrap.php';
-// @todo : ne pas fixer le path en dur
+// wordpress-tests doit être dans le include_path de php
+// sinon, modifier le chemin d'accès ci-dessous
+require_once 'wordpress-tests/includes/bootstrap.php';

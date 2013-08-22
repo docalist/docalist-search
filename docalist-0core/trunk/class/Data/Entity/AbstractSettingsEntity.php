@@ -20,9 +20,9 @@ use Docalist\Data\Repository\SettingsRepository;
 abstract class AbstractSettingsEntity extends AbstractEntity {
     protected static $repository;
 
-    public function __construct($id) {
+    public function __construct($primaryKey) {
         // Stocke l'id du settings
-        $this->id = $id;
+        $this->primarykey = $primaryKey;
 
         // Initialise le dépôt si nécessaire
         if (is_null(self::$repository)) {
@@ -30,7 +30,7 @@ abstract class AbstractSettingsEntity extends AbstractEntity {
         }
 
         // Charge les données brutes du settings
-        $data = self::$repository->load($id, false);
+        $data = self::$repository->load($primaryKey, false);
 
         // Initialise l'instance
         parent::__construct($data);

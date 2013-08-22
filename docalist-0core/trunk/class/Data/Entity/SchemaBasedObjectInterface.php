@@ -32,7 +32,7 @@ use InvalidArgumentException;
  *
  * L'objet est sérialisable
  */
-interface SchemaBasedInterface extends Countable, IteratorAggregate, Serializable {
+interface SchemaBasedObjectInterface extends Countable, IteratorAggregate, Serializable {
 
     /**
      * Retourne le schéma de l'objet ou d'une propriété donnée de l'objet.

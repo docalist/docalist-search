@@ -13,14 +13,16 @@
 namespace Docalist\Data\Repository;
 
 use Docalist\Data\Entity\EntityInterface;
+use Docalist\Utils;
 use InvalidArgumentException;
 
 /**
  * Classe de base abstraite pour implémenter un dépôt.
  *
  * La classe se contente de fournir des méthodes utilitaires :
+ * - type
  * - checkType
- * - checkId
+ * - checkPrimaryKey
  */
 abstract class AbstractRepository implements RepositoryInterface {
     /**
@@ -39,6 +41,17 @@ abstract class AbstractRepository implements RepositoryInterface {
      * @throws Exception Si $type ne désigne pas une classe d'entité.
      */
     public function __construct($type) {
+        // Vérifie que la classe indiquée existe
+        if (! class_exists($type)) {
+            // Nom de classe relatif au namespace de la classe en cours ?
+            $class = Utils::ns(get_class($this)) . '\\' . $type;
+            if (! class_exists($class)) {
+                $msg = 'Invalid entity type "%s" in repository "%s": class not found';
+                throw new InvalidArgumentException(sprintf($msg, $type, get_class($this)));
+            }
+            $type = $class;
+        }
+
         $this->checkType($type, 'Docalist\Data\Entity\EntityInterface');
         $this->type = $type;
     }
@@ -99,22 +112,19 @@ abstract class AbstractRepository implements RepositoryInterface {
      * ou si $required est à true et que l'ID obtenu est vide.
      *
      */
-    protected function checkId($entity, $required = false) {
+    protected function checkPrimaryKey($entity, $required = false) {
         if (is_scalar($entity)) {
-            $id = $entity;
+            $primaryKey = $entity;
         } elseif (is_object($entity)) {
             $this->checkType($entity);
-            $id = $entity->id();
-        } else {
-            $msg = 'Unable to get entity ID';
+            $primaryKey = $entity->primaryKey();
+        }
+
+        if ($required && empty($primaryKey)) {
+            $msg = 'Entity primary key is required';
             throw new InvalidArgumentException($msg);
         }
 
-        if ($required && empty($id)) {
-            $msg = 'Entity ID is required';
-            throw new InvalidArgumentException($msg);
-        }
-
-        return $id;
+        return $primaryKey;
     }
 }

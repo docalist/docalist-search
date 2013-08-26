@@ -44,21 +44,28 @@ class SettingsRepository extends AbstractRepository {
         // Vérifie qu'on a un clé
         $primaryKey = $this->checkPrimaryKey($entity, true);
 
-        // Vérifie le type d'entité
-        $this->checkType($type);
-
         // Récupère les options stockées dans la base
         $data = get_option($primaryKey);
 
         // Décode les données
         $data = json_decode($data, true);
 
-        // Retourne les données brutes si type vaut false
+        // Type = false permet de récupérer les données brutes
         if ($type === false) {
             return $data;
         }
 
-        // Crée une entité sinon
+        // Par défaut, on retourne une entité du même type que le dépôt
+        if (is_null($type)) {
+            $type = $this->type;
+        }
+
+        // Sinon le type demandé doit être compatible avec le type du dépôt
+        else {
+            $this->checkType($type);
+        }
+
+        // Crée une entité du type demandé
         $entity = new $type($data);
         $entity->primaryKey($primaryKey);
 

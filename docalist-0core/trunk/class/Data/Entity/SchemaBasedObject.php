@@ -92,8 +92,7 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
     }
 
     public function __isset($name) {
-        return isset($this->schema->fields[$name]);
-        // @todo : écrire Schema::has($field)
+        return isset($this->fields[$name]);
     }
 
     public function count() {

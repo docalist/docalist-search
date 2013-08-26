@@ -107,6 +107,10 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
         $this->fields = unserialize($serialized);
     }
 
+    public function jsonSerialize() {
+        return $this->fields;
+    }
+
     public function getIterator() {
         return $this->data;
     }

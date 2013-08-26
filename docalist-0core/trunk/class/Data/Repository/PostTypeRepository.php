@@ -65,16 +65,32 @@ class PostTypeRepository extends AbstractRepository {
     }
 
     public function load($entity, $type = null) {
-        // Vérifie qu'on a une clé
+        // Vérifie qu'on a une clé primaire
         $primaryKey = $this->checkPrimaryKey($entity, true);
 
-        // Vérifie le type d'entité
-        $this->checkType($type);
-
-        // WP_Post::get_instance($primaryKey); erreur si existe pas ?
+        // appeller WP_Post::get_instance($primaryKey) et erreur si n'existe pas ?
 
         $data = get_post_meta($primaryKey, static::META_KEY, true);
-        $data = json_decode($data, true);
+        if (is_string($data)) { // @todo à virer, pour le moment, les meta sont sérialisés, wp retourne le tableau désérialisé
+            $data = json_decode($data, true);
+        }
+
+        // Type = false permet de récupérer les données brutes
+        if ($type === false) {
+            return $data;
+        }
+
+        // Par défaut, on retourne une entité du même type que le dépôt
+        if (is_null($type)) {
+            $type = $this->type;
+        }
+
+        // Sinon le type demandé doit être compatible avec le type du dépôt
+        else {
+            $this->checkType($type);
+        }
+
+        // Crée une entité du type demandé
         $entity = new $type($data);
         $entity->primaryKey($primaryKey);
 

@@ -119,6 +119,10 @@ class Collection implements SchemaBasedObjectInterface, ArrayAccess {
         $this->items = unserialize($serialized);
     }
 
+    public function jsonSerialize() {
+        return $this->items;
+    }
+
     public function offsetExists ($offset) {
         return isset($this->items[$offset]);
     }

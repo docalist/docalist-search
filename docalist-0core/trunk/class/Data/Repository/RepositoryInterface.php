@@ -14,6 +14,8 @@ namespace Docalist\Data\Repository;
 
 use Docalist\Data\Entity\EntityInterface;
 
+use InvalidArgumentException;
+
 /**
  * Interface d'un dépôt dans lequel on peut stocker des entités.
  */
@@ -32,13 +34,23 @@ interface RepositoryInterface {
      *
      * @param scalar|EntityInterface $entity L'entité à charger.
      *
-     * @param string $type Optionnel. En général, toutes les entités d'un dépôt
-     * ont le même type : celui retourné par la méthode type(). Cependant, dans
-     * certains cas, on souhaite obtenir une sous-classe du type indiqué. Dans
-     * ce cas, on peut indiquer ici le nom de la classe à utiliser (il doit
-     * s'agir d'une classe descendante du type retourné par type()).
+     * @param null|string|false $type Optionnel. Le type des données à
+     * retourner.
      *
-     * @return EntityInterface
+     * Par défaut (quand type vaut null), load() retourne un objet entité ayant
+     * le type du dépôt (i.e. le nom de classe retourné par la méthode type()).
+     *
+     * Vous pouvez obtenir une entité d'un type différent en passant dans $type
+     * le nom d'une classe descendante du type du dépôt.
+     *
+     * Enfin, il est possible de récupérer les données brutes de l'entité en
+     * passant false en paramètre.
+     *
+     * @throws InvalidArgumentException Si l'entité ne peut pas être chargée
+     * ou si le nom de classe indiqué dans $type n'est pas correct.
+     *
+     * @return EntityInterface|array Retourne un objet entité ou un tableau si
+     * false a été passé en paramètre pour $type.
      */
     public function load($entity, $type = null);
 
@@ -51,8 +63,8 @@ interface RepositoryInterface {
      *
      * @param EntityInterface $entity L'entité à enregistrer.
      *
-     * @throws Exception Si l'entité n'est pas du bon type ou si une erreur
-     * survient durant l'enregistrement des données.
+     * @throws InvalidArgumentException Si l'entité n'est pas du bon type ou
+     * si une erreur survient durant l'enregistrement des données.
      */
     public function store(EntityInterface $entity);
 

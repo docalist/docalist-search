@@ -66,20 +66,15 @@ abstract class AbstractRepository implements RepositoryInterface {
      *
      * @param string|object $test Le nom de classe ou l'objet à tester.
      *
-     * @param string $type Le type requis. Si aucun type n'est indiqué, le
-     * type de l'entrepôt est utilisé à la place.
+     * @param string $type Optionnel, le type que doit avoir $test. Si aucun
+     * type n'est indiqué, $test sera comparé au type de l'entrepôt.
      *
-     * @return bool Retourne true si $test est du type indiqué.
+     * @return bool Retourne true si $test a le bon type.
      *
-     * @throws InvalidArgumentException Sinon
+     * @throws InvalidArgumentException Si le test échoue.
      */
     protected function checkType($test, $type = null) {
-        // Appel de la forme checkType(false) = récupérer données brutes
-        if ($test === false) {
-            return $test;
-        }
-
-        // Appel de la forme checktype($entity) : on prend le type du dépôt
+        // Pas de type indiqué : compare avec le type du dépôt
         is_null($type) && $type = $this->type();
 
         // Si test est du bon type, terminé
@@ -93,7 +88,7 @@ abstract class AbstractRepository implements RepositoryInterface {
         }
 
         // Erreur
-        $msg = 'Incorrect entity type %s, expected %s';
+        $msg = 'Incorrect entity type "%s", expected "%s"';
         is_object($test) && $test = get_class($test);
         throw new InvalidArgumentException(sprintf($msg, $test, $type));
     }

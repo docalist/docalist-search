@@ -14,7 +14,7 @@ namespace Docalist\Data\Entity;
 
 use Docalist\Data\Schema\SchemaInterface;
 use Docalist\Data\Schema\FieldInterface;
-use Countable, ArrayAccess, IteratorAggregate, Serializable;
+use Countable, ArrayAccess, IteratorAggregate, Serializable, JsonSerializable;
 use InvalidArgumentException;
 
 /**
@@ -32,14 +32,14 @@ use InvalidArgumentException;
  *
  * L'objet est sérialisable
  */
-interface SchemaBasedObjectInterface extends Countable, IteratorAggregate, Serializable {
+interface SchemaBasedObjectInterface extends Countable, IteratorAggregate, Serializable, JsonSerializable {
 
     /**
      * Retourne le schéma de l'objet ou d'une propriété donnée de l'objet.
      *
      * @param string $property Optionnel. Le nom de la propriété à retourner.
      *
-     * @return SchemaInterface|FieldInterface Appellée sans paramètres, la
+     * @return SchemaInterface FieldInterface sans paramètres, la
      * méthode retourne le schéma complet de l'objet. Si $field est fourni, la
      * méthode retourne le schéma du champ demandé.
      *
@@ -61,7 +61,6 @@ interface SchemaBasedObjectInterface extends Countable, IteratorAggregate, Seria
      * qui retourne le nombre de champs définis).
      */
     public function count();
-
 
     // Interface IteratorAggregate
 
@@ -95,4 +94,14 @@ interface SchemaBasedObjectInterface extends Countable, IteratorAggregate, Seria
      * @param serialized
      */
     public function unserialize($serialized);
+
+    /**
+     * Retourne les données à sérialiser lorsque json_encode() est appellée
+     * sur cet objet.
+     *
+     * Cette méthode fait partie de l'interface {@link JsonSerializable}.
+     *
+     * @return string
+     */
+    public function jsonSerialize();
 }

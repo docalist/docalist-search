@@ -100,6 +100,10 @@ class Schema implements SchemaInterface {
         return $this->fields[$field];
     }
 
+    public function hasField($field) {
+        return isset($this->fields[$field]);
+    }
+
     public function toArray() {
         $result = array();
         foreach ($this as $name => $value) {

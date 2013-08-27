@@ -4,7 +4,7 @@
 // Si le champ a un attribut avec le même nom, les valeurs sont concaténées
 // avec un espace (comme pour class).
 
-foreach ($this->attributes as $name => $value) {
+foreach ($this->attributes() as $name => $value) {
     if (isset($args[$name])) {
         $value .= ' ' . $args[$name];
         unset($args[$name]);

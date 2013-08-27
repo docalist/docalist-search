@@ -17,6 +17,7 @@
 namespace Docalist\Forms;
 
 use ArrayAccess, Exception, XmlWriter;
+use Docalist\Data\Schema\FieldInterface;
 
 /**
  * Un champ de formulaire.
@@ -150,6 +151,12 @@ abstract class Field {
      * @var bool Indique si le champ est répétable.
      */
     protected $repeatable = false;
+
+    /**
+     *
+     * @var FieldInterface
+     */
+    protected $schema;
 
     /**
      * Crée un nouveau champ.
@@ -420,10 +427,20 @@ abstract class Field {
      * @return string|self
      */
     public function label($label = null) {
+        // Getter
         if (is_null($label)) {
-            return $this->label;
+            if ($this->label) {
+                return $this->label;
+            }
+
+            if ($this->schema instanceof FieldInterface) {
+                return $this->schema->label();
+            }
+
+            return null;
         }
 
+        // Setter
         $this->label = $label;
 
         return $this;
@@ -441,10 +458,20 @@ abstract class Field {
      * @return string|$this
      */
     public function description($description = null, $after = null) {
+        // Getter
         if (is_null($description)) {
-            return $this->description;
+            if ($this->description) {
+                return $this->description;
+            }
+
+            if ($this->schema instanceof FieldInterface) {
+                return $this->schema->description();
+            }
+
+            return null;
         }
 
+        // Setter
         $this->description = $description;
         if (!is_null($after)) {
             $this->descriptionAfter = $after;
@@ -478,10 +505,20 @@ abstract class Field {
      * @return bool|$this
      */
     public function repeatable($repeatable = null) {
+        // Getter
         if (is_null($repeatable)) {
-            return $this->repeatable;
+            if ($this->repeatable) {
+                return $this->repeatable;
+            }
+
+            if ($this->schema instanceof FieldInterface) {
+                return $this->schema->repeatable();
+            }
+
+            return null;
         }
 
+        // Setter
         $this->repeatable = $repeatable;
 
         return $this;
@@ -505,16 +542,52 @@ abstract class Field {
         return $level;
     }
 
+    public function schema(FieldInterface $schema = null) {
+        if (is_null($schema)) {
+            return $this->schema;
+        }
+
+        $this->schema = $schema;
+
+        return $this;
+    }
+
     /**
      * Initialise les données du champ à partir du tableau (ou de l'objet passé
      * en paramètre).
      *
      * @param array|ArrayAccess|Object|Scalar $data
      */
-    public final function bind($data) {
+    public function bind($data) {
         $debug = false;
 
+        if ($this->name) {
+            if($debug) echo '&rArr;Field ', $this->type(), '.', $this->name, '::bind()<br />';
+            if (is_object($data)) {
+                $data = isset($data->{$this->name}) ? $data->{$this->name} : null;
+            } else {
+                $data = isset($data[$this->name]) ? $data[$this->name] : null;
+            }
+        } else {
+            if($debug) echo '&rArr;Field ', $this->type(), '.&lt;noname&gt;::bind()<br />';
+        }
+
+        if ($debug) {
+            echo "store ";
+            if (is_null($data)) echo "null";
+            elseif(is_array($data)) echo empty($data) ? "empty array" : "array";
+            elseif(is_object($data)) echo "object of type ", get_class($data);
+            elseif (is_scalar($data)) echo gettype($data), ' ', var_export($data, true);
+            echo "<br />";
+        }
+        $this->data = $data;
+
+        return $this;
+/*
+        $debug = true;
+
         if($debug) echo $this->type(), '.', $this->name, '::bind(', htmlspecialchars(var_export($data,true)), ')<br />&rArr;';
+
 
         // Si le champ n'a pas de nom, aucune liaison possible
         if (! $this->name) {
@@ -530,7 +603,8 @@ abstract class Field {
             return $this;
         }
 
-        if (! isset($data[$this->name])) {
+//        if (! isset($data[$this->name])) {
+        if (! ( (is_object($data) ? isset($data->{$this->name}) : isset($data[$this->name])) )) {
             if($debug) echo "name=$this->name, mais data[$this->name] is not set, stocke <code>null</code> et reset de tous les enfants<blockquote>";
             $this->data = null;
             if ($this instanceof Fields) {
@@ -544,7 +618,7 @@ abstract class Field {
         }
 
         if($debug) echo "name=$this->name, data[$this->name] is set, stocke <code>", htmlspecialchars(var_export($data[$this->name],true)), "</code> et bind les enfants<blockquote>";
-        $this->data = $data[$this->name];
+        $this->data = is_object($data) ? $data->{$this->name} : $data[$this->name];
         if ($this instanceof Fields) {
             foreach ($this->fields as $field) {
                 $field->bind($this->data); // passe la section aux enfants
@@ -553,6 +627,7 @@ abstract class Field {
         if($debug) echo '</blockquote>';
 
         return $this;
+*/
     }
 
     public function clear() {

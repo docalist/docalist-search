@@ -16,6 +16,7 @@
 namespace Docalist\Forms;
 
 use ReflectionClass;
+use Docalist\Data\Entity\SchemaBasedObjectInterface;
 
 /**
  * Représente une liste de champs.
@@ -92,6 +93,54 @@ abstract class Fields extends Field {
      */
     protected function isArray() {
         return true;
+    }
+
+    public final function bind($data) {
+        $debug = false;
+
+        if($debug) echo '&rArr;Fields ', $this->type(), '.', ($this->name() ?: $this->label()), '::bind()<br />';
+
+        if (is_null($this->schema) && is_object($data) && ($data instanceof SchemaBasedObjectInterface)) {
+            if($debug) echo "data est un SchemaBasedObjectInterface<br />";
+            $this->schema = $data->schema();
+            if($debug) echo "this.schema initialisé<br />";
+        }
+
+        if ($this->name) {
+            if (is_object($data)) {
+                $data = isset($data->{$this->name}) ? $data->{$this->name} : null;
+            } else {
+                $data = isset($data[$this->name]) ? $data[$this->name] : null;
+            }
+        }
+
+        if ($debug) {
+            echo "store ";
+            if (is_null($data)) echo "null";
+            elseif(is_array($data)) echo empty($data) ? "empty array" : "array";
+            elseif(is_object($data)) echo "object of type ", get_class($data);
+            elseif (is_scalar($data)) echo gettype($data), ' ', var_export($data, true);
+            echo "<br />";
+        }
+        $this->data = $data;
+
+        if ($debug) echo 'Binding des sous-champs<blockquote>';
+        foreach ($this->fields as $field) {
+
+            if ($this->schema) {
+                $name = $field->name();
+                if ($this->schema->hasField($name)) {
+                    $schema = $this->schema->field($name);
+                    if($debug) echo "Le schema a un champ qui s'appelle ", $name, "<br />";
+                    if($debug) echo "Schéma du champ <b>$name</b> : <pre>", json_encode($schema->toArray(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT), '</pre>';
+                    $field->schema($schema);
+                } else if($debug) echo "Le champ $name n'existe pas dans le schéma<br />";
+            }
+            $field->bind($this->data);
+        }
+        if ($debug) echo '</blockquote>';
+
+        return $this;
     }
 
     protected function bindOccurence($data) {

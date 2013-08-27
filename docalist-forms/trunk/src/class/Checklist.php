@@ -40,4 +40,11 @@ class Checklist extends Choice {
     protected function isArray() {
         return true;
     }
+
+    public function repeatable($repeatable = null) {
+        if (is_null($repeatable)) {
+            return false;
+        }
+        return parent::repeatable($repeatable);
+    }
 }

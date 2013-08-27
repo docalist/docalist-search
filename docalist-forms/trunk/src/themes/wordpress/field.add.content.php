@@ -1,2 +1,2 @@
 <?php
-$writer->text(' ' . $this->label);
+$writer->text(' ' . $this->label());

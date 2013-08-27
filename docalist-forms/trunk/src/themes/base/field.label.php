@@ -12,5 +12,6 @@ if (isset($args['for'])) {
 foreach ($args as $name => $value) {
     $writer->writeAttribute($name, $value);
 }
-$writer->writeRaw($this->label);
+$writer->writeAttribute('title', $this->description());
+$writer->writeRaw($this->label());
 $writer->fullEndElement();

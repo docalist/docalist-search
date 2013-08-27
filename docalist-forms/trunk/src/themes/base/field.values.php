@@ -1,5 +1,5 @@
 <?php
-if (!$this->repeatable) {
+if (!$this->repeatable()) {
     $this->block('widget');
 } else {
     $data = $this->data ? : array(null);

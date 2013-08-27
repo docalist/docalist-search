@@ -43,6 +43,6 @@ $repeatLevel = $this->repeatLevel();
 $repeatLevel > 1 && $writer->writeAttribute('data-level', $repeatLevel);
 
 // Génère une bulle d'aide (optionnel)
-$writer->writeAttribute('title', 'Ajouter ' . lcfirst($this->label));
+$writer->writeAttribute('title', 'Ajouter ' . lcfirst($this->label()));
 
 

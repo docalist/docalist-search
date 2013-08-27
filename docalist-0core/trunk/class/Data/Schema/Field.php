@@ -237,23 +237,36 @@ class Field extends Schema implements FieldInterface {
     }
 
     protected function setFields(array $fields = null, $rootEntityClass) {
-        if ($fields && $this->type !== 'object') {
-            $msg = 'Field "%s" can not have fields: not an object';
-            throw new InvalidArgumentException(sprintf($msg, $this->name));
-        }
-
-        if ($fields && $this->entity) {
-            $msg = 'Field "%s" can not have fields: fields are already defined by entity type';
-            throw new InvalidArgumentException(sprintf($msg, $this->name));
-        }
-
-        if ($this->type === 'object' && empty($this->entity)) {
-            if (empty($fields)) {
-                $msg = 'No fields defined for field "%s"';
+        // Seuls les objets peuvent avoir des champs
+        if ($this->type !== 'object') {
+            if ($fields) {
+                $msg = 'Field "%s" can not have fields: not an object';
                 throw new InvalidArgumentException(sprintf($msg, $this->name));
             }
-            parent::setFields($fields, $rootEntityClass);
+            return;
         }
+
+        // On ne peut pas avoir à la fois une entité et une liste de champs
+        if ($this->entity) {
+            if ($fields) {
+                $msg = 'Field "%s" can not have fields: fields are already defined by entity type';
+                throw new InvalidArgumentException(sprintf($msg, $this->name));
+            }
+
+            // le champ est un objet, on a une entité, pas de champs, c'est ok
+            // echo "Schema champ ", $this->name(), '. entité=', $this->entity(), '<br />';
+            $instance=new $this->entity();
+            $this->fields = $instance->schema()->fields();
+
+            return;
+        }
+
+        // le champ est un objet, on n'a pas d'entité, on DOIT avoir des champs
+        if (empty($fields)) {
+            $msg = 'No fields defined for field "%s"';
+            throw new InvalidArgumentException(sprintf($msg, $this->name));
+        }
+        parent::setFields($fields, $rootEntityClass);
     }
 
     public function fields() {

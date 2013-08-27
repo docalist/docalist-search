@@ -40,6 +40,15 @@ interface SchemaInterface {
     public function fields();
 
     /**
+     * Indique si le schéma contient le champ indiqué.
+     *
+     * @param string $field Le nom du champ à tester.
+     *
+     * @return bool
+     */
+    public function hasField($field);
+
+    /**
      * Retourne le schéma du champ indiqué.
      *
      * @param string $field Le nom du champ.

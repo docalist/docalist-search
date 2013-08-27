@@ -340,6 +340,7 @@ abstract class AbstractPostType implements ContainerInterface {
             }
         } else {
             $post = get_class_vars('WP_POST');
+            unset($post['format_content']);
             unset($post['filter']);
             foreach($this->copyFields as $wp => $field) {
                 if (isset($record[$field])) {

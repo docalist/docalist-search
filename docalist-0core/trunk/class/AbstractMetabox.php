@@ -88,6 +88,10 @@ abstract class AbstractMetabox implements RegistrableInterface {
         // @formatter:on
     }
 
+    public function title() {
+        return $this->form ? $this->form->label() : '';
+    }
+
     public function bind($data) {
         $this->form && $this->form->bind($data);
     }
@@ -108,7 +112,11 @@ abstract class AbstractMetabox implements RegistrableInterface {
         $this->form->label(false);
 
         // Affiche le formulaire
-        $this->form->render($this->parent->theme());
+        $options = array(
+            'indent' => WP_DEBUG,
+            'comment' => WP_DEBUG,
+        );
+        $this->form->render('wordpress', $options); // @todo : passer en parametre
     }
 
     /**

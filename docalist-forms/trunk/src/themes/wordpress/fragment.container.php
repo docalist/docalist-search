@@ -1,6 +1,6 @@
 <?php
-$this->label && $this->block('label');
-$this->description && (! $this->descriptionAfter) && $this->block('description');
+$this->label() && $this->block('label');
+$this->description() && (! $this->descriptionAfter) && $this->block('description');
 $this->block('errors');
 
 $writer->startElement('table');
@@ -17,15 +17,15 @@ foreach($this->fields as $field) {
         $writer->startElement('th');
         $writer->writeAttribute('scope', 'row');
         $writer->writeAttribute('valign', 'top');
-            $field->label && $field->block('label');
+            $field->label() && $field->block('label');
         $writer->fullEndElement(); // </th>
 
         $writer->startElement('td');
         $writer->writeAttribute('valign', 'top');
-            $field->description && (! $field->descriptionAfter) && $field->block('description');
+//            $field->description() && (! $field->descriptionAfter) && $field->block('description');
             $field->block('errors');
             $field->block('values');
-            $field->description && $field->descriptionAfter && $field->block('description');
+//            $field->description() && $field->descriptionAfter && $field->block('description');
         $writer->fullEndElement(); // </td>
 
     $writer->fullEndElement(); // </tr>
@@ -34,4 +34,4 @@ $writer->fullEndElement(); // </table>
 foreach($hidden as $field) {
     $field->block('values');
 }
-$this->description && $this->descriptionAfter && $this->block('description');
+$this->description() && $this->descriptionAfter && $this->block('description');

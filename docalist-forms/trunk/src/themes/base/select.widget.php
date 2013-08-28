@@ -13,6 +13,15 @@ if (! $this->multiple()) // && (! $this->required())
     ));
 }
 
-$this->block('options');
+$notfound = $this->block('options');
 
 $writer->fullEndElement();
+
+if (! empty($notfound)) {
+    $msg = '<span style="color: red;" title="%s%s"> !!! </span>';
+    $msg = sprintf($msg,
+        'Le champ contient des valeurs qui ne figurent pas dans la liste : ',
+        implode(', ', $notfound)
+    );
+    $writer->writeRaw($msg);
+}

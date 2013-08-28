@@ -19,10 +19,16 @@ foreach ($this->options as $value => $label) {
 
     // Option simple
     else {
+        $key = is_int($value) ? $label : $value;
+        if ($flag = isset($selected[$key])) {
+            unset($selected[$key]);
+        }
         $this->block('option', array(
             'value' => is_int($value) ? null : $value,
             'label' => $label,
-            'selected' => isset($selected[is_int($value) ? $label : $value]),
+            'selected' => $flag,
         ));
     }
 }
+
+return array_keys($selected);

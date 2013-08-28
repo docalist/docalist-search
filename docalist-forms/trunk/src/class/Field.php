@@ -414,7 +414,7 @@ abstract class Field {
         if (!$this->name) return $base;
         $name = $this->name;
         $base && $name = $base . '[' . $name . ']';
-        $this->repeatable &&  $name .= '[' . $this->occurence . ']';
+        $this->repeatable() &&  $name .= '[' . $this->occurence . ']';
 
         return $name;
     }
@@ -537,7 +537,7 @@ abstract class Field {
      */
     protected function repeatLevel() {
         $level = $this->parent ? $this->parent->repeatLevel() : 0;
-        $this->repeatable && ++$level;
+        $this->repeatable() && ++$level;
 
         return $level;
     }
@@ -565,8 +565,14 @@ abstract class Field {
             if($debug) echo '&rArr;Field ', $this->type(), '.', $this->name, '::bind()<br />';
             if (is_object($data)) {
                 $data = isset($data->{$this->name}) ? $data->{$this->name} : null;
-            } else {
+            } elseif (is_array($data)) {
                 $data = isset($data[$this->name]) ? $data[$this->name] : null;
+            } elseif (is_scalar($data)) {
+                // $data = $data;
+            } elseif (is_null($data)) {
+                // $data = $data;
+            } else {
+                throw new \Exception('bad value for bind');
             }
         } else {
             if($debug) echo '&rArr;Field ', $this->type(), '.&lt;noname&gt;::bind()<br />';
@@ -656,7 +662,7 @@ abstract class Field {
      * @return bool
      */
     protected function isArray() {
-        return $this->repeatable;
+        return $this->repeatable();
     }
 
     protected function bindOccurence($data) {
@@ -747,7 +753,7 @@ abstract class Field {
      */
     protected function block($block, array $args = null) {
         $path = $this->findBlock(get_class($this), $block);
-        $this->callBlock($path, $args);
+        return $this->callBlock($path, $args);
     }
 
     /**
@@ -820,17 +826,18 @@ abstract class Field {
         if (self::$comment && false === strpos($path, 'attributes')) {
             $templateFriendlyName = basename(dirname($path)) . '/' . basename($path);
             self::$writer->writeComment(' start ' . $templateFriendlyName);
-            include $path;
+            $result = include $path;
             self::$writer->writeComment(' end  ' . $templateFriendlyName);
         }
 
         // Exécute le template normallement
         else {
-            include $path;
+            $result = include $path;
         }
 
         // Dépile le bloc ajouté à la pile par findBlock
         array_pop($this->callStack);
+        return $result;
     }
 
     /**

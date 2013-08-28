@@ -14,7 +14,7 @@ namespace Docalist\Data\Entity;
 
 use Docalist\Data\Schema\Schema;
 use ArrayObject, ArrayIterator;
-use Exception;
+use InvalidArgumentException;
 
 /**
  * Implémentation de base de l'interface SchemaBasedObjectInterface.
@@ -52,7 +52,7 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
      *
      * @return mixed
      *
-     * @throws Exception Si le champ indiqué n'existe pas dans le schéma.
+     * @throws InvalidArgumentException Si le champ indiqué n'existe pas dans le schéma.
      */
     public function __get($name) {
         // retourne le champ s'il existe déjà
@@ -73,7 +73,7 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
      * @param string $name
      * @param string $value
      *
-     * @throws Exception Si le champ indiqué n'existe pas dans le schéma.
+     * @throws InvalidArgumentException Si le champ indiqué n'existe pas dans le schéma.
      */
     public function __set($name, $value) {
         // Vérifie que le champ existe et récupère son schéma

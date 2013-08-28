@@ -38,7 +38,7 @@ abstract class AbstractRepository implements RepositoryInterface {
      * @param string $type le nom complet de la classe Entité utilisée pour
      * représenter les enregistrements de ce dépôt.
      *
-     * @throws Exception Si $type ne désigne pas une classe d'entité.
+     * @throws InvalidArgumentException Si $type ne désigne pas une classe d'entité.
      */
     public function __construct($type) {
         // Vérifie que la classe indiquée existe

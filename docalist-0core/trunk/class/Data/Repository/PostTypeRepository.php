@@ -15,7 +15,8 @@ namespace Docalist\Data\Repository;
 use Docalist\Data\Entity\EntityInterface;
 use Docalist\Utils;
 use WP_Post;
-use Exception, StdClass;
+use InvalidArgumentException, RuntimeException;
+use StdClass;
 
 /**
  * Un dépôt dans lequel les entités sont stockées sous forme de Custom Post
@@ -46,7 +47,7 @@ class PostTypeRepository extends AbstractRepository {
      *
      * @param string $postType Le nom du custom post type.
      *
-     * @throws Exception Si $type ne désigne pas une classe d'entité.
+     * @throws InvalidArgumentException Si $type ne désigne pas une classe d'entité.
      */
     public function __construct($type, $postType) {
         parent::__construct($type);
@@ -68,11 +69,17 @@ class PostTypeRepository extends AbstractRepository {
         // Vérifie qu'on a une clé primaire
         $primaryKey = $this->checkPrimaryKey($entity, true);
 
-        // appeller WP_Post::get_instance($primaryKey) et erreur si n'existe pas ?
+        // Charge le post
+        $post = WP_Post::get_instance($primaryKey);
 
-        $data = get_post_meta($primaryKey, static::META_KEY, true);
-        if (is_string($data)) { // @todo à virer, pour le moment, les meta sont sérialisés, wp retourne le tableau désérialisé
-            $data = json_decode($data, true);
+        // Récupère les données de l'entité, stockées en json dans post_excerpt
+        $data = json_decode($post->post_excerpt, true);
+
+        // On doit obtenir un tableau (éventuellement vide), sinon c'est une erreur
+        if (! is_array($data)) {
+            $msg = 'JSON error %s while decoding field post_excerpt of post %s: %s';
+            $msg = sprintf($msg, json_last_error(), $primaryKey, var_export($post->post_excerpt, true));
+            throw new RuntimeException($msg);
         }
 
         // Type = false permet de récupérer les données brutes
@@ -132,17 +139,24 @@ class PostTypeRepository extends AbstractRepository {
         // Charge le post existant si on a une clé, créée un nouveau post sinon
         if ($primaryKey) {
             if (false === $post = WP_Post::get_instance($primaryKey)) {
-                throw new Exception("Post $primaryKey not found");
+                $msg = 'Post %s not found';
+                throw new RuntimeException(sprintf($msg, $primaryKey));
             }
         } else {
-            $post = new WP_Post(new StdClass()); // wp oblig à passer un objet vide...
-            echo 'nouveau post = <pre>', var_export($post, true), '</pre>';
+            // wp nous oblige à passer un objet vide...
+            $post = new WP_Post(new StdClass());
         }
+
+        // Encode les données de l'entité en JSON
+        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+        WP_DEBUG && $options |= JSON_PRETTY_PRINT;
+        $data = json_encode($entity, $options);
+
+        // Stocke le JSON dans le champ post_excerpt
+        $post->post_excerpt = $data;
 
         // Synchronise le post wp à partir des données de l'entité
         $this->synchronizePost($post, $entity);
-        echo 'après synchronisePost = <pre>', var_export($post, true), '</pre>';
-        // $post = $post->to_array();
 
         // Pour wpdb, il faut maintenant un tableau et non plus un WP_Post
         $post = (array) $post;
@@ -152,24 +166,21 @@ class PostTypeRepository extends AbstractRepository {
         // Met à jour le post si on a une clé
         if ($primaryKey) {
             if (false === $wpdb->update($wpdb->posts, $post, array('ID' => $primaryKey))) {
-                throw new Exception($wpdb->last_error);
+                throw new RuntimeException($wpdb->last_error);
             }
-            echo "L'enreg $primaryKey a été mis à jour<br />";
+
+            // Vide le cache pour ce post (Important, cf WP_Post::get_instance)
+            wp_cache_delete($primaryKey, 'posts');
         }
 
         // Crée un nouveau post sinon
         else {
             if (false === $wpdb->insert($wpdb->posts, $post)) {
-                throw new Exception($wpdb->last_error);
+                throw new RuntimeException($wpdb->last_error);
             }
             $primaryKey = (int) $wpdb->insert_id;
             $entity->primaryKey($primaryKey);
-            echo "L'enreg $primaryKey a été créé<br />";
         }
-
-        // Enregistre les données de l'entité sous forme de meta json
-        $data = json_encode($entity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        update_post_meta($primaryKey, static::META_KEY, $data);
     }
 
     public function delete($entity) {
@@ -179,11 +190,11 @@ class PostTypeRepository extends AbstractRepository {
 
         $result = $wpdb->delete($wpdb->posts, array('ID' => $primaryKey));
         if ($result === false) {
-            $msg = 'Unable to delete entity %s : %s';
-            throw new Exception($msg, $primaryKey, $wpdb->last_error);
+            $msg = 'Unable to delete post %s: %s';
+            throw new RuntimeException($msg, $primaryKey, $wpdb->last_error);
         } elseif ($result === 0) {
-            $msg = 'Entity %s not found';
-            throw new Exception($msg, $primaryKey);
+            $msg = 'Post %s not found';
+            throw new RuntimeException(sprintf($msg, $primaryKey));
         }
     }
 }

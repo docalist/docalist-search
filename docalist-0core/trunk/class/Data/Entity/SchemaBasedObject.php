@@ -13,7 +13,7 @@
 namespace Docalist\Data\Entity;
 
 use Docalist\Data\Schema\Schema;
-use ArrayObject;
+use ArrayObject, ArrayIterator;
 use Exception;
 
 /**
@@ -112,7 +112,7 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
     }
 
     public function getIterator() {
-        return $this->data;
+        return new ArrayIterator($this->fields);
     }
 
     /**

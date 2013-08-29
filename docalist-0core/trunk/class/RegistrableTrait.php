@@ -89,7 +89,7 @@ trait RegistrableTrait {
         // Setter. Le parent d'un objet ne peut pas être changé
         if (!is_null($this->parent)) {
             $msg = __("L'objet %s a déjà un parent", 'docalist-core');
-            throw new Exception(sprintf($msg, $this->name()));
+            throw new Exception(sprintf($msg, $this->id()));
         }
 
         // Stocke le parent
@@ -99,6 +99,7 @@ trait RegistrableTrait {
         }
 
         // En mode debug, vérifie que l'objet a été créé au bon moment
+/*
         $hook = $this->hookName();
         $current = current_filter();
         if ($current !== $hook) {
@@ -128,7 +129,7 @@ trait RegistrableTrait {
 
             wp_die($msg, $title);
         }
-
+*/
         return $this;
     }
 
@@ -145,7 +146,7 @@ trait RegistrableTrait {
     public function plugin() {
         if (!$this->parent) {
             $msg = __("L'objet %s n'a pas de parent", 'docalist-core');
-            throw new Exception(sprintf($msg, $this->name()));
+            throw new Exception(sprintf($msg, $this->id()));
         }
 
         return $this->parent->plugin();
@@ -171,24 +172,12 @@ trait RegistrableTrait {
         }
 
         // Sinon, on le construit (et on le stocke pour la prochaine fois)
-        $this->id = $this->name();
+        $this->id = strtolower(Utils::classname($this));
         if ($this->parent) {
             $this->id = $this->parent->id() . '-' . $this->id;
         }
 
         return $this->id;
-    }
-
-    /**
-     * Retourne le nom de l'objet.
-     *
-     * Par convention, le nom de l'objet correspond à la version en minuscules
-     * du dernier élément du nom de classe de l'objet.
-     *
-     * @return string
-     */
-    public function name() {
-        return strtolower(Utils::classname($this));
     }
 
     /**

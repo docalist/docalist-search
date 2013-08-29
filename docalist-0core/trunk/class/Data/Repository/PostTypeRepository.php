@@ -72,14 +72,24 @@ class PostTypeRepository extends AbstractRepository {
         // Charge le post
         $post = WP_Post::get_instance($primaryKey);
 
-        // Récupère les données de l'entité, stockées en json dans post_excerpt
-        $data = json_decode($post->post_excerpt, true);
+        // Récupère les données de l'entité, stockées dans post_excerpt
+        $data = $post->post_excerpt;
 
-        // On doit obtenir un tableau (éventuellement vide), sinon c'est une erreur
-        if (! is_array($data)) {
-            $msg = 'JSON error %s while decoding field post_excerpt of post %s: %s';
-            $msg = sprintf($msg, json_last_error(), $primaryKey, var_export($post->post_excerpt, true));
-            throw new RuntimeException($msg);
+        // Si c'est un nouveau post, post_excerpt est vide
+        if ($data === '') {
+            $data = array();
+        }
+
+        // Sinon, post_excerpt doit contenir du JSON valide
+        else {
+            $data = json_decode($post->post_excerpt, true);
+
+            // On doit obtenir un tableau (éventuellement vide), sinon c'est une erreur
+            if (! is_array($data)) {
+                $msg = 'JSON error %s while decoding field post_excerpt of post %s: %s';
+                $msg = sprintf($msg, json_last_error(), $primaryKey, var_export($post->post_excerpt, true));
+                throw new RuntimeException($msg);
+            }
         }
 
         // Type = false permet de récupérer les données brutes

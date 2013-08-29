@@ -128,7 +128,24 @@ abstract class AbstractActions implements RegistrableInterface {
      *
      * Si null, la page est ajoutée comme menu de premier niveau.
      */
-    protected $parentPage = 'admin.php';
+    protected $parentPage;
+
+    /**
+     * Titre de la page
+     *
+     * @var string
+     */
+    protected $pageTitle;
+
+    /**
+     *
+     * @param string $parentPage Url de la page parent.
+     * @param string $pageTitle Titre de la page.
+     */
+    public function __construct($parentPage = 'admin.php', $pageTitle = '') {
+        $this->parentPage = $parentPage;
+        $this->pageTitle = $pageTitle;
+    }
 
     /**
      * {@inheritdoc}
@@ -139,6 +156,24 @@ abstract class AbstractActions implements RegistrableInterface {
                 $this->run();
             });
         }
+    }
+
+    /**
+     * Retourne l'url de la page parent.
+     *
+     * @return string
+     */
+    protected function parentPage() {
+        return $this->parentPage;
+    }
+
+    /**
+     * Retourne le titre de la page.
+     *
+     * @return string
+     */
+    protected function pageTitle() {
+        return $this->pageTitle ?: ucfirst(strtr($this->id(), '-', ' '));
     }
 
     /**
@@ -233,7 +268,7 @@ abstract class AbstractActions implements RegistrableInterface {
      */
     public function url($action = null, $relative = false) {
         is_null($action) && $action = $this->action();
-        $url = $this->parentPage ? : 'admin.php';
+        $url = $this->parentPage() ? : 'admin.php';
         !$relative && $url = admin_url($url);
         $args = array(static::$parameterName => $this->id());
         $action !== 'Index' && $args['m'] = $action;
@@ -242,62 +277,41 @@ abstract class AbstractActions implements RegistrableInterface {
     }
 
     /**
-     * Retourne le titre d'une action, extrait à partir du DocBlock de la
-     * méthode.
+     * Génère une réponse http "404 - Not Found".
      *
-     * @param string $action
-     *
-     * @return string
+     * @param string $method le nom de la méthode non trouvée.
+     * @return false
      */
-    public function title($action = null) {
-        is_null($action) && $action = $this->action();
-        if ($action === 'Index') {
-            return $this->pageTitle();
+    protected function notFound($method) {
+        if (! headers_sent()) {
+            header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
+            header('Status: 404 Not Found');
+            header('Content-type: text/html; charset=UTF-8');
         }
+        echo "<h1>404 Not Found</h1>\n";
+        echo "<p>Method <code>$method</code> does not exist.</p>\n";
 
-        try {
-            $title = DocBlock::ofMethod($this, "action$action")->desc;
-        } catch(Exception $e) {
-            return $action;
-        }
-
-        if (empty($title)) {
-            return $action;
-        }
-        if (preg_match('~^(.*?)[\r\n]{2}~s', $title, $match)) {
-            return $match[1];
-        }
-
-        return $title;
+        return false;
     }
 
     /**
-     * Retourne la description d'une action, extraite à partir du
-     * DocBlock de la méthode.
-     *
-     * @param string $action
-     *
-     * @return string
-     */
-    protected function description($action = null) {
-        is_null($action) && $action = $this->action();
-
-        if ($action === 'Index') {
-            return '';
+    * Génère une réponse http "400 - Bad Request".
+    *
+    * @param string $reason La raison pour laquelle la requête est incorrecte.
+    * @return false
+    */
+    protected function badRequest($reason = '') {
+        if (! headers_sent()) {
+            header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request');
+            header('Status: 400 Bad Request');
+            header('Content-type: text/html; charset=UTF-8');
+        }
+        echo "<h1>400 Bad Request</h1>\n";
+        if ($reason) {
+            echo "<p>$reason</p>\n";
         }
 
-        try {
-            $description = DocBlock::ofMethod($this, "action$action")->desc;
-        } catch(Exception $e) {
-            return '';
-        }
-
-        if (!preg_match('~[\r\n]{2}(.*)~s', $description, $match)) {
-            return '';
-        }
-        $description = preg_replace('~[\r\n]{2}~', '<br /><br />', $match[1]);
-
-        return $description;
+        return false;
     }
 
     /**
@@ -373,6 +387,65 @@ abstract class AbstractActions implements RegistrableInterface {
     }
 
     /**
+     * Retourne le titre d'une action, extrait à partir du DocBlock de la
+     * méthode.
+     *
+     * @param string $action
+     *
+     * @return string
+     */
+    public function title($action = null) {
+        is_null($action) && $action = $this->action();
+        if ($action === 'Index') {
+            return $this->pageTitle();
+        }
+
+        try {
+            $title = DocBlock::ofMethod($this, "action$action")->desc;
+        } catch(Exception $e) {
+            return $action;
+        }
+
+        if (empty($title)) {
+            return $action;
+        }
+        if (preg_match('~^(.*?)[\r\n]{2}~s', $title, $match)) {
+            return $match[1];
+        }
+
+        return $title;
+    }
+
+    /**
+     * Retourne la description d'une action, extraite à partir du
+     * DocBlock de la méthode.
+     *
+     * @param string $action
+     *
+     * @return string
+     */
+    protected function description($action = null) {
+        is_null($action) && $action = $this->action();
+
+        if ($action === 'Index') {
+            return '';
+        }
+
+        try {
+            $description = DocBlock::ofMethod($this, "action$action")->desc;
+        } catch(Exception $e) {
+            return '';
+        }
+
+        if (!preg_match('~[\r\n]{2}(.*)~s', $description, $match)) {
+            return '';
+        }
+        $description = preg_replace('~[\r\n]{2}~', '<br /><br />', $match[1]);
+
+        return $description;
+    }
+
+    /**
      * Liste des outils disponibles
      *
      * Liste toutes les actions publiques du module.
@@ -442,21 +515,6 @@ abstract class AbstractActions implements RegistrableInterface {
     }
 
     /**
-     * Retourne le titre de la page.
-     *
-     * Par défaut, la méthode retourne un titre construit à partir de
-     * l'id de la page et de son parent.
-     *
-     * Les classes descendantes peuvent surcharger cette méthode pour
-     * retourner un titre différent.
-     *
-     * @return string
-     */
-    protected function pageTitle() {
-        return ucfirst(strtr($this->parent->id(), '-', ' '));
-    }
-
-    /**
      * Affiche un mini-formulaire.
      *
      * On peut appeller
@@ -522,54 +580,23 @@ abstract class AbstractActions implements RegistrableInterface {
             return true;
         }
 
-        if ($message) {
-            printf('<p><strong>%s</strong></p>', $message);
-        }
-        $this->ask(array(
-            'type' => 'hidden',
-            'name' => 'confirm',
-            'attributes' => array('value' => '1'),
-        ));
-// Bouton : continuer
-        return false;
-    }
+        $html = <<<EOF
+            <div class="updated">
+                <p>%s</p>
+                <p class="submit">
+                    <a href="%s" class="button button-primary">%s</a>
+                    <button class="button" onclick="history.go(-1)">%s</button>
+                </p>
+            </div>
+EOF;
 
-    /**
-     * Génère une réponse http "404 - Not Found".
-     *
-     * @param string $method le nom de la méthode non trouvée.
-     * @return false
-     */
-    protected function notFound($method) {
-        if (! headers_sent()) {
-            header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
-            header('Status: 404 Not Found');
-            header('Content-type: text/html; charset=UTF-8');
-        }
-        echo "<h1>404 Not Found</h1>\n";
-        echo "<p>Method <code>$method</code> does not exist.</p>\n";
+        printf($html,
+            $message ?: 'Veuillez confirmer.',
+            add_query_arg('confirm', '1'),
+            $button ?: 'Continuer',
+            'Annuler'
+        );
 
         return false;
     }
-
-    /**
-     * Génère une réponse http "400 - Bad Request".
-     *
-     * @param string $reason La raison pour laquelle la requête est incorrecte.
-     * @return false
-     */
-    protected function badRequest($reason = '') {
-        if (! headers_sent()) {
-            header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request');
-            header('Status: 400 Bad Request');
-            header('Content-type: text/html; charset=UTF-8');
-        }
-        echo "<h1>400 Bad Request</h1>\n";
-        if ($reason) {
-            echo "<p>$reason</p>\n";
-        }
-
-        return false;
-    }
-
 }

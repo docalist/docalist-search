@@ -35,55 +35,44 @@ abstract class AbstractAdminPage extends AbstractActions {
     /**
      * {@inheritdoc}
      */
-    protected $parentPage = '';
+    protected $menuTitle;
 
     /**
-     * Le constructeur est final : il ne peut pas être surchargé dans les
-     * classes descendantes.
      *
-     * Surchargez la méthode load() pour faire vos initialisations.
+     * @param string $parentPage Url de la page parent.
+     * @param string $pageTitle Titre de la page.
+     * @param string $menuTitle Libellé de la page utilisé dans le menu.
      */
-    public final function __construct() {
-
+    public function __construct($parentPage = '', $pageTitle = '', $menuTitle = '') {
+        parent::__construct($parentPage, $pageTitle);
+        $this->menuTitle = $menuTitle;
     }
 
     /**
-     * Retourne le titre à utiliser pour afficher la page dans le menu
-     * WordPress.
-     *
-     * Par défaut, la méthode retourne pageTitle() : le titre affiché
-     * dans le menu est le même que le titre affiché dans la page.
-     *
-     * Les classes descendantes doivent surcharger cette méthode si elles
-     * veulent un libellé différent dans le menu.
+     * Retourne le titre de la page affiché dans le menu.
      *
      * @return string
      */
     protected function menuTitle() {
-        return $this->pageTitle();
+        return $this->menuTitle ?: $this->pageTitle();
     }
 
     /**
      * {@inheritdoc}
      */
     public function register() {
-        // One fait quelque chose que si l'utilisateur a les droits requis
+        // On ne fait rien si l'utilisateur n'a pas les droits requis
         $capability = $this->defaultCapability();
         if (! current_user_can($capability)) {
             return;
         }
 
-        // Paramètres dont on a besoin
-        $id = $this->id();
-        $title = $this->pageTitle();
-        $menu = $this->menuTitle();
-        $parent = $this->parentPage;
-
         // Crée la page dans le menu WordPress
+        $parent = $this->parentPage();
         if (empty($parent)) {
-            $page = add_menu_page($title, $menu, $capability, $id);
+            $page = add_menu_page($this->pageTitle(), $this->menuTitle(), $capability, $this->id());
         } else {
-            $page = add_submenu_page($parent, $title, $menu, $capability, $id);
+            $page = add_submenu_page($parent, $this->pageTitle(), $this->menuTitle(), $capability, $this->id());
         }
 
         // Initialisation de la page (création du formulaire par exemple)
@@ -177,8 +166,13 @@ abstract class AbstractAdminPage extends AbstractActions {
      */
     protected function run() {
         echo '<div class="wrap">';
-        screen_icon($this->parentPage ? '' : 'generic');
-        printf('<h2>%s</h2>', $this->pageTitle());
+        screen_icon($this->parentPage() ? '' : 'generic');
+        $title = $this->pageTitle();
+        $action = $this->action();
+        if ($action !== 'Index') {
+            $title .= ' : ' . $this->title($action);
+        }
+        printf('<h2>%s</h2>', $title);
         printf('<p class="description">%s</p>', $this->description());
 
         parent::run();

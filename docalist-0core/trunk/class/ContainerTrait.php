@@ -69,15 +69,18 @@ trait ContainerTrait {
      * @return Container $this.
      */
     public function add(RegistrableInterface $registrable) {
-        $name = $registrable->name();
-        if (isset($this->items[$name])) {
-            $msg = __('Il existe déjà un objet %s dans ce container', 'docalist-core');
-            throw new Exception(sprintf($msg, $name));
+        // Indique au registrable que nous comme son container
+        $registrable->parent($this);
+
+        // Récupère son ID et vérifie qu'il est unique
+        $id = $registrable->id();
+        if (isset($this->items[$id])) {
+            $msg = __('Il existe déjà un objet %s dans %s', 'docalist-core');
+            throw new Exception(sprintf($msg, $id, $this->id()));
         }
 
         // Ajoute l'objet dans la collection
-        $registrable->parent($this);
-        $this->items[$name] = $registrable;
+        $this->items[$id] = $registrable;
 
         // Enregistre l'objet
         $registrable->register();

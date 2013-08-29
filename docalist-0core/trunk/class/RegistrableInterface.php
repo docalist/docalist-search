@@ -96,13 +96,6 @@ interface RegistrableInterface {
     public function id();
 
     /**
-     * Retourne le nom de l'objet.
-     *
-     * @return string
-    */
-    public function name();
-
-    /**
      * Retourne la configuration actuelle du plugin.
      *
      * Tous les objets Registrable ont accès à la configuration du plugin

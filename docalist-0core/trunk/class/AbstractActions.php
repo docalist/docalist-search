@@ -497,8 +497,6 @@ abstract class AbstractActions implements RegistrableInterface {
             return;
         }
 
-        sort($list);
-
         echo '<ul class="ul-disc">';
         foreach ($list as $name) {
             $url = $this->url($name);

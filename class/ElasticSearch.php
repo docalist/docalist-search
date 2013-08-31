@@ -55,12 +55,15 @@ class ElasticSearch implements RegistrableInterface {
     protected $time;
 
     /**
-     * {@inheritdoc}
+     * Construit un nouveau client ElasticSearch en utilisant les options de
+     * configuration passées en paramètre.
+     *
+     * @param ServerSettings $settings Les paramètres du serveur.
      */
-    public function register() {
-        $this->server = $this->setting('server.url'); // DOIT AVOIR UN SLASH FINAL
-        $this->index = $this->setting('server.index');
-        $this->timeout = $this->setting('server.timeout');
+    public function __construct(ServerSettings $settings) {
+        $this->server = $settings->url;
+        $this->index = $settings->index;
+        $this->timeout = $settings->timeout;
 
         $this->context = stream_context_create(array(
             // cf http://www.php.net/manual/en/context.http.php
@@ -209,7 +212,7 @@ class ElasticSearch implements RegistrableInterface {
     }
 
     public function bulk($path = null, $data = null) {
-        return $this->request('PUT', $path, $data, true);
+        return $this->request('PUT', $path, $data);
     }
 
 }

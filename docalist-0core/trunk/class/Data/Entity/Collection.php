@@ -99,4 +99,10 @@ class Collection implements SchemaBasedObjectInterface, ArrayAccess {
     public function offsetUnset($offset) {
         $this->schema->instantiate(null, true);
     }
+
+    public function toArray() {
+        return array_map(function($item) {
+            return is_scalar($item) ? $item : $item->toArray();
+        }, $this->items);
+    }
 }

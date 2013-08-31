@@ -104,4 +104,11 @@ interface SchemaBasedObjectInterface extends Countable, IteratorAggregate, Seria
      * @return string
      */
     public function jsonSerialize();
+
+    /**
+     * Retourne un tableau contenant les données de l'objet.
+     *
+     * @return array
+     */
+    public function toArray();
 }

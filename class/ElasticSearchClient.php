@@ -19,7 +19,7 @@ use Docalist\RegistrableInterface,Docalist\RegistrableTrait;
 /**
  * Classe client pour se connecter à un serveur ElasticSearch.
  */
-class ElasticSearch implements RegistrableInterface {
+class ElasticSearchClient implements RegistrableInterface {
     use RegistrableTrait;
 
     /**

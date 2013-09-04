@@ -10,7 +10,7 @@
  * Plugin Name: Docalist Search
  * Plugin URI:  http://docalist.org
  * Plugin Type: Piklist
- * Description: Docalist: elasti-search plugin.
+ * Description: Docalist Search Plugin.
  * Version:     0.1
  * Author:      Daniel Ménard
  * Author URI:  http://docalist.org/

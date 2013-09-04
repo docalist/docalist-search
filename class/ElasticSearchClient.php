@@ -61,6 +61,16 @@ class ElasticSearchClient implements RegistrableInterface {
      * @param ServerSettings $settings Les paramètres du serveur.
      */
     public function __construct(ServerSettings $settings) {
+        $this->configure($settings);
+    }
+
+    /**
+     * Configure le client ElasticSearch.
+     *
+     * Cette méthode est utile quand la config change (exemple : indexer).
+     *
+     */
+    public function configure(ServerSettings $settings) {
         $this->server = $settings->url;
         $this->index = $settings->index;
         $this->timeout = $settings->timeout;
@@ -71,7 +81,7 @@ class ElasticSearchClient implements RegistrableInterface {
                 'method' => 'GET',
                 'user-agent' => 'docalist-search',
                 'timeout' => $this->timeout,
-//                'protocol_version' => 1.1,
+                // 'protocol_version' => 1.1,
                 'ignore_errors' => true,
 
             ),
@@ -104,7 +114,7 @@ class ElasticSearchClient implements RegistrableInterface {
      * http://localhost:9200$PATH
      *
      * path relatif (pas de slash initial) : appliqué à l'index
-     * http://localhost:9200/$index
+     * http://localhost:9200/$index/$PATH
      */
     public function request($method, $path = null, $data = null) {
         $debug = false;
@@ -138,9 +148,14 @@ class ElasticSearchClient implements RegistrableInterface {
                 }
             }
             if ($debug) {
-                echo " -d '\n$data\n'";
+                echo " -d '\n",htmlspecialchars($data),"\n'";
             }
+
+            // Fournit le body de la requête
             stream_context_set_option($this->context, 'http', 'content', $data);
+
+            // On n'a plus besoin de data, libère la mémoire (exemple bulk)
+            unset($data);
         }
 
         if ($debug) {
@@ -149,6 +164,8 @@ class ElasticSearchClient implements RegistrableInterface {
 
         $start = microtime(true);
         $data = @file_get_contents($url, false, $this->context);
+        // On n'a plus besoin du body, libère la mémoire (exemple bulk)
+        stream_context_set_option($this->context, 'http', 'content', null);
         $this->time = microtime(true) - $start;
 
         if ($data === false) {

@@ -28,12 +28,12 @@ class ServerSettings extends AbstractEntity {
     protected function loadSchema() {
         return array(
             'url' => array(
-                'label' =>__('Url du serveur', 'docalist-search'),
-                'description' => __("Url complète de votre server ElasticSearch (par exemple : <code>http://localhost:9200/</code>).", 'docalist-search'),
+                'label' =>__('Url de ElasticSearch', 'docalist-search'),
+                'description' => __("Url complète du moteur ElasticSearch à utiliser (par exemple : <code>http://127.0.0.1:9200/</code>).", 'docalist-search'),
                 'default' => 'http://127.0.0.1:9200/',
             ),
             'index' => array(
-                'label' =>__("Nom de l'index ElasticSearch à créer", 'docalist-search'),
+                'label' =>__("Nom de l'index à utiliser", 'docalist-search'),
                 'description' => __("Nom de l'index ElasticSearch qui contiendra tous les contenus indexés. <b>Attention</b> : vérifiez que cet index n'existe pas déjà.", 'docalist-search'),
                 'default' => 'wordpress',
             ),

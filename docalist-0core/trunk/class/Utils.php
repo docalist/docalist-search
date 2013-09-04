@@ -203,7 +203,7 @@ class Utils {
      * Génère les liens permettant d'accèder aux différentes pages de résultat.
      *
      */
-    function pagesLinks($nb = 11, $first = false, $prev = true, $next = true, $last = false) {
+    public static function pagesLinks($nb = 11, $first = false, $prev = true, $next = true, $last = false) {
         /**
          * @var WP_Query
          */

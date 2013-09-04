@@ -164,6 +164,20 @@ class SettingsPage extends AbstractAdminPage {
     }
 
     /**
+     * Paramètres du moteur de recherche.
+     *
+     * Permet entres autres d'activer la recherche.
+     *
+     * @return boolean
+     */
+    public function actionSearchSettings() {
+        $box = new Form();
+        $box->checkbox('enabled');
+
+        return $this->handle($box, $this->settings);
+    }
+
+    /**
      * Contenus à indexer.
      */
     public function actionTypes() {

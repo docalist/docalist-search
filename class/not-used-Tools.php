@@ -18,9 +18,14 @@ use Docalist\Forms\Form;
 
 class Tools extends AbstractAdminPage{
     /**
-     * {@inheritdoc}
+     *
      */
-    protected $parentPage = 'tools.php';
+    public function __construct() {
+        $parent = 'tools.php';
+        $title = 'Outils docalist-search';
+        $menu = 'Docalist Search';
+        parent::__construct($parent, $title, $menu);
+    }
 
     /**
      * Réindexation complète.

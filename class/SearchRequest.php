@@ -109,7 +109,7 @@ class SearchRequest {
      * @param array $args un tableau contenant les paramètres de la recherche à
      * exécuter.
      */
-    public function __construct(ElasticSearch $server, $args = null) {
+    public function __construct(ElasticSearchClient $server, $args = null) {
         $this->server = $server;
 
         if ($args) {

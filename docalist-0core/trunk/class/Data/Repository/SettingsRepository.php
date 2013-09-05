@@ -86,7 +86,7 @@ class SettingsRepository extends AbstractRepository {
 
     public function delete($entity) {
         // L'entité doit obligatoirement avoir un ID
-        $primaryKey = $this->checkId($entity, true);
+        $primaryKey = $this->checkPrimaryKey($entity, true);
 
         delete_option($primaryKey);
     }

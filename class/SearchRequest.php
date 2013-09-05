@@ -78,13 +78,6 @@ class SearchRequest {
     protected $explainHits = false;
 
     /**
-     * Les résultats de la recherche.
-     *
-     * @var Results
-     */
-    protected $results;
-
-    /**
      * Construit une recherche à partir des arguments passés en paramètre.
      *
      * Exemple :
@@ -341,15 +334,6 @@ class SearchRequest {
     }
 
     /**
-     * Retourne la réponse renvoyée par ElasticSearch.
-     *
-     * @return Results
-     */
-    public function results() {
-        return $this->results;
-    }
-
-    /**
      * Crée la requête à envoyer à Elastic Search à partir des paramètres en
      * cours.
      *
@@ -449,7 +433,8 @@ class SearchRequest {
      * @return array
      */
     protected function elasticSearchFacets() {
-        $definedFacets = Docalist::get('docalist-search')->facets();
+        $definedFacets = apply_filters('docalist_search_get_facets', array());
+
         $facets = array();
         foreach ($this->facets as $name => $size) {
             if (! isset($definedFacets[$name])) {
@@ -517,9 +502,7 @@ class SearchRequest {
     public function execute() {
         $response = $this->server->get('_search', $this->elasticSearchRequest());
 
-        $this->results = new Results($response);
-
-        return $this->results;
+        return new Results($response);
     }
 
     /**

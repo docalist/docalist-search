@@ -207,4 +207,10 @@ class PostTypeRepository extends AbstractRepository {
             throw new RuntimeException(sprintf($msg, $primaryKey));
         }
     }
+
+    public function deleteAll() {
+        global $wpdb;
+
+        return $wpdb->delete($wpdb->posts, array('post_type' => $this->postType));
+    }
 }

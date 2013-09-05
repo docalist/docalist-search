@@ -87,7 +87,7 @@ class Searcher {
     /**
      * Retourne les résultats de la requête en cours.
      *
-     * @return Result|null l'objet Result ou null si on n'a pas de requête en
+     * @return Results|null l'objet Results ou null si on n'a pas de requête en
      * cours.
      */
     public function results() {
@@ -95,7 +95,26 @@ class Searcher {
     }
 
     /**
-     * Retourne le lien à utiliser pour affiche le hit indiqué tout seule sur
+     * Retourne le rank d'un hit, c'est à dire la position de ce hit (1-based)
+     * dans l'ensemble des réponses qui répondent à la requête.
+     *
+     * @param int $id
+     *
+     * @return int Retourne la position du hit dans les résultats (le premier
+     * est à la position 1) ou zéro si l'id indiqué ne figure pas dans la liste
+     * des réponses.
+     */
+    public function rank($id) {
+        if ($this->results) {
+            return $this->results->position($id) + 1 + ($this->request->page() - 1) * $this->request->size();
+        }
+
+        // Le hit demandé ne fait pas partie des réponses
+        return 0; // // @todo null ? zéro ? exception ?
+    }
+
+    /**
+     * Retourne le lien à utiliser pour afficher le hit indiqué tout seul sur
      * une page (i.e. recherche en format long).
      *
      * Le lien retourné est un lien qui permet de relancer une recherche avec
@@ -110,23 +129,6 @@ class Searcher {
             ->set('size', 1)
             ->encode();
         // @formatter:on
-    }
-
-    /**
-     * Retourne le rank d'un hit, c'est à dire la position de ce hit (1-based)
-     * dans l'ensemble des réponses qui répondent à la requête.
-     *
-     * @param int $id
-     *
-     * @eturn int|null
-     */
-    public function rank($id) {
-        if ($this->results) {
-            return $this->results->position($id) + 1 + ($this->request->page() - 1) * $this->request->size();
-        }
-
-        // Le hit demandé ne fait pas partie des réponses
-        return 0; // // @todo null ? zéro ? exception ?
     }
 
     /**

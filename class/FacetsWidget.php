@@ -62,31 +62,33 @@ class FacetsWidget extends WP_Widget {
      * @see http://codex.wordpress.org/Function_Reference/register_sidebar
      */
     public function widget($context, $settings) {
-        /* @var $plugin Search */
+        // Récupère la SearchRequest en cours
         /* @var $request SearchRequest */
-        /* @var $results Results */
-
-        $plugin = Docalist::get('docalist-search');
-        $request = $plugin->request();
+        $request = apply_filters('docalist_search_get_request', null);
         if (! $request) {
             echo "<p>Aucune facette n'est disponible (no request)</p>";
             return;
         }
-        $results = $request->results();
 
-        // Liste des facettes qui existent (qui sont définies)
-        $definedFacets = $plugin->facets();
+        $results = apply_filters('docalist_search_get_results', null);
+        if (! $results) {
+            echo "<p>Aucune facette n'est disponible (no results)</p>";
+            return;
+        }
+
+        // Récupère la liste des facettes qui existent (qui sont définies)
+        $definedFacets = apply_filters('docalist_search_get_facets', array());
 
         // Liste des facettes déjà calculées (qui figurent dans results)
         $availableFacets = $results->facets();
 
-        // Liste des facettes qui nous manque (pas encore calculées)
+        // Liste des facettes qui nous manquent (pas encore calculées)
         $missing = array();
 
         // Détermine la liste des facettes à afficher
         $facets = array();
 
-        // Phase 1 - Détermine les facettes à afficher et stocke celle qui existent déjà
+        // Phase 1 - Détermine les facettes à afficher et stocke celles qui existent déjà
         foreach($settings['facets'] as $setting) {
             $name = $setting['name'];
 
@@ -209,7 +211,8 @@ class FacetsWidget extends WP_Widget {
                 }
 
                 // Génère l'entrée
-                printf($format, htmlspecialchars($url), htmlspecialchars($term->term), $count);
+                $label = apply_filters('docalist_search_get_facet_label', $term->term, $name);
+                printf($format, htmlspecialchars($url), htmlspecialchars($label), $count);
             }
 
             // Fin de la liste des termes
@@ -274,7 +277,7 @@ class FacetsWidget extends WP_Widget {
         ->description(__('Choisissez les facettes à afficher.', 'docalist-search'));
         */
 
-        $facets = Docalist::get('docalist-search')->facets();
+        $facets = apply_filters('docalist_search_get_facets', array());
         foreach($facets as $name => & $facet) {
             $facet = isset($facet['label']) ? $facet['label'] : $name;
         }

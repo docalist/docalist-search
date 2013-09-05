@@ -25,8 +25,11 @@ abstract class AbstractSettingsEntity extends AbstractEntity implements Registra
     protected static $repository;
 
     public function __construct($primaryKey) {
-        // Stocke l'id du settings
+        // Stocke la clé primaire du settings
         $this->primarykey = $primaryKey;
+
+        //
+        $this->id = 'settings';
 
         // Initialise le dépôt si nécessaire
         if (is_null(self::$repository)) {
@@ -46,6 +49,5 @@ abstract class AbstractSettingsEntity extends AbstractEntity implements Registra
 
     public function reset() {
         self::$repository->delete($this);
-        parent::exchangeArray(array());
     }
 }

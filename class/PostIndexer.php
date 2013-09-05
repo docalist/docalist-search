@@ -27,8 +27,8 @@ class PostIndexer {
     public function __construct() {
         // Cette classe sait indexer les articles et les pages
         add_filter('docalist_search_get_types', function ($types) {
-            $types['post'] = __('Articles WordPress', 'docalist-search');
-            $types['page'] = __('Pages WordPress', 'docalist-search');
+            $types['post'] = get_post_type_object('post')->labels->name;
+            $types['page'] = get_post_type_object('page')->labels->name;
 
             return $types;
         });

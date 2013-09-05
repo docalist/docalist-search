@@ -121,22 +121,6 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
      * @return array
      */
     public function toArray() {
-        $data = $this->getArrayCopy(); // $this ?
-        foreach ($data as $name => $value) {
-            if (is_scalar($value)) {
-                $field = $this->schema($name);
-                if ($value === $field->defaultValue()) {
-                    unset($data[$name]);
-                }
-            } else {
-                if (count($value) === 0) {
-                    unset($data[$name]);
-                } else {
-                    $data[$name] = $value->toArray();
-                }
-            }
-        }
-
-        return $data;
+        return json_decode(json_encode($this), true);
     }
 }

@@ -172,4 +172,22 @@ class Results {
         // Le hit demandé ne fait pas partie des réponses
         return 'not a hit';
     }
+
+    /**
+     * Retourne la position d'un hit au sein de la page de résultat (0-based).
+     *
+     * @param int $id
+     *
+     * @eturn int|null
+     */
+    public function position($id) {
+        foreach ($this->response->hits->hits as $i => $hit) {
+            if ($hit->_id == $id) {
+                return $i;
+            }
+        }
+
+        // Le hit demandé ne fait pas partie des réponses
+        return 0; // // @todo null ? zéro ? exception ?
+    }
 }

@@ -112,7 +112,7 @@ class SearchRequest {
             }
 
             // Arguments dont le nom diffère
-            isset($args['s']) && $this->search($args['s']);
+            isset($args['s']) && $this->search($args['s'] ?: '*');
 
             // Arguments utilisables sans valeur
             isset($args['explain-hits']) && $this->explainHits(true);

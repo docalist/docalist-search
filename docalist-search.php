@@ -31,5 +31,5 @@ if (class_exists('Docalist')) {
     Autoloader::register(__NAMESPACE__, __DIR__ . '/class');
 
     // Charge le plugin
-    Docalist::load('Docalist\Search\Search', __FILE__);
+    Docalist::load('Docalist\Search\Plugin', __FILE__);
 }

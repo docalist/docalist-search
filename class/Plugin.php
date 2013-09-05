@@ -22,7 +22,7 @@ use WP_Query;
 /**
  * Plugin Docalist Search.
  */
-class Search extends AbstractPlugin {
+class Plugin extends AbstractPlugin {
 
     /**
      * Les paramètres du moteur de recherche.

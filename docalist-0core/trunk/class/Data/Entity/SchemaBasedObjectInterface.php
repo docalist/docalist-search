@@ -111,4 +111,11 @@ interface SchemaBasedObjectInterface extends Countable, IteratorAggregate, Seria
      * @return array
      */
     public function toArray();
+
+    /**
+     * Retourne une chaine représentant l'objet.
+     *
+     * @return string
+     */
+    public function __toString();
 }

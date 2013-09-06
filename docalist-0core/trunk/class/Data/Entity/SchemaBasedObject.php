@@ -123,4 +123,16 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
     public function toArray() {
         return json_decode(json_encode($this), true);
     }
+
+    public function __toString() {
+        $result = '';
+        foreach($this->fields as $name => $value) {
+            $result .= $this->schema($name)->label();
+            $result .= ' : ';
+            $result .= $value;
+            $result .= ' ';
+        }
+        return $result;
+    }
+
 }

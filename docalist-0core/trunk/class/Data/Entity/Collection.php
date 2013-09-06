@@ -24,7 +24,7 @@ use ArrayIterator;
  */
 class Collection implements SchemaBasedObjectInterface, ArrayAccess {
     /**
-     * Le schéma des éléements de la collection.
+     * Le schéma des éléments de la collection.
      *
      * @var FieldInterface
      */
@@ -105,4 +105,15 @@ class Collection implements SchemaBasedObjectInterface, ArrayAccess {
             return is_scalar($item) ? $item : $item->toArray();
         }, $this->items);
     }
+
+    public function __toString() {
+        // Collection d'objets
+        if ($this->schema->type() ==='object') {
+            return implode('<br />', $this->items);
+        }
+
+        // Collection de scalaires
+        return implode(' ¤ ', $this->items);
+    }
+
 }

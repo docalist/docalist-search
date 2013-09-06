@@ -95,7 +95,7 @@ abstract class AbstractAdminPage extends AbstractActions {
             // do_action("admin_enqueue_scripts-$hook")
             // Probablement en namespaçant pour éviter tout conflit :
             // do_action("docalist-core-admin_enqueue_scripts-$hook")
-            // L'iéde pourrait être étendue s'il y a d'autres hooks qui nous
+            // L'idée pourrait être étendue s'il y a d'autres hooks qui nous
             // manquent : le plugin Core se chargerait de tous les créer.
             // A creuser.
         });
@@ -173,7 +173,12 @@ abstract class AbstractAdminPage extends AbstractActions {
             $title .= ' : ' . $this->title($action);
         }
         printf('<h2>%s</h2>', $title);
-        printf('<p class="description">%s</p>', $this->description());
+        $description = $this->description();
+        if ($description) {
+            $description = preg_replace('~\n\s*\n~', '<br /><br />', $description);
+            $description = preg_replace('~\s{2,}~', ' ', $description);
+            printf('<p class="description">%s</p>', $description);
+        }
 
         parent::run();
 

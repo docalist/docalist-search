@@ -440,9 +440,8 @@ abstract class AbstractActions implements RegistrableInterface {
         if (!preg_match('~[\r\n]{2}(.*)~s', $description, $match)) {
             return '';
         }
-        $description = preg_replace('~[\r\n]{2}~', '<br /><br />', $match[1]);
 
-        return $description;
+        return $match[1];
     }
 
     /**
@@ -505,7 +504,9 @@ abstract class AbstractActions implements RegistrableInterface {
             echo '<li>';
             printf('<h3><a href="%s">%s</a></h3>', $url, rtrim($title, '. '));
             if ($description) {
-                echo '<p class="description">', $description, '</p></dd>';
+                $description = preg_replace('~\n\s*\n~', '<br /><br />', $description);
+                $description = preg_replace('~\s{2,}~', ' ', $description);
+                echo '<p class="description">', $description, '</p>';
             }
             echo '</li>';
         }

@@ -26,6 +26,8 @@ use Docalist\Data\Entity\AbstractEntity;
 class ServerSettings extends AbstractEntity {
     // @formatter:off
     protected function loadSchema() {
+        global $wpdb;
+
         return array(
             'url' => array(
                 'label' =>__('Url de ElasticSearch', 'docalist-search'),
@@ -35,7 +37,9 @@ class ServerSettings extends AbstractEntity {
             'index' => array(
                 'label' =>__("Nom de l'index à utiliser", 'docalist-search'),
                 'description' => __("Nom de l'index ElasticSearch qui contiendra tous les contenus indexés. <b>Attention</b> : vérifiez que cet index n'existe pas déjà.", 'docalist-search'),
-                'default' => 'wordpress',
+                // Par défaut : préfixe des tables + nom de la base (ex wp_prisme)
+                // Evite que deux sites sur le même serveur partagent par erreur le même index
+                'default' => $wpdb->get_blog_prefix() . DB_NAME,
             ),
             'timeout' => array(
                 'label' =>__('Timeout des requêtes, en secondes', 'docalist-search'),

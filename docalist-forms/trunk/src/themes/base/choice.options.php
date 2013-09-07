@@ -5,7 +5,12 @@
  */
 
 // Détermine les valeurs actuellement sélectionnées
-$selected = array_flip((array)$this->data);
+if ($this->data instanceof Docalist\Data\Entity\SchemaBasedObjectInterface) {
+    // par exemple si on a passé un objet "Settings" ou Property comme valeur actuelle du champ
+    $selected = array_flip($this->data->toArray());
+} else {
+    $selected = array_flip((array)$this->data);
+}
 
 foreach ($this->options as $value => $label) {
     // Groupe d'options

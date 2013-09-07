@@ -26,9 +26,10 @@ class Submit extends Button {
     /**
      * @inheritdoc
      */
-    protected $attributes = array();
+    protected $attributes = array('type' => 'submit');
 
     // Pour un élément Button, la valeur par défaut de type est "submit", donc
-    // inutile dans ce cas de générer type="submit".
+    // en théorie, inutile dans ce cas de générer type="submit".
+    // Sauf que sous IE, ça marche pas, donc on le génère.
 
 }

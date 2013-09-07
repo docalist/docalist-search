@@ -23,7 +23,7 @@ class SearchRequest {
     /**
      * Le serveur Elastic Search qui va exécuter la requête.
      *
-     * @var ElasticSearch
+     * @var ElasticSearchClient
      */
     protected $server;
 
@@ -501,6 +501,9 @@ class SearchRequest {
      */
     public function execute() {
         $response = $this->server->get('_search', $this->elasticSearchRequest());
+        if (isset($response->error)) {
+            throw new Exception($response->error);
+        }
 
         return new Results($response);
     }

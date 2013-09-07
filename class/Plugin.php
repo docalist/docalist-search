@@ -176,23 +176,24 @@ class Plugin extends AbstractPlugin {
             $separator = ', ';
         }
 
-        // Wrapper par défaut
-        if (is_null($wrapper)) {
-            $label = __('Filtres en cours : %s', 'docalist-biblio');
-            $wrapper = sprintf('<p class="current-search-filters">%s.</p>', $label);
-        }
-
+        // Génère la liste des filtres
         $currentUrl = QueryString::fromCurrent();
         $result = '';
-        $first = true;
+        $nb = 0;
         foreach($filters as $filter => $values) {
             $class = 'filter-' . strtr($filter, '.', '-');
             foreach ($values as $value) {
                 $url = $currentUrl->copy()->clear("filter.$filter", $value)->encode();
-                if ($first) $first = false; else $result .= $separator;
+                $nb++ && $result .= $separator;
                 $value = apply_filters('docalist_search_get_facet_label', $value, $filter);
                 $result .= sprintf($format, $filter, $value, $url, $class);
             }
+        }
+
+        // Wrapper par défaut
+        if (is_null($wrapper)) {
+            $label = _n('Filtre : %s', 'Filtres : %s', $nb, 'docalist-biblio');
+            $wrapper = sprintf('<p class="current-search-filters">%s.</p>', $label);
         }
 
         return sprintf($wrapper, $result);

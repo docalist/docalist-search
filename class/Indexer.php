@@ -359,6 +359,9 @@ class Indexer /* implements RegistrableInterface */ {
      * réindexation est terminée.
      */
     public function reindex($types = null) {
+        // Créé l'index, les mappings si pas fait, met à jour sinon
+        $this->setup();
+
         // Vérifie les types indiqués
         if (is_null($types)) {
             $types = array_keys($this->types); // tout

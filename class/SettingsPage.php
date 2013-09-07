@@ -49,7 +49,7 @@ class SettingsPage extends AbstractAdminPage {
         $this->indexer = $indexer;
         parent::register(); // @todo : à enlever après quand AbstractAdminPage ne sera plus un Registrable
 
-        $this->indexer->ping();
+        // $this->indexer->ping();
     }
 
     /**

@@ -190,6 +190,7 @@ class Plugin extends AbstractPlugin {
             foreach ($values as $value) {
                 $url = $currentUrl->copy()->clear("filter.$filter", $value)->encode();
                 if ($first) $first = false; else $result .= $separator;
+                $value = apply_filters('docalist_search_get_facet_label', $value, $filter);
                 $result .= sprintf($format, $filter, $value, $url, $class);
             }
         }

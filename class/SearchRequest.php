@@ -219,6 +219,10 @@ class SearchRequest {
             return isset($this->filters[$name]) ? $this->filters[$name] : null;
         }
 
+        if ($value === '') {
+            return $this;
+        }
+
         if (is_array($value)) {
             $this->filters[$name] = $value;
         } else {
@@ -409,10 +413,11 @@ class SearchRequest {
         // http://www.elasticsearch.org/guide/reference/query-dsl/terms-filter/
         $filters = array();
         foreach ($this->filters as $name => $filter) {
+            $op = $name==='_type' ? 'or' : 'and';  // TODO: options
             $filters[] = array(
                 'terms' => array(
                     $name => $filter,
-                    'execution' => 'and', // TODO: options
+                    'execution' => $op,
                 ),
             );
         }

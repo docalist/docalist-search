@@ -9,7 +9,6 @@
  *
  * Plugin Name: Docalist Search
  * Plugin URI:  http://docalist.org
- * Plugin Type: Piklist
  * Description: Docalist Search Plugin.
  * Version:     0.1
  * Author:      Daniel Ménard

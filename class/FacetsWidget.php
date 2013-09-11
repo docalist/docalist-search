@@ -212,6 +212,7 @@ class FacetsWidget extends WP_Widget {
 
                 // Génère l'entrée
                 $label = apply_filters('docalist_search_get_facet_label', $term->term, $name);
+                $label = trim(str_replace('¤', ' ', $label)); // @todo : pas là
                 printf($format, htmlspecialchars($url), htmlspecialchars($label), $count);
             }
 

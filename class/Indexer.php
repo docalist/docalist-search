@@ -491,7 +491,7 @@ class Indexer /* implements RegistrableInterface */ {
      * contient aucun document.
      *
      * Remarque : le temps retourné est en millisecondes (contrairement à la
-     * fonction php microtime qui retourne des microsecondes).
+     * fonction php microtime qui retourne des secondes).
      */
     protected function currentServerTime() {
         $query = '{"size": 1,"script_fields":{"time":{"script":"time()"}}}';
@@ -548,11 +548,16 @@ class Indexer /* implements RegistrableInterface */ {
                 if (isset($item->index)) {
                     $item = $item->index;
 
-                    $this->updateStat($item->_type, 'indexed', 1);
-                    if ($item->_version === 1) {
-                        $this->updateStat($item->_type, 'added', 1);
+                    if (! isset($item->_version)) {
+                        echo "ERREUR LORS DE L'INDEXATION D'UN ITEM : ";
+                        var_dump($item);
                     } else {
-                        $this->updateStat($item->_type, 'updated', 1);
+                        $this->updateStat($item->_type, 'indexed', 1);
+                        if ($item->_version === 1) {
+                            $this->updateStat($item->_type, 'added', 1);
+                        } else {
+                            $this->updateStat($item->_type, 'updated', 1);
+                        }
                     }
                 }
 
@@ -748,39 +753,6 @@ class Indexer /* implements RegistrableInterface */ {
      * @return array
      */
     protected function defaultIndexSettings() {
-        // @todo Voir si on garde des analyseurs "par défaut"
-        return array(
-            '_meta' => array(
-                'docalist-search' =>  '0.1',
-            ),
-            'settings' => array(
-                'analysis' => array(
-                    'analyzer' => array( //
-                        // Analyseur pour du texte standard (title, othertitle, collection...)
-                        'stdtext' => array(
-                            'type' => 'custom',
-                            'char_filter' => array(
-                            ),
-                            'tokenizer' => 'standard',
-                            'filter' => array(
-                                'asciifolding', 'elision',
-                            ),
-                        ),
-
-                        // Analyseur pour du texte pouvant contenir du html (notes, résumé)
-                        'stdhtml' => array(
-                            'type' => 'custom',
-                            'char_filter' => array(
-                                'html_strip',
-                            ),
-                            'tokenizer' => 'standard',
-                            'filter' => array(
-                                'asciifolding',
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        );
+        return require_once __DIR__ . '/../mappings/default-index-settings.php';
     }
 }

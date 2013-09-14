@@ -28,21 +28,50 @@ class Results {
     protected $response;
 
     /**
+     * Durée d'exécution de la requête qui a généré ces résultats.
+     *
+     * @var int durée en milli-secondes.
+     */
+    protected $time;
+
+    /**
      * Initialise l'objet à partir de la réponse retournée par Elastic Search.
      *
      * @param StdClass $response
      */
-    public function __construct(StdClass $response) {
+    public function __construct(StdClass $response, $time = null) {
         $this->response = $response;
+        $this->time = $time;
     }
 
     /**
-     * Retourne le temps mis pour exécuter la requête.
+     * Retourne le temps mis par ElasticSearch pour exécuter la requête.
+     *
+     * Ce temps correspond au temps d'exécution de la requête sur les différents
+     * shards. Il ne comprend les temps passé au cours des étape suivantes :
+     *
+     * - sérialisation de la requête (nous)
+     * - envoi de la requête à Elastic Search (réseau)
+     * - désérialisation de la requête (par ES)
+     *
+     * - sérialisation de la réponse (ES)
+     * - transit de la réponse (réseau)
+     * - désérialisation de la réponse
      *
      * @return int durée en millisecondes
      */
     public function took() {
+        // @see http://elasticsearch-users.115913.n3.nabble.com/query-timing-took-value-and-what-I-m-measuring-tp4026185p4026226.html
         return $this->response->took;
+    }
+
+    /**
+     * Temps total d'exécution de la requête qui a généré ces résultats.
+     *
+     * @return int durée en milli-secondes
+     */
+    public function time() {
+        return $this->time;
     }
 
     /**

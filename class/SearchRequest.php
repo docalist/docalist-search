@@ -42,11 +42,11 @@ class SearchRequest {
     protected $size = 10;
 
     /**
-     * Terme, expression ou équation de recherche
+     * Liste des clauses de recherche.
      *
-     * @var string
+     * @var array un tableau de la forme "nom de champ" => array(equations)
      */
-    protected $search;
+    protected $search = array();
 
     /**
      * Liste des filtres à appliquer à la requête
@@ -108,14 +108,42 @@ class SearchRequest {
         if ($args) {
             // Arguments dont le nom correspond à un setter de notre classe
             foreach (array('page', 'size', 'sort') as $arg) {
-                isset($args[$arg]) && $this->$arg($args[$arg]);
+                if (isset($args[$arg])) {
+                    $this->$arg($args[$arg]);
+                    unset($args[$arg]);
+                }
             }
 
             // Arguments dont le nom diffère
-            isset($args['s']) && $this->search($args['s'] ?: '*');
+            if (isset($args['s'])) {
+                $s = trim($args['s']);
+                if (!empty($s) && $s !== '*') {
+                    // @todo : filtre docalist_search_get_default_fields
+                    $all='dclrefprisme.type,dclrefprisme.genre,dclrefprisme.media,dclrefprisme.author,dclrefprisme.organisation,dclrefprisme.title,dclrefprisme.othertitle,dclrefprisme.translation,dclrefprisme.journal,dclrefprisme.issn,dclrefprisme.isbn,dclrefprisme.editor,dclrefprisme.collection,dclrefprisme.event,dclrefprisme.degree,dclrefprisme.abstract,dclrefprisme.topic,dclrefprisme.doi';
+                    $all .=',post.title,post.content,page.title,page.content';
+
+                    $this->search($all, $s);
+                }
+                unset($args['s']);
+            }
 
             // Arguments utilisables sans valeur
-            isset($args['explain-hits']) && $this->explainHits(true);
+            if (isset($args['explain-hits'])) {
+                $this->explainHits(true);
+                unset($args['explain-hits']);
+            }
+
+            if (isset($args['explain-query'])) {
+                unset($args['explain-query']);
+            }
+
+            // Filtres connus
+            foreach (array('_type') as $arg) {
+                if (isset($args[$arg])) {
+                    $this->filter($arg, $args[$arg]);
+                    unset($args[$arg]);
+                }
+            }
 
             // Autres arguments : filtres et facettes
             foreach($args as $key => $value) {
@@ -132,6 +160,11 @@ class SearchRequest {
                 // Facette indiquée comme valeur dans le tableau (size par défaut)
                 elseif (is_string($value) && strncmp($value, 'facet.', 6) === 0) {
                     $this->facet(substr($value, 6), 10); // TODO: size par défaut de la facette
+                }
+
+                // Nom de champ quelconque
+                else {
+                    $this->search($key, $value);
                 }
             }
         }
@@ -174,15 +207,23 @@ class SearchRequest {
     }
 
     /**
-     * Retourne ou modifie le terme recherché (ou l'expression, ou l'équation).
+     * Ajoute une clause de recherche ou retourne toutes les clauses.
      *
-     * @param int $page
-     * @return int|self
+     *
+     *
+     * @param string|string[] $search Une ou plusieurs équations de recherche.
+     * @param string $field Le nom du champ de recherche.
+     *
+     * @return array|self
      */
-    public function search($search = null) {
+    public function search($field = null, $search = null) {
         if (is_null($search)) return $this->search;
 
-        $this->search = $search;
+        ! isset($this->search[$field]) && $this->search[$field] = [];
+
+        foreach((array) $search as $search) {
+            $this->search[$field][] = $search;
+        }
 
         return $this;
     }
@@ -345,10 +386,9 @@ class SearchRequest {
      */
     protected function elasticSearchRequest() {
         // Paramètres de base de la requête
-        $request = array(
-            'query' => $this->elasticSearchQuery(),
-            'fields' => array(), // on ne veut que ID
-        );
+        $query = $this->elasticSearchQuery();
+        $request = $query ? array('query' => $query) : array(); // query = null -> match_all
+        $request['fields'] = array(); // on ne veut que ID
 
         // Nombre de réponses par page
         if( $this->size !== 10) {
@@ -382,22 +422,76 @@ class SearchRequest {
      * @return array
      */
     protected function elasticSearchQuery() {
-        // http://www.elasticsearch.org/guide/reference/api/search/query/
-        $query = array(
-            'query_string' => array(
-                'query' => $this->search,
-            )
-        );
+        // @see http://www.elasticsearch.org/guide/reference/api/search/query/
+        $query = array();
+        foreach($this->search as $field => $search) {
+            $clauses = []; // les clauses de recherche pour ce champ
+
+            // $field peut être :
+            // - une chaine vide = recherche "tous champs" (_all)
+            // - un nom de champ unique (e.g. topic=social)
+            // - plusieurs noms de champs séparés par une virgule (title,translation=social)
+            // - un ensemble de champs (topic.*=social)
+            if ($field) {
+                if (strpos($field, ',') === false) {
+                    $field = array('default_field' => $field);
+                } else {
+                    $field = array('fields' => explode(',', $field));
+                }
+            } else {
+                $field = array();
+            }
+
+            foreach((array) $search as $search) {
+                $clause = $field;
+                $clause['query'] = $search;
+                $clause['minimum_should_match']='100%';
+
+                $clause['analyze_wildcard'] = true; // par défaut les troncatures ne sont pas analysées. on force ici
+                // $clause['auto_generate_phrase_queries'] = true;
+                $clause = array('query_string' => $clause);
+                $clauses[] = $clause;
+            }
+            if (count($clauses) > 1) {
+                $clauses = array('bool' => array('should' => $clauses));
+            } else {
+                $clauses = $clauses[0];
+            }
+
+            $query[] = $clauses;
+        }
+
+        switch (count($query)) {
+            case 0:
+                $query = null;
+                break;
+
+            case 1:
+                $query = $query[0];
+                break;
+
+            default:
+                $query = array('bool' => array('must' => $query));
+                break;
+        }
 
         // Filtres éventuels. La requête devient une "filtered-query"
         // http://www.elasticsearch.org/guide/reference/query-dsl/filtered-query/
         if ($filter = $this->elasticSearchFilter()) {
-            $query = array(
-                'filtered' => array(
-                    'query' => $query,
-                    'filter' => $filter
-                )
-            );
+            if ($query) {
+                $query = array(
+                    'filtered' => array(
+                        'query' => $query,
+                        'filter' => $filter
+                    )
+                );
+            } else {
+                $query = array(
+                    'filtered' => array(
+                        'filter' => $filter
+                    )
+                );
+            }
         }
 
         return $query;
@@ -504,13 +598,14 @@ class SearchRequest {
      * @return Results les résultats de la recherche (peuvent également être
      * obtenus ultérieurement en appellant results()).
      */
-    public function execute() {
-        $response = $this->server->get('_search', $this->elasticSearchRequest());
+    public function execute($searchType = null) {
+        $searchType && $searchType = "?search_type=$searchType";
+        $response = $this->server->get("_search$searchType", $this->elasticSearchRequest());
         if (isset($response->error)) {
             throw new Exception($response->error);
         }
 
-        return new Results($response);
+        return new Results($response, $this->server->time());
     }
 
     /**

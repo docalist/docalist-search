@@ -134,8 +134,8 @@ class FacetsWidget extends WP_Widget {
             }
 
             // Ré-exécute la recherche
-            $results = $request->execute();
-
+            $results = $request->execute('count');
+            
             // Récupère les nouvelles facettes
             foreach($missing as $name => $setting) {
                 if (! $results->hasFacet($name)) {

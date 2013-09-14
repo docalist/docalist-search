@@ -113,7 +113,7 @@ class Plugin extends AbstractPlugin {
             static $types;
 
             if ($facet !== '_type') {
-                return $term;
+                return  trim(str_replace('¤', ' ', $term));
             }
 
             if (is_null($types)) {
@@ -183,7 +183,7 @@ class Plugin extends AbstractPlugin {
         foreach($filters as $filter => $values) {
             $class = 'filter-' . strtr($filter, '.', '-');
             foreach ($values as $value) {
-                $url = $currentUrl->copy()->clear("filter.$filter", $value)->encode();
+                $url = $currentUrl->copy()->clear($filter, $value)->encode();
                 $nb++ && $result .= $separator;
                 $value = apply_filters('docalist_search_get_facet_label', $value, $filter);
                 $result .= sprintf($format, $filter, $value, $url, $class);

@@ -193,26 +193,24 @@ class FacetsWidget extends WP_Widget {
             printf($html['start-term-list'], 'terms-' . $class);
 
             $field = $definedFacets[$name]['facet']['field'];
-            $filter = "filter.$field";
             foreach ($facet->terms as $term) {
                 // Nombre de réponses
                 $count = sprintf($html['count'], $term->count);
 
                 // Terme actif
                 if ($request->hasFilter($field, $term->term)) {
-                    $url = $currentUrl->copy()->clear($filter, $term->term)->encode();
+                    $url = $currentUrl->copy()->clear($field, $term->term)->encode();
                     $format = $html['term-active'];
                 }
 
                 // Terme normal (inactif)
                 else {
-                    $url = $currentUrl->copy()->add($filter, $term->term)->encode();
+                    $url = $currentUrl->copy()->add($field, $term->term)->encode();
                     $format = $html['term'];
                 }
 
                 // Génère l'entrée
                 $label = apply_filters('docalist_search_get_facet_label', $term->term, $name);
-                $label = trim(str_replace('¤', ' ', $label)); // @todo : pas là
                 printf($format, htmlspecialchars($url), htmlspecialchars($label), $count);
             }
 

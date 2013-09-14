@@ -148,8 +148,8 @@ class SearchRequest {
             // Autres arguments : filtres et facettes
             foreach($args as $key => $value) {
                 // Filtre de la forme filter.field=value
-                if (strncmp($key, 'filter.', 7) === 0) {
-                    $this->filter(substr($key, 7), $value);
+                if (substr($key, -7) === '.filter') {
+                    $this->filter($key, $value);
                 }
 
                 // Facette de la forme facet.name=size
@@ -386,9 +386,10 @@ class SearchRequest {
      */
     protected function elasticSearchRequest() {
         // Paramètres de base de la requête
-        $query = $this->elasticSearchQuery();
-        $request = $query ? array('query' => $query) : array(); // query = null -> match_all
-        $request['fields'] = array(); // on ne veut que ID
+        $request = array(
+            'query' => $this->elasticSearchQuery(),
+            'fields' => array() // on ne veut que ID
+        );
 
         // Nombre de réponses par page
         if( $this->size !== 10) {
@@ -492,6 +493,10 @@ class SearchRequest {
                     )
                 );
             }
+        }
+
+        if(is_null($query)) {
+            $query=array('match_all' => array());
         }
 
         return $query;

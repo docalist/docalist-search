@@ -166,7 +166,7 @@ class ElasticSearchClient /* implements RegistrableInterface */ {
         $data = @file_get_contents($url, false, $this->context);
         // On n'a plus besoin du body, libère la mémoire (exemple bulk)
         stream_context_set_option($this->context, 'http', 'content', null);
-        $this->time = microtime(true) - $start;
+        $this->time = (int) ((microtime(true) - $start) * 1000);
 
         if ($data === false) {
             throw new Exception('ElasticSearch: the server does not respond.');

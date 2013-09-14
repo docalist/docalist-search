@@ -155,10 +155,9 @@ class Searcher {
         if (! $query->is_main_query()) return $query;
 
         // Si ce n'est pas une recherche, on ne fait rien
-        if (! array_key_exists('s', $_GET)) return $query;
-
-        // Indique à WordPress que c'est une recherche (même si s est vide)
-        $query->is_search = true;
+        if (! $this->isSearchQuery($query)) {
+            return $query;
+        }
 
         // Fournit à WordPress la requête SQL à exécuter (les ID retournés par ES)
         add_filter('posts_request', array($this, 'onPostsRequest'), 10, 2);
@@ -167,6 +166,34 @@ class Searcher {
         add_filter('posts_results', array($this, 'onPostsResults'), 10, 2);
 
         return $query;
+    }
+
+    /**
+     * Détermine si la requête WordPress en cours est une recherche.
+     *
+     * On considère que la requête est une recherche si on a "s", même vide,
+     * dans les paramètres transmis.
+     *
+     * Le paramètre "s" peut être transmis de plusieurs façons :
+     * - soit directement en query string (on l'a dans $_GET)
+     * - soit dans les query var de WordPress, initialisé par exemple à partir
+     *   d'une "rewrite rule" personnalisée (dans ce cas, il figure dans
+     *   $wp_query->query_vars, mais pas dans la query string).
+     */
+    protected function isSearchQuery(WP_Query $query) {
+        if (array_key_exists('s', $_GET)) {
+            return $query->is_search = true;
+            // pour wordpress, is_search est à true seulement si "s"
+            // n'est pas vide.
+        }
+
+        // on a s en query var (mais pas en query string)
+        if (! empty($query->query_vars['s'])) {
+            $_GET['s'] = $_REQUEST['s'] = $query->query_vars['s'];
+            return $query->is_search = true;
+        }
+
+        return $query->is_search;
     }
 
     /**
@@ -210,6 +237,11 @@ class Searcher {
 
         // Construit la requête qu'on va envoyer à ElasticSearch
         $args = QueryString::fromCurrent();
+        $args->set('s', $query->query_vars['s']); // cas où s est en qv mais pas en query string (e.g. init par une rewrire rule)
+        if (! empty($query->query_vars['post_type']) && $query->query_vars['post_type'] !== 'any') {
+            $args->add('_type', $query->query_vars['post_type']);
+        }
+
         $this->request = new SearchRequest($this->elasticSearchClient, $args);
 
         // Synchronize size et posts_per_page pour que le pager fonctionne

@@ -118,11 +118,7 @@ class SearchRequest {
             if (isset($args['s'])) {
                 $s = trim($args['s']);
                 if (!empty($s) && $s !== '*') {
-                    // @todo : filtre docalist_search_get_default_fields
-                    $all='dclrefprisme.type,dclrefprisme.genre,dclrefprisme.media,dclrefprisme.author,dclrefprisme.organisation,dclrefprisme.title,dclrefprisme.othertitle,dclrefprisme.translation,dclrefprisme.journal,dclrefprisme.issn,dclrefprisme.isbn,dclrefprisme.editor,dclrefprisme.collection,dclrefprisme.event,dclrefprisme.degree,dclrefprisme.abstract,dclrefprisme.topic,dclrefprisme.doi';
-                    $all .=',post.title,post.content,page.title,page.content';
-
-                    $this->search($all, $s);
+                    $this->search('', $s);
                 }
                 unset($args['s']);
             }
@@ -139,14 +135,21 @@ class SearchRequest {
 
             // Filtres connus
             foreach (array('_type') as $arg) {
-                if (isset($args[$arg])) {
-                    $this->filter($arg, $args[$arg]);
-                    unset($args[$arg]);
+                if (isset($args[$arg]) && !empty($args[$arg])) {
+                    if ($args[$arg] !== 'any') {
+                        $this->filter($arg, $args[$arg]);
+                    }
                 }
+                unset($args[$arg]);
             }
 
             // Autres arguments : filtres et facettes
             foreach($args as $key => $value) {
+                //$value = trim($value);
+                if (empty($value)) {
+                    continue;
+                }
+
                 // Filtre de la forme filter.field=value
                 if (substr($key, -7) === '.filter') {
                     $this->filter($key, $value);
@@ -433,14 +436,16 @@ class SearchRequest {
             // - un nom de champ unique (e.g. topic=social)
             // - plusieurs noms de champs séparés par une virgule (title,translation=social)
             // - un ensemble de champs (topic.*=social)
-            if ($field) {
-                if (strpos($field, ',') === false) {
-                    $field = array('default_field' => $field);
-                } else {
-                    $field = array('fields' => explode(',', $field));
-                }
+            if (empty($field)) {
+                // @todo : filtre docalist_search_get_default_fields
+                $field='dclrefprisme.type,dclrefprisme.genre,dclrefprisme.media,dclrefprisme.author,dclrefprisme.organisation,dclrefprisme.title,dclrefprisme.othertitle,dclrefprisme.translation,dclrefprisme.journal,dclrefprisme.issn,dclrefprisme.isbn,dclrefprisme.editor,dclrefprisme.collection,dclrefprisme.event,dclrefprisme.degree,dclrefprisme.abstract,dclrefprisme.topic,dclrefprisme.doi';
+                $field .=',post.title,post.content,page.title,page.content';
+            }
+
+            if (strpos($field, ',') === false) {
+                $field = array('default_field' => $field);
             } else {
-                $field = array();
+                $field = array('fields' => explode(',', $field));
             }
 
             foreach((array) $search as $search) {
@@ -623,5 +628,44 @@ class SearchRequest {
         $response = $this->server->get('_validate/query?explain', $this->elasticSearchQuery());
 
         return $response->explanations[0];
+    }
+
+    protected function addBrackets(& $term, $c = null) {
+        if (false === strpos($term, ' ')) {
+            return;
+        }
+
+        if (preg_match('~^"[^"]*"$~', $term)) {
+            return;
+        }
+
+        $term = $c ? "($c $term $c)" : '(' . $term . ')';
+    }
+
+    public function asEquation() {
+        if (empty($this->search)) {
+            return '*';
+        }
+
+        $equation = array();
+        foreach($this->search as $field => $search) {
+            $clause = implode(' OR ', (array) $search);
+            if ($field) {
+                $clauses = array();
+                $this->addBrackets($clause);
+                foreach(explode(',', $field) as $field) {
+                    $clauses[] = "$field:$clause";
+                }
+                if (count($clauses) > 1) {
+                    $clause = '(' . implode(' OR ', $clauses) . ')';
+                } else {
+                    $clause = $clauses[0];
+                }
+            }
+            $equation[] = $clause;
+        }
+        $equation = implode(' AND ', $equation);
+
+        return $equation;
     }
 }

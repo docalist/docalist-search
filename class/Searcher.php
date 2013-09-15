@@ -73,6 +73,10 @@ class Searcher {
         add_filter('docalist_search_get_rank', array($this, 'rank'), 10, 1);
 
         add_filter('docalist_search_get_hit_link', array($this, 'hitLink'), 10, 1);
+
+        add_filter('get_search_query', function($s) {
+            return $this->request ? $this->request->asEquation() : $s;
+        } );
     }
 
     /**

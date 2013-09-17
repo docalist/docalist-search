@@ -61,6 +61,39 @@ class Searcher {
         $this->elasticSearchClient = $elasticSearchClient;
         $this->settings = $settings;
 
+        add_filter('query_vars', function($vars) {
+            $vars[] = 'docalist-search';
+            $vars[] = 'q';
+                    
+            return $vars;
+        });
+
+        // Supprime les "search rewrite rules" par défaut de wordpress
+        add_filter('search_rewrite_rules', function(array $rules) {
+
+            return [];
+
+            // remarque : on ne peut pas créer les nouvelles règles içi car les
+            // "search rules" ne sont pas prioritaires (par exemple la rule
+            // "/prisme/search" ne lancera pas une recherche, elle esaaiera
+            // d'afficher la notice qui a le permalien "search" (et donc 404)
+            // Du coup, on supprime les règles ici, et on crée les nouvelles
+            // dans le filtre ci-dessous, en les insérant au tout début des
+            // rewrite rules.
+
+        });
+
+        // Crée nos propres ""search rewrite rules"
+        add_filter( 'rewrite_rules_array', function(array $rules) {
+
+            $new = [
+                'search' => 'index.php?docalist-search=1',
+                'base-prisme/search' => 'index.php?docalist-search=1&post_type=dclrefprisme', // @todo : pas là
+            ];
+
+            return $new + $rules;
+        });
+
         // @todo : revoir quelle est la priorité la plus adaptée pour les filtres
         add_filter('parse_query', array($this, 'onParseQuery'), 10, 1);
 
@@ -139,15 +172,10 @@ class Searcher {
      * Filtre "parse_query" exécuté lorsque WordPress analyse la requête
      * adressée au site.
      *
-     * On remplace la recherche standard de WordPress par notre moteur.
-     *
-     * WordPress considère que la requête est une recherche seulement si "s"
-     * figure en query string ET qu'il est rempli. Dans notre cas, on considère
-     * qu'il s'agit d'une recherche même si s est vide (dans ce cas une
-     * recherche "*" est exécutée).
+     * Remplace la recherche standard de WordPress par notre moteur.
      *
      * Si la requête est une recherche, et qu'il s'agit de la requête
-     * principale, on installe less filtres supplémentaires qui vont permettre
+     * principale, on installe les filtres supplémentaires qui vont permettre
      * d'exécuter la recherche (onPostsRequest, onPostsResults, etc.)
      *
      * @param WP_Query $query La requête analysée par WordPress.
@@ -156,7 +184,9 @@ class Searcher {
      */
     public function onParseQuery(WP_Query & $query) {
         // Si c'est une sous-requête (query_posts, etc.) on ne fait rien
-        if (! $query->is_main_query()) return $query;
+        if (! $query->is_main_query()) {
+            return $query;
+        }
 
         // Si ce n'est pas une recherche, on ne fait rien
         if (! $this->isSearchQuery($query)) {
@@ -175,27 +205,35 @@ class Searcher {
     /**
      * Détermine si la requête WordPress en cours est une recherche.
      *
-     * On considère que la requête est une recherche si on a "s", même vide,
-     * dans les paramètres transmis.
+     * WordPress considère que la requête en cours est une recherche dès lors
+     * qu'on a un paramètre "s" non vide en query string.
      *
-     * Le paramètre "s" peut être transmis de plusieurs façons :
-     * - soit directement en query string (on l'a dans $_GET)
-     * - soit dans les query var de WordPress, initialisé par exemple à partir
-     *   d'une "rewrite rule" personnalisée (dans ce cas, il figure dans
-     *   $wp_query->query_vars, mais pas dans la query string).
+     * C'est génant car, la requête est exécutée avant même qu'on ait décidé
+     * de ce qu'on voulait en faire. Dans notre cas, on peut avoir une
+     * recherche en paramètre et vouloir :
+     *
+     * - afficher un formulaire de recherche avancée qui reprend les paramètres
+     * - expliquer comment a été interprétée la recherche
+     * - faire une export des réponses correspondant à cette recherche
+     * - ajouter dans un panier
+     * - faire un traitement en batch sur l'ensemble des réponses
+     * - etc.
+     *
+     * La seule solution est de désactiver complètement la recherche wordpress
+     * et ne lancer une recherche que si on nous le demande explicitement.
+     *
+     * Pour cela, on introduit une nouvelle query_var : "docalist-search".
+     * Cette query var doit être fournie en query string (peu courant) ou
+     * initialisée via une rewrite rule (cas général).
+     *
+     * C'est ce que fait la rewrite rule que l'on crée (/search) : elle se
+     * contente d'initialiser "docalist_search" à true.
+     *
+     * Au final, on considère que la requête en cours est une recherche si et
+     * seulement si on docalist-search=true dans les query vars de WordPress.
      */
     protected function isSearchQuery(WP_Query $query) {
-        if (array_key_exists('s', $_GET)) {
-            return $query->is_search = true;
-            // pour wordpress, is_search est à true seulement si "s"
-            // n'est pas vide.
-        }
-
-        // on a s en query var (mais pas en query string)
-        if (! empty($query->query_vars['s'])) {
-            $_GET['s'] = $_REQUEST['s'] = $query->query_vars['s'];
-            return $query->is_search = true;
-        }
+        $query->is_search = isset($query->query_vars['docalist-search']);
 
         return $query->is_search;
     }
@@ -241,7 +279,7 @@ class Searcher {
 
         // Construit la requête qu'on va envoyer à ElasticSearch
         $args = QueryString::fromCurrent();
-        $args->set('s', $query->query_vars['s']); // cas où s est en qv mais pas en query string (e.g. init par une rewrire rule)
+        //$args->set('q', $query->query_vars['q']); // cas où q est en qv mais pas en query string (e.g. init par une rewrite rule)
         if (! empty($query->query_vars['post_type']) && $query->query_vars['post_type'] !== 'any') {
             $args->add('_type', $query->query_vars['post_type']);
         }

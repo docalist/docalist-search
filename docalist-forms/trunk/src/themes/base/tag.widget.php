@@ -9,7 +9,7 @@ if ($this->tag) {
     $this->name && $writer->writeAttribute('name', $this->controlName());
     $this->block('attributes', $args);
 
-    $writer->text($this->content);
+    $writer->writeRaw($this->content);
 
     if (empty($this->content) && false !== strpos($selfClosing, $this->name . ',')) {
         $writer->endElement();

@@ -64,7 +64,7 @@ class Searcher {
         add_filter('query_vars', function($vars) {
             $vars[] = 'docalist-search';
             $vars[] = 'q';
-                    
+
             return $vars;
         });
 
@@ -83,13 +83,12 @@ class Searcher {
 
         });
 
-        // Crée nos propres ""search rewrite rules"
+        // Crée nos propres ""search rewrite rules" et permet aux plugins d'en
+        // créer de nouvelles. Les routes créées sont prioritaires sur toutes
+        // les autres (on les insère en tout début du tableau des routes wp)
         add_filter( 'rewrite_rules_array', function(array $rules) {
-
-            $new = [
-                'search' => 'index.php?docalist-search=1',
-                'base-prisme/search' => 'index.php?docalist-search=1&post_type=dclrefprisme', // @todo : pas là
-            ];
+            $new = [ 'search' => 'index.php?docalist-search=1' ];
+            $new = apply_filters('docalist_search_get_rewrite_rules', $new);
 
             return $new + $rules;
         });

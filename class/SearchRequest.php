@@ -115,12 +115,12 @@ class SearchRequest {
             }
 
             // Arguments dont le nom diffère
-            if (isset($args['s'])) {
-                $s = trim($args['s']);
-                if (!empty($s) && $s !== '*') {
-                    $this->search('', $s);
+            if (isset($args['q'])) {
+                $q = trim($args['q']);
+                if (!empty($q) && $q !== '*') {
+                    $this->search('', $q);
                 }
-                unset($args['s']);
+                unset($args['q']);
             }
 
             // Arguments utilisables sans valeur

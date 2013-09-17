@@ -24,6 +24,8 @@ class Checklist extends Choice {
      */
     protected $descriptionAfter = false;
 
+    protected $noBrackets = false;
+
     /**
      * @inheritdoc
      *
@@ -31,7 +33,16 @@ class Checklist extends Choice {
      * elle peut être repeatable). Le nom du contrôle a toujours '[]' à la fin.
      */
     protected function controlName() {
-        return parent::controlName() . '[]';
+        return $this->noBrackets ? parent::controlName() : parent::controlName() . '[]';
+    }
+
+    public function noBrackets($noBrackets = null) {
+        if (is_null($noBrackets)) {
+            return $this->noBrackets;
+        }
+        $this->noBrackets = (bool) $noBrackets;
+
+        return $this;
     }
 
     /**

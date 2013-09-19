@@ -109,6 +109,9 @@ class Searcher {
         add_filter('get_search_query', function($s) {
             return $this->request ? $this->request->asEquation() : $s;
         } );
+
+        add_action('wp_ajax_docalist_search_lookup', array($this, 'ajaxLookup'));
+        add_action('wp_ajax_nopriv_docalist_search_lookup', array($this, 'ajaxLookup'));
     }
 
     /**
@@ -354,5 +357,98 @@ class Searcher {
         $query->max_num_pages = (int) ceil($total / $size);
 
         return $posts;
+    }
+
+    /**
+     * Recherche dans un champ tous les termes qui commencent par un préfixe
+     * donné.
+     *
+     * @param string $q le préfixe recherché.
+     * @param string $field le champ dans lequel s'effectue la recherche.
+     * @param number $size Le nombre de termes à retourner (optionnel, 10 par
+     * défaut).
+     *
+     * @return string|array En cas de succès, retourne un tableau de termes.
+     * Chaque terme est un objet contenant les clés "term" et "count". Par
+     * exemple la recherche "NOT" sur un champ "auteur" pourrait retourner :
+     * [
+     *     {"term": "NOTAT (Nicole)", "count": 1 },
+     *     {"term": "NOTHOMB (AMELIE)", "count": 3},
+     * ]
+     *
+     * Si aucun terme ne commence par le préfixe indiqué, la méthode retourne
+     * un tableau vide.
+     *
+     * En cas d'erreur, la méthode retourne une chaine contenant le message
+     * d'erreur.
+     */
+    public function lookup($q, $field, $size = 10) {
+        // Construit la requête Elastic Search utilisée pour les lookups
+        $query = [
+            'facets' => [
+                'lookup' => [
+                    'terms' => [
+                        'field' => $field,
+                        'order' => 'term',
+                        'regex' => preg_quote($q) . '.*',
+                        'regex_flags' => 'CASE_INSENSITIVE',
+                        'size' => $size,
+                    ]
+                ]
+            ]
+        ];
+
+        $result = $this->elasticSearchClient->post('_search?search_type=count', $query);
+
+        if (isset($result->facets->lookup->terms)) {
+            return $result->facets->lookup->terms;
+        } else {
+            return array(); // erreur
+        }
+    }
+
+    /**
+     * Action ajax permettant de faire des lookups.
+     */
+    public function ajaxLookup() {
+        header('Content-Type: application/json; charset=UTF-8');
+
+        if (! isset($_REQUEST['q'])) {
+            exit($this->json('q required'));
+        }
+        $q = $_REQUEST['q'];
+
+        if (! isset($_REQUEST['field'])) {
+            exit($this->json('field required'));
+        }
+        $field = $_REQUEST['field'];
+
+        if (isset($_REQUEST['size'])) {
+            $size = (int) $_REQUEST['size'];
+        } else {
+            $size = 10;
+        }
+
+        $results = $this->lookup($q, $field, $size);
+
+        exit($this->json($results));
+    }
+
+    /**
+     * Retourne une chaine contenant la version sérialisée en JSON des données
+     * passées en paramètre.
+     *
+     * Si la requête en cours contient l'argument 'pretty', génère du json
+     * lisible.
+     *
+     * @param mixed $data
+     *
+     * @return string
+     */
+    protected function json($data) {
+        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+        isset($_REQUEST['pretty']) && $options |= JSON_PRETTY_PRINT;
+
+        return json_encode($data, $options);
     }
 }

@@ -635,7 +635,13 @@ class SearchRequest {
             return;
         }
 
+        // expression entre guillemets
         if (preg_match('~^"[^"]*"$~', $term)) {
+            return;
+        }
+
+        // range
+        if (preg_match('~^\[.*\]$~', $term)) {
             return;
         }
 

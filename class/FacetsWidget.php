@@ -1,6 +1,7 @@
 <?php
 namespace Docalist\Search;
 use StdClass;
+use DateTime;
 use WP_Widget;
 use Docalist;
 use Docalist\QueryString;
@@ -70,6 +71,7 @@ class FacetsWidget extends WP_Widget {
             return;
         }
 
+        /* @var $results Results */
         $results = apply_filters('docalist_search_get_results', null);
         if (! $results) {
             echo "<p>Aucune facette n'est disponible (no results)</p>";
@@ -104,7 +106,7 @@ class FacetsWidget extends WP_Widget {
                 continue;
             }
 
-            $facets[$name] = $facet = new StdClass;
+            $facet = new StdClass;
 
             // Détermine le libellé de la facette
             if (isset($setting['label'])) {
@@ -117,10 +119,12 @@ class FacetsWidget extends WP_Widget {
 
             // Teste si cette facette a déjà été calculée
             if ($results->hasFacet($name)) {
-                $facet->terms = $results->facet($name)->terms;
+                $facet->results = $results->facet($name);
             } else {
                 $missing[$name] = $setting;
             }
+
+            $facets[$name] = $facet;
         }
 
         // Phase 2 - Calcule et stocke les facettes qui nous manquent
@@ -134,22 +138,21 @@ class FacetsWidget extends WP_Widget {
             }
 
             // Ré-exécute la recherche
-            $results = $request->execute('count');
-            
+            $newResults = $request->execute('count');
+            // @todo : si on avait déjà des facettes, elle sont recalculées comme elles figurent dans request
+
             // Récupère les nouvelles facettes
             foreach($missing as $name => $setting) {
-                if (! $results->hasFacet($name)) {
+                if (! $newResults->hasFacet($name)) {
                     echo "<p>La facette $name n'est toujours pas dispo</p>";
                     unset($facets[$name]);
                     continue;
                 }
-                $facets[$name]->terms = $results->facet($name)->terms;
-
-                // TODO : ajouter les nouvelles facettes calculées aux results d'origine
-                // raison : si un autre widget facets a besoin des mêmes, ce n'est pas la
-                // peine de recalculer. Autrement dit, ne pas perdre le travail qu'on
-                // vient de faire.
+                $facets[$name]->results = $newResults->facet($name);
             }
+
+            // Ajoute les nouvelles facettes calculées aux results d'origine
+            $results->mergeFacets($newResults);
         }
 
         // Phase 3 - Affiche les facettes
@@ -157,12 +160,32 @@ class FacetsWidget extends WP_Widget {
         $currentUrl = QueryString::fromCurrent()->clear('page');
         $first = true;
         foreach ($facets as $name => $facet) {
+            // Détermine le type de facette et initialise les assesseurs
+            switch($facet->results->_type) {
+                case 'terms':
+                    $list = 'terms';
+                    $entry = 'term';
+                    $formatter = array($this, 'termsFormatter');
+                    break;
+
+                case 'date_histogram':
+                    $list = 'entries';
+                    $entry = 'time';
+                    $formatter = array($this, 'dateHistogramFormatter');
+                    break;
+
+                default:
+                    die('Type de facette non géré : ' . $facet->facet->_type);
+            }
+
             // Si la facette est vide, on n'affiche rien. Autrement dit : on
-            // n'affiche que les facettes pertinentes par rapport à la recherche en cours
-            if (empty($facet->terms)) {
+            // n'affiche que les facettes qui sont pertinentes par rapport à
+            // la recherche en cours
+            if (empty($facet->results->$list)) {
                 continue;
             }
 
+            // Code html de début du widget
             if ($first) {
                 $first = false;
 
@@ -193,24 +216,29 @@ class FacetsWidget extends WP_Widget {
             printf($html['start-term-list'], 'terms-' . $class);
 
             $field = $definedFacets[$name]['facet']['field'];
-            foreach ($facet->terms as $term) {
+            foreach ($facet->results->$list as $term) {
                 // Nombre de réponses
                 $count = sprintf($html['count'], $term->count);
 
+                // Formatte l'entrée
+                $value = $term->$entry;
+                $label = $term->$entry;
+                $formatter($label, $value, $definedFacets[$name]);
+                $label = apply_filters('docalist_search_get_facet_label', $label, $name);
+
                 // Terme actif
-                if ($request->hasFilter($field, $term->term)) {
-                    $url = $currentUrl->copy()->clear($field, $term->term)->encode();
+                if ($request->hasFilter($field, $value)) {
+                    $url = $currentUrl->copy()->clear($field, $value)->encode();
                     $format = $html['term-active'];
                 }
 
                 // Terme normal (inactif)
                 else {
-                    $url = $currentUrl->copy()->add($field, $term->term)->encode();
+                    $url = $currentUrl->copy()->add($field, $value)->encode();
                     $format = $html['term'];
                 }
 
                 // Génère l'entrée
-                $label = apply_filters('docalist_search_get_facet_label', $term->term, $name);
                 printf($format, htmlspecialchars($url), htmlspecialchars($label), $count);
             }
 
@@ -229,6 +257,49 @@ class FacetsWidget extends WP_Widget {
             // Fin du widget
             echo $context['after_widget'];
         }
+    }
+
+    /**
+     * Formatte une entrée de facette de type "terms".
+     *
+     * @param string $label
+     * @param string $term
+     * @param object $facet
+     */
+    protected function termsFormatter(& $label, & $term, $facet) {
+
+    }
+
+    /**
+     * Formatte une entrée de facette de type "date histogram".
+     *
+     * @param string $label
+     * @param string $term
+     * @param object $facet
+     */
+    protected function dateHistogramFormatter(& $label, & $term, $facet) {
+        // Pour une facette date-histogram, ES nous fournit un timestamp qui
+        // représente le nombre de MILLI-secondes depuis (ou avant) EPOCH.
+        // Convertit en secondes.
+        $time = $term / 1000;
+
+        // PHP a du mal avec les timestamp négatifs : date() retourne une date
+        // incorrecte, DateTime::setTimestamp() refuse, etc. Le seul moyen que
+        // j'ai trouvé est le suivant :
+        $date = new DateTime("@$time");
+
+        // Remarque : utile pour vérifier les conversions effectuées :
+        // http://www.epochconverter.com/
+
+        // Extrait l'année
+        $year = $date->format('Y');
+
+        // Pour le filtre de la facette, construit un range couvrant toute l'année
+        $next = $year + 1;
+        $term = "[$year TO $next]";
+
+        // Pour le libellé de la facette, on affiche uniquement l'année
+        $label = $year;
     }
 
     /**

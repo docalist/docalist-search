@@ -19,7 +19,7 @@ use StdClass, Exception;
 /**
  * Le résultat d'une requête de recherche adressée à ElasticSearch.
  */
-class Results {
+class SearchResults {
     /**
      * La réponse brute retournée par ElasticSearch.
      *
@@ -172,9 +172,9 @@ class Results {
      * Ajoute dans nos résultats les facettes qui figure dans le résultat passé
      * en paramètre.
      *
-     * @param Results $results
+     * @param SearchResults $results
      */
-    public function mergeFacets(Results $results) {
+    public function mergeFacets(SearchResults $results) {
         $facets = $results->facets();
         if (empty($facets)) {
             return;

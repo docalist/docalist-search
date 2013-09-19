@@ -605,8 +605,8 @@ class SearchRequest {
      * Envoie la requête au serveur ElasticSearch passé en paramètre et stocke
      * la réponse obtenue.
      *
-     * @return Results les résultats de la recherche (peuvent également être
-     * obtenus ultérieurement en appellant results()).
+     * @return SearchResults les résultats de la recherche (peuvent également
+     * être obtenus ultérieurement en appellant results()).
      */
     public function execute($searchType = null) {
         $searchType && $searchType = "?search_type=$searchType";
@@ -615,7 +615,7 @@ class SearchRequest {
             throw new Exception($response->error);
         }
 
-        return new Results($response, $this->server->time());
+        return new SearchResults($response, $this->server->time());
     }
 
     /**

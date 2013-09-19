@@ -47,7 +47,7 @@ class Searcher {
     /**
      * Les résultats de la recherche.
      *
-     * @var Results
+     * @var SearchResults
      */
     protected $results;
 
@@ -99,7 +99,7 @@ class Searcher {
         // Permet aux autres de récupérer l'objet SearchRequest en cours
         add_filter('docalist_search_get_request', array($this, 'request'), 10, 0);
 
-        // Permet aux autres de récupérer l'objet Results en cours
+        // Permet aux autres de récupérer l'objet SearchResults en cours
         add_filter('docalist_search_get_results', array($this, 'results'), 10, 0);
 
         add_filter('docalist_search_get_rank', array($this, 'rank'), 10, 1);
@@ -123,8 +123,8 @@ class Searcher {
     /**
      * Retourne les résultats de la requête en cours.
      *
-     * @return Results|null l'objet Results ou null si on n'a pas de requête en
-     * cours.
+     * @return SearchResults|null l'objet Results ou null si on n'a pas de
+     * requête en cours.
      */
     public function results() {
         return $this->results;

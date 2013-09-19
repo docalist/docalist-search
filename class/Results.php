@@ -169,6 +169,25 @@ class Results {
     }
 
     /**
+     * Ajoute dans nos résultats les facettes qui figure dans le résultat passé
+     * en paramètre.
+     *
+     * @param Results $results
+     */
+    public function mergeFacets(Results $results) {
+        $facets = $results->facets();
+        if (empty($facets)) {
+            return;
+        }
+        if (! isset($this->response->facets)) {
+            $this->response->facets = new StdClass;
+        }
+        foreach($results->facets() as $name => $facet) {
+            $this->response->facets->$name = $facet;
+        }
+    }
+
+    /**
      * Retourne une explication technique indiquant la manière dont le score
      * a été calculé pour la réponse dont l'ID est passé en paramètre.
      *

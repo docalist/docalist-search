@@ -17,7 +17,7 @@
 
 // Liste des objets exposés publiquement
 use Docalist\Search\SearchRequest;
-use Docalist\Search\Results;
+use Docalist\Search\SearchResults;
 
 /**
  * Principe :
@@ -105,8 +105,8 @@ function docalist_search_get_request() {
 /**
  * Retourne les résultats de la requête en cours.
  *
- * @return Results|null l'objet Results ou null si on n'a pas de requête en
- * cours.
+ * @return SearchResults|null l'objet Results ou null si on n'a pas de requête
+ * en cours.
  *
  * @See Searcher::__construct()
  */

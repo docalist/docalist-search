@@ -383,6 +383,10 @@ class Searcher {
      * d'erreur.
      */
     public function lookup($q, $field, $size = 10) {
+        $q = trim($q);
+        $re = preg_quote($q) . '.*';
+        $re = str_replace(' ', '[¤ ]', $re);
+        //echo $re, "\n";
         // Construit la requête Elastic Search utilisée pour les lookups
         $query = [
             'facets' => [
@@ -390,7 +394,7 @@ class Searcher {
                     'terms' => [
                         'field' => $field,
                         'order' => 'term',
-                        'regex' => preg_quote($q) . '.*',
+                        'regex' => $re,
                         'regex_flags' => 'CASE_INSENSITIVE',
                         'size' => $size,
                     ]

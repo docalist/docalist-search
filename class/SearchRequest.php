@@ -442,20 +442,45 @@ class SearchRequest {
                 $field .=',post.title,post.content,page.title,page.content';
             }
 
-            if (strpos($field, ',') === false) {
-                $field = array('default_field' => $field);
-            } else {
-                $field = array('fields' => explode(',', $field));
-            }
-
             foreach((array) $search as $search) {
-                $clause = $field;
-                $clause['query'] = $search;
-                $clause['minimum_should_match']='100%';
 
-                $clause['analyze_wildcard'] = true; // par défaut les troncatures ne sont pas analysées. on force ici
-                // $clause['auto_generate_phrase_queries'] = true;
-                $clause = array('query_string' => $clause);
+                // QueryString Query
+                $clause = [
+                    'query_string' => [
+                        // Equation de recherche
+                        'query' => $this->escapeQuery($search),
+
+                        // Champ(s) par défaut
+                        'fields' => explode(',', $field),
+
+                        // Opérateur
+                        'minimum_should_match' => '100%',
+
+                        // Force les troncatures à passer par l'analyzer du champ
+                        'analyze_wildcard' => true,
+
+                        //'use_dis_max' => false,
+
+                        //'auto_generate_phrase_queries' => true,
+
+                        // Evite certaines erreurs
+                        'lenient' => true,
+                    ]
+                ];
+
+                // Field Query
+/*
+                $clause = [
+                    'field' => [
+                        $field => [
+                            'query' => $search,
+                            'analyze_wildcard' => true,
+                            'minimum_should_match' => '100%',
+                            'lenient' => true,
+                        ]
+                    ]
+                ];
+*/
                 $clauses[] = $clause;
             }
             if (count($clauses) > 1) {
@@ -505,6 +530,12 @@ class SearchRequest {
         }
 
         return $query;
+    }
+
+    protected function escapeQuery($query) {
+        return strtr($query, [
+            '/' => '\/',
+        ]);
     }
 
     /**

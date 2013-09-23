@@ -4,7 +4,7 @@ use StdClass;
 use DateTime;
 use WP_Widget;
 use Docalist;
-use Docalist\QueryString;
+use Docalist\Uri;
 use Docalist\Forms\Fragment;
 use Docalist\Forms\Themes;
 use Docalist\Utils;
@@ -157,7 +157,7 @@ class FacetsWidget extends WP_Widget {
 
         // Phase 3 - Affiche les facettes
         $html = $settings['html'];
-        $currentUrl = QueryString::fromCurrent()->clear('page');
+        $currentUrl = Uri::fromCurrent()->clear('page');
         $first = true;
         foreach ($facets as $name => $facet) {
             // Détermine le type de facette et initialise les assesseurs

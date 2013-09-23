@@ -383,31 +383,22 @@ class Searcher {
      * d'erreur.
      */
     public function lookup($q, $field, $size = 10) {
-        $q = trim($q);
-        $re = preg_quote($q) . '.*';
-        $re = str_replace(' ', '[¤ ]', $re);
-        //echo $re, "\n";
-        // Construit la requête Elastic Search utilisée pour les lookups
         $query = [
-            'facets' => [
-                'lookup' => [
-                    'terms' => [
-                        'field' => $field,
-                        'order' => 'term',
-                        'regex' => $re,
-                        'regex_flags' => 'CASE_INSENSITIVE',
-                        'size' => $size,
-                    ]
+            'lookup' => [
+                'text' => $q,
+                'completion' => [
+                    'field' => $field,
+                    'size' => $size
                 ]
             ]
         ];
 
-        $result = $this->elasticSearchClient->post('_search?search_type=count', $query);
+        $result = $this->elasticSearchClient->post('_suggest', $query);
 
-        if (isset($result->facets->lookup->terms)) {
-            return $result->facets->lookup->terms;
+        if (isset($result->lookup[0]->options)) {
+            return $result->lookup[0]->options;
         } else {
-            return array(); // erreur
+            return array(); // erreur ?
         }
     }
 

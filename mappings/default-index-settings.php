@@ -101,6 +101,18 @@ return [
                 ],
 
                 /*
+                 * Analyseur pour les lookups
+                 *
+                 * - Convertit le texte en minuscules
+                 * - Supprime les accents (folding)
+                 */
+                'suggest' => [
+                    'type' => 'custom',
+                    'tokenizer' => 'lowercase',
+                    'filter' => ['asciifolding'],
+                ],
+
+                /*
                  * Analyseur "keyword" : indexation d'un champ sur table
                  * (par exemple type de document, titre de périodique...)
                  *

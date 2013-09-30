@@ -58,16 +58,16 @@ interface TableInterface {
     /**
      * Retourne la liste des champs de la table.
      *
-     * Chaque champ existe en deux versions :
+     * Chaque champ existe en deux versions :
      * - la version d'origine, qui contient les données exacte du champ,
      * - une version préfixée avec "_" qui contient la version tokenisée
      *   (c'est-à-dire minusculisée et désaccentuée) des données du champ.
      *
      * Le champ spécial permet de faire des recherches insensibles à la casse
-     * (exemple : {@link lookup}).
+     * (exemple : {@link lookup}).
      *
      * Ainsi, pour une table avec les colonnes <code>code</code> et
-     * <code>label</code>, la méthode retournera le tableau :
+     * <code>label</code>, la méthode retournera le tableau :
      *
      * <code>
      *     array('code', 'label', '_code', '_label')
@@ -82,7 +82,7 @@ interface TableInterface {
      * Recherche des entrées dans la table.
      *
      * La méthode <code>search()</code> permet de faire une recherche dans une
-     * table un peu comme si on exécutait la requête SQL suivante :
+     * table un peu comme si on exécutait la requête SQL suivante :
      *
      * <code>
      *     SELECT $what FROM table
@@ -92,23 +92,23 @@ interface TableInterface {
      * </code>
      *
      * Le format des réponses retournées dépend des champs demandés dans
-     * <code>$what</code> :
+     * <code>$what</code> :
      *
-     * - Un seul champ, retourne un tableau contenant les valeurs du champ :
+     * - Un seul champ, retourne un tableau contenant les valeurs du champ :
      *   <code>
-     *      $countries->search('name') :
+     *      $countries->search('name') :
      *      // array( 'Aruba', 'Afghanistan', ...)
      *   </code>
      *
      * - Deux champs, retourne un tableau associatif de la forme
-     *   <code>champ1 => champ2</code> :
+     *   <code>champ1 => champ2</code> :
      *   <code>
      *      $countries->search('alpha3,name')
      *      // array( 'ABW' => 'Aruba', 'AFG' => 'Afghanistan', ...)
      *   </code>
      *
      * - Plus de deux champs (ou "*"), retourne un tableau associatif de la
-     *   forme <code>premier champ => objet contenant les autres champs</code> :
+     *   forme <code>premier champ => objet contenant les autres champs</code> :
      *   <code>
      *      $countries->search() ou $countries->search('alpha3,name,alpha2')
      *      // array(
@@ -118,11 +118,11 @@ interface TableInterface {
      *      // )
      *   </code>
      *
-     * Remarques :
+     * Remarques :
      *
      * - Lorsqu'un tableau associatif est retourné, une seule valeur est
      *   retournée pour chaque clé. Vous pouvez utiliser <code>ROWID</code>
-     *   si les entrées du champ utilisé comme clé ne sont pas uniques :
+     *   si les entrées du champ utilisé comme clé ne sont pas uniques :
      *   <code>
      *       // toutes les entrées de la table, indexées par ROWID
      *       $countries->search('ROWID, *')
@@ -130,7 +130,7 @@ interface TableInterface {
      *
      * - Pour les tableaux associatifs, le champ utilisé comme clé ne figure
      *   pas dans l'objet associé. Vous pouvez forcer sa présence dans l'objet
-     *   en répétant (ou vous voulez) le nom du champ :
+     *   en répétant (ou vous voulez) le nom du champ :
      *   <code>
      *       $countries->search('alpha3,name,alpha2')
      *       // -> array(alpha3 => object(name,alpha2))
@@ -161,7 +161,7 @@ interface TableInterface {
      *
      * Identique à search() mais retourne uniquement le premier enregistrement.
      *
-     * Exemples :
+     * Exemples :
      * <code>
      *     echo $countries->find('name', 'alpha3="fra"'); // string 'France'
      *     $france = $countries->find('*', 'alpha3="fra"'); // StdClass
@@ -189,12 +189,12 @@ interface TableInterface {
      * La recherche (et le tri des réponses) sont insensibles aux accents et
      * à la casse des caractères.
      *
-     * Exemple :
+     * Exemple :
      * <code>
      *     // Recherche tous les pays dont le nom commence par E (ou E, é, É, ...),
      *     // génère un tableau associatif de la forme nom => code et trie le
      *     // résultat par nom sans tenir compte de la casse et des accents
-     *     // (natural sort order) :
+     *     // (natural sort order) :
      *     $countries->lookup('name,alpha3', 'e')
      *
      *     array(

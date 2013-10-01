@@ -14,6 +14,8 @@
  */
 namespace Docalist\Table;
 
+use Exception;
+
 /**
  * Gestionnaire de tables d'autorité.
  *
@@ -71,7 +73,7 @@ class Manager {
         is_scalar($table) && $table = [$table => $path];
         foreach($table as $name => $path) {
             if (isset($this->path[$name])) {
-                $msg = __('La table "%s" existe déjà.', 'docalist-core');
+                $msg = __('La table "%s" existe déjà', 'docalist-core');
                 throw new Exception(sprintf($msg, $name));
             }
             $this->path[$name] = $path;
@@ -108,8 +110,8 @@ class Manager {
 
         // Vérifie que la table demandée a été enregistrée
         if (! isset($this->path[$table])) {
-            $msg = __('La table "%s" n\'existe pas.', 'docalist-core');
-            throw new Exception(sprintf($msg, $name));
+            $msg = __('La table "%s" n\'existe pas', 'docalist-core');
+            throw new Exception(sprintf($msg, $table));
         }
 
         // Ouvre la table

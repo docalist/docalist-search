@@ -80,12 +80,12 @@ class Collection implements SchemaBasedObjectInterface, ArrayAccess {
         return $this->items;
     }
 
-    public function offsetExists ($offset) {
+    public function offsetExists($offset) {
         return isset($this->items[$offset]);
     }
 
-    public function offsetGet ($offset) {
-        return $this->items[$offset];
+    public function offsetGet($offset) {
+        return isset($this->items[$offset]) ? $this->items[$offset] : null;
     }
 
     public function offsetSet ($offset, $value) {

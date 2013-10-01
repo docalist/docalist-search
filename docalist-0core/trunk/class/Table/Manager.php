@@ -120,14 +120,14 @@ class Manager {
         switch($extension) {
             case 'sqlite':
             case 'db':
-                return $this->path[$table] = new SQLite($path);
+                return $this->table[$table] = new SQLite($path);
 
             case 'csv':
             case 'txt':
-                return $this->path[$table] = new CsvTable($path);
+                return $this->table[$table] = new CsvTable($path);
 
             case 'php':
-                return $this->path[$table] = new PhpTable($path);
+                return $this->table[$table] = new PhpTable($path);
 
             default:
                 throw new Exception("Type de table non géré : '.$extension'");

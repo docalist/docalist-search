@@ -67,7 +67,6 @@ class FileCache {
      * @param string $directory Path du répertoire cache.
      */
     public function __construct($root, $directory) {
-        echo __METHOD__, "($root, $directory)<br />";
         $this->root = rtrim($root,'/\\') . DIRECTORY_SEPARATOR;
         $this->directory = rtrim($directory,'/\\') . DIRECTORY_SEPARATOR;
     }
@@ -164,13 +163,13 @@ class FileCache {
      *
      * @param string $file le path du fichier à charger.
      *
-     * @return string|false les données lues ou false si le fichier n'existe
+     * @return string|null les données lues ou null si le fichier n'existe
      * pas ou ne peut pas être lu.
      */
     public function get($file) {
         $path = $this->path($file);
 
-        return file_exists($path) ? file_get_contents($path) : false;
+        return file_exists($path) ? file_get_contents($path) : null;
     }
 
     /**

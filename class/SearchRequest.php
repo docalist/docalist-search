@@ -263,14 +263,18 @@ class SearchRequest {
             return isset($this->filters[$name]) ? $this->filters[$name] : null;
         }
 
-        if ($value === '') {
-            return $this;
-        }
+        foreach((array) $value as $value) {
+            if (empty($value)) {
+                continue;
+            }
 
-        if (is_array($value)) {
-            $this->filters[$name] = $value;
-        } else {
-            $this->filters[$name][] = $value;
+            if (! isset($this->filters[$name])) {
+                $this->filters[$name] = array();
+            }
+
+            foreach(explode(',', $value) as $item) {
+                $this->filters[$name][] = $item;
+            }
         }
 
         return $this;

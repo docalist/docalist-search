@@ -155,7 +155,7 @@ class Indexer /* implements RegistrableInterface */ {
      *
      * Un type est indexé si :
      * - c'est un type enregistré (qui figure dans la liste retournée par le
-     *   filtre docalist_search_types)
+     *   filtre docalist_search_get_types)
      * - c'est un type que l'administrateur a choisit d'indexer (il est
      *   sélectionné dans la page de paramètres de Docalist Search).
      *

@@ -113,8 +113,7 @@ class Utils {
      * @return string
      */
     public static function ns($class) {
-        if (is_object($class))
-            $class = get_class($class);
+        is_object($class) && $class = get_class($class);
 
         return substr($class, 0, strrpos($class, '\\'));
     }
@@ -125,8 +124,7 @@ class Utils {
      * @return string
      */
     public static function classname($class) {
-        if (is_object($class))
-            $class = get_class($class);
+        is_object($class) && $class = get_class($class);
 
         return substr($class, strrpos($class, '\\') + 1);
     }

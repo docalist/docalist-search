@@ -49,11 +49,7 @@ class Collection implements SchemaBasedObjectInterface, ArrayAccess {
         $this->schema = $schema;
 
         // Stocke les données
-        if (! is_null($data)) {
-            foreach($data as $item) {
-                $this->items[] = $schema->instantiate($item, true);
-            }
-        }
+        ! is_null($data) && $this->fromArray($data);
     }
 
     public function schema($field = null) {
@@ -97,7 +93,15 @@ class Collection implements SchemaBasedObjectInterface, ArrayAccess {
     }
 
     public function offsetUnset($offset) {
-        $this->schema->instantiate(null, true);
+        unset($this->items[$offset]);
+    }
+
+    public function fromArray(array $data) {
+        $this->items = array();
+
+        foreach($data as $item) {
+            $this->items[] = $this->schema->instantiate($item, true);
+        }
     }
 
     public function toArray() {

@@ -38,20 +38,6 @@ abstract class AbstractEntity extends SchemaBasedObject implements EntityInterfa
      */
     protected $primarykey;
 
-    /**
-     * Construit une nouvelle entité à partir des données passées en paramètre.
-     *
-     * @param array $data Les données initiales de l'entité.
-     */
-    public function __construct(array $data = null) {
-        // Stocke les données en appellant offsetSet pour chaque champ
-        if (!is_null($data)) {
-            foreach ($data as $field => $value) {
-                $this->__set($field, $value);
-            }
-        }
-    }
-
     public function primarykey($primarykey = null) {
         // Setter
         if (! is_null($primarykey)) {

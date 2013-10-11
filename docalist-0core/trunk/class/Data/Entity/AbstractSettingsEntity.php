@@ -45,6 +45,11 @@ abstract class AbstractSettingsEntity extends AbstractEntity implements Registra
 
     public function save() {
         self::$repository->store($this);
+        $this->reload(); // pour renuméroter les collections
+    }
+
+    public function reload() {
+        $this->fromArray(self::$repository->load($this->primarykey, false));
     }
 
     public function reset() {

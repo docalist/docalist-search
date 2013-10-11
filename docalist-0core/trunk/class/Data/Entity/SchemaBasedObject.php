@@ -44,7 +44,6 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
         }
     }
 
-
     /**
      * Retourne la valeur du champ indiqué.
      *
@@ -115,11 +114,6 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
         return new ArrayIterator($this->fields);
     }
 
-    /**
-     * Retourne un tableau contenant les données actuelles de l'objet
-     *
-     * @return array
-     */
     public function toArray() {
         return json_decode(json_encode($this), true);
     }

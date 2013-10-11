@@ -36,12 +36,7 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
      * @param array $data Les données initiales de l'objet.
      */
     public function __construct(array $data = null) {
-        // Stocke les données en appellant offsetSet pour chaque champ
-        if (!is_null($data)) {
-            foreach ($data as $field => $value) {
-                $this->__set($field, $value);
-            }
-        }
+        ! is_null($data) && $this->fromArray($data);
     }
 
     /**
@@ -114,6 +109,14 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
         return new ArrayIterator($this->fields);
     }
 
+    public function fromArray(array $data) {
+        $this->fields = array();
+
+        foreach ($data as $field => $value) {
+            $this->__set($field, $value);
+        }
+    }
+
     public function toArray() {
         return json_decode(json_encode($this), true);
     }
@@ -128,5 +131,4 @@ abstract class SchemaBasedObject implements SchemaBasedObjectInterface {
         }
         return $result;
     }
-
 }

@@ -75,8 +75,19 @@ class SQLite implements TableInterface {
         return $this->readonly;
     }
 
-    public function fields() {
-        return $this->fields;
+    public function fields($all = false) {
+        // Retourne tous les champs
+        if ($all) {
+            return $this->fields;
+        }
+
+        // Ne retourne que les champs normaux
+        $fields = array();
+        foreach($this->fields as $field) {
+            $field[0] !== '_' && $fields[] = $field;
+        }
+
+        return $fields;
     }
 
     /**

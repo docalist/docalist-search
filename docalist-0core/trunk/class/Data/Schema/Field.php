@@ -316,7 +316,20 @@ class Field extends Schema implements FieldInterface {
         if ($this->type === 'object') {
             // Une entité
             if ($this->entity) {
-                $value = new $this->entity($value);
+
+                // Value est déjà un objet. Vérifie que c'est le bon type
+                if (is_object($value)) {
+                    $class = get_class($value);
+                    if (! is_a($this->entity, $class, true)) {
+                        $msg = 'Invalid value "%s" for field "%s": expected "%s"';
+                        throw new InvalidArgumentException(sprintf($class, $this->name, $this->entity));
+                    }
+                }
+
+                // Value doit être un tableau
+                else {
+                    $value = new $this->entity($value);
+                }
             }
 
             // Un objet anonyme

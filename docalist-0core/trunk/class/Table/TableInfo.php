@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the 'Docalist Biblio' plugin.
+ * This file is part of the 'Docalist Core' plugin.
  *
  * Copyright (C) 2012, 2013 Daniel Ménard
  *
@@ -8,7 +8,7 @@
  * LICENSE.txt file that was distributed with this source code.
  *
  * @package     Docalist
- * @subpackage  Biblio
+ * @subpackage  Core
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  * @version     $Id$
  */

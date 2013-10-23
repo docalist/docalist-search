@@ -18,6 +18,11 @@ namespace Docalist;
 use ReflectionObject, ReflectionMethod, Exception;
 use Docalist\Forms\Form;
 
+use Docalist\Http\Response;
+use Docalist\Http\ViewResponse;
+use Docalist\Http\RedirectResponse;
+use Docalist\Http\JsonResponse;
+
 /**
  * Représente un ensemble d'actions pour un plugin.
  *
@@ -151,9 +156,10 @@ abstract class AbstractActions implements RegistrableInterface {
      * {@inheritdoc}
      */
     public function register() {
-        if (current_user_can($this->capability())) {
+        if (current_user_can($this->defaultCapability())) {
             add_action('admin_action_' . $this->id(), function() {
-                $this->run();
+                $this->run()->send();
+                exit();
             });
         }
     }
@@ -317,7 +323,7 @@ abstract class AbstractActions implements RegistrableInterface {
     /**
      * Lance l'exécution d'une action.
      *
-     * @return mixed la valeur retournée par la méthode exécutée.
+     * @return Response la valeur retournée par la méthode exécutée.
      */
     protected function run() {
         // Détermine la méthode à appeller
@@ -598,4 +604,18 @@ EOF;
 
         return false;
     }
+
+    public function view($view, array $viewArgs = array(), $status = 200, $headers = array()){
+        !isset($viewArgs['this']) && $viewArgs['this'] = $this;
+        return new ViewResponse($view, $viewArgs, $status, $headers);
+    }
+
+    public function redirect($url, $status = 302, $headers = array()) {
+        return new RedirectResponse($url, $status, $headers);
+    }
+
+    public function json($content = '', $status = 200, $headers = array()) {
+        return new JsonResponse($content, $status, $headers);
+    }
+
 }

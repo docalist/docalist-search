@@ -75,10 +75,13 @@ interface TableInterface {
      *     array('code', 'label', '_code', '_label')
      * </code>
      *
+     * @param bool $all Inclure ou non les champs spéciaux (false par
+     * défaut).
+     *
      * @return string[] Un tableau contenant les champs de la table puis les
      * champs spéciaux.
      */
-    public function fields();
+    public function fields($all = false);
 
     /**
      * Recherche des entrées dans la table.

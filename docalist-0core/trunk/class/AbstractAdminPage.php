@@ -14,19 +14,14 @@
  */
 
 namespace Docalist;
-use Exception;
-use Docalist\Forms\Assets;
+
+use Docalist\Http\AdminViewResponse;
+use Docalist\Http\Response;
 
 /**
- * Des actions pour un plugin qui font l'objet d'une page dans le menu
- * de WordPress.
+ * Une page d'administration dans le back-office.
  */
 abstract class AbstractAdminPage extends AbstractActions {
-    /**
-     * {@inheritdoc}
-     */
-    protected $hookName = 'admin_menu';
-
     /**
      * {@inheritdoc}
      */
@@ -70,160 +65,119 @@ abstract class AbstractAdminPage extends AbstractActions {
         // Crée la page dans le menu WordPress
         $parent = $this->parentPage();
         if (empty($parent)) {
-            $page = add_menu_page($this->pageTitle(), $this->menuTitle(), $capability, $this->id());
+            $page = add_menu_page($this->pageTitle(), $this->menuTitle(), $capability, $this->id(), function() {});
         } else {
-            $page = add_submenu_page($parent, $this->pageTitle(), $this->menuTitle(), $capability, $this->id());
+            $page = add_submenu_page($parent, $this->pageTitle(), $this->menuTitle(), $capability, $this->id(), function() {});
         }
 
-        // Initialisation de la page (création du formulaire par exemple)
-        add_action("load-$page", function() {
-            $this->load();
-        });
+        /*
+            Exécute l'action et affiche le résultat.
 
-        // Gestion des assets. cf http://wordpress.stackexchange.com/a/21579
-        add_action('admin_enqueue_scripts', function($hook) use($page) {
-            if ($hook === $page) {
-                $this->enqueueAssets();
+            C'est wp-admin/admin.php:145 qui appelle le hook "load-$page"
+            A ce stade, rien n'a été envoyé au navigateur, même pas les entêtes.
+            On exécute l'action demandée (run) et on examine le type de
+            la réponse générée par l'action.
+
+            Cas 1. Si la réponse est une page d'admin (i.e. une réponse de type
+            AdminViewResponse), on se contente d'envoyer les entêtes http et
+            on exécute la vue en bufferisant la sortie générée ($body).
+            La vue peut ainsi faire des appels à wp_enqueue_*, génèrer des
+            écrans d'aide, etc.
+
+            Wordpress poursuit alors son exécution : il inclut admin-header.php
+            qui génère les menus, l'admin bar, les screen metas, etc.
+
+            Wordpress va ensuite appeller le hook de la page ("$page"). A ce
+            stade, tout le début de la page html a été généré (on est dans
+            html>body>wpwrap>wpcontent>wpbody-content) et les scripts et les
+            css qui ont été ajoutés ont été générés (ceux de la partie head).
+
+            On se contente alors d'afficher le body de la réponse qu'on avait
+            bufferisé plus haut.
+            Wordpress termine ensuite son exécution, génère les assets de footer
+            et se termine.
+
+            Cas 2. Si la réponse n'est pas une page d'admin (redirection,
+            réponse JSON, etc.), on l'envoit directement au navigateur pendant
+            le hook "load-$page" et on fait ensuite exit(), ce qui empêche
+            Wordpress de continuer son exécution. Dans ce cas, seul le contenu
+            de la réponse est envoyé au navigateur (pas de menu wp, etc.)
+        */
+        add_action("load-$page", function() use($page) {
+            // Indique à l'écran en cours qui est le parent de notre page
+            // Normallement, c'est admin-header.php:119 qui fait ça, mais
+            // dans notre cas il n'a pas encore été appellé. Ca pose
+            // problème car dans ce cas, les vues qui appellent
+            // screen_icon() ne récupèrent pas la bonne icone (wp 3.6).
+            get_current_screen()->set_parentage( $this->parentPage );
+
+            // Exécute l'action, récupère la réponse générée et le garbage éventuel
+            ob_start();
+            $response = $this->run();
+            $garbage = ob_get_clean();
+
+            // Erreur : l'action n'a pas retourné de réponse
+            if (!($response instanceof Response)) {
+                add_action($page, function() use($response, $garbage) {
+                    // En mode debug, on signale l'erreur
+                    if (WP_DEBUG) {
+                        $h3 = __("Erreur dans l'action %s", 'docalist-core');
+                        $h3 = sprintf($h3, $this->action());
+
+                        $msg = __("La méthode <code>%s()</code> devait générer un objet <code>Response</code> mais a retourné :<pre>%s</pre>", 'docalist-core');
+                        $msg = sprintf($msg, $this->method(), var_export($response,true));
+                        printf('<div class="error"><h3>%s</h3><p>%s</p></div>', $h3, $msg);
+                    }
+
+                    // Affiche ce qui a été généré lors de l'exécution
+                    echo $garbage;
+                });
             }
-            // TODO: ce serait mieux si WordPress avait un hook de la forme
-            // admin_enqueue_scripts-$PAGE car cela éviterait que toutes les
-            // pages soient appellées et aient à tester si l'appel les concerne
-            // ou pas.
-            // On pourrait facilement émuler ça en créant, lors du premier
-            // appel, un hook unique qui se chargerait de générer un hook
-            // spécifique à chaque page :
-            // do_action("admin_enqueue_scripts-$hook")
-            // Probablement en namespaçant pour éviter tout conflit :
-            // do_action("docalist-core-admin_enqueue_scripts-$hook")
-            // L'idée pourrait être étendue s'il y a d'autres hooks qui nous
-            // manquent : le plugin Core se chargerait de tous les créer.
-            // A creuser.
+
+            // L'action a généré une réponse de type "page d'admin"
+            elseif ($response instanceof AdminViewResponse) {
+                // Envoie les entêtes de la réponse
+                // wp ne pourra pas envoyer les siens (cf. admin-header.php)
+                $response->sendHeaders();
+
+                // Génère la réponse, mais sans l'envoyer
+                // Permet à la vue de faire des "enqueue" et autres
+                ob_start();
+                $response->sendContent();
+                $body = ob_get_clean();
+
+                // Affiche la réponse après que wp a généré le header et les menus
+                add_action($page, function() use($body, $garbage) {
+                    // Si on a du garbage, on le signale en mode WP_DEBUG
+                    if ($garbage && WP_DEBUG) {
+                        $h3 = __("Garbage dans l'action %s", 'docalist-core');
+                        $h3 = sprintf($h3, $this->action());
+
+                        $msg = __("La méthode <code>%s()</code> a généré le contenu suivant en plus de sa réponse :<pre>%s</pre>", 'docalist-core');
+                        $msg = sprintf($msg, $this->method(), var_export($garbage,true));
+                        printf('<div class="error"><h3>%s</h3><p>%s</p></div>', $h3, $msg);
+                    }
+
+                    // Affiche la réponse générée
+                    echo $body;
+                });
+
+                // Laisse wp générer le footer
+            }
+
+            // L'action a généré un autre type de réponse (redirect, json...)
+            else {
+                // Génère et envoie la réponse
+                $response->send();
+
+                // Stoppe l'exécution de wp (ni header, ni menu, ni footer)
+                exit();
+            }
         });
-
-        // Fin de la section head de la page : gestion des assets
-        add_action("admin_head-$page", function() {
-            $this->head();
-        });
-
-        // Exécution de la page : affichage
-        add_action($page, function() {
-            $this->run();
-            // Ce hook est équivalent au callback qu'on peut passer en
-            // paramètre à add_menu_page() ou add_sub_menu_page(). On
-            // ajoute le hook nous-même pour éviter de répéter la closure
-            // deux fois lors de la création de la page.
-        });
-
-        // Exécution de la page : affichage
-        add_action("admin_footer-$page", function() {
-            $this->footer();
-        });
     }
 
-    /**
-     * Initialise la page.
-     *
-     * Cette méthode est appellée quand WordPress s'apprête à charger votre
-     * page. Surchargez cette méthode pour faire les initialisations dont vous
-     * avez besoin (créer un formulaire, etc.)
-     *
-     * @see http://codex.wordpress.org/Plugin_API/Action_Reference/load-(page)
-     */
-    protected function load() {
-    }
-
-    /**
-     * Enregistre dans WordPress les assets dont a besoin la page.
-     *
-     * La méthode appelle {@link getAssets()} et ajoute les CSS et JS
-     * obtenus dans la liste de WordPress.
-     *
-     * Normallement, vous n'avez pas besoin de surcharger cette méthode
-     * (surchargez plutôt {@link getAssets()}).
-     */
-    protected function enqueueAssets() {
-        $assets = $this->getAssets();
-        $assets && Utils::enqueueAssets($assets);
-    }
-
-    /**
-     * Génère la section head de la page.
-     *
-     * Cette méthode est appellée juste avant que WordPress ne termine la
-     * génération de la section <head></head> de votre page.
-     *
-     * Par défaut, la méthode ne fait rien.
-     *
-     * Vous pouvez la surchargez si vous avez des choses supplémentaires à
-     * générer dans la section head de la page (metas, scripts ou styles
-     * inline, etc.)
-     */
-    protected function head() {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function run() {
-        echo '<div class="wrap">';
-        screen_icon($this->parentPage() ? '' : 'generic');
-        $title = $this->pageTitle();
-        $action = $this->action();
-        if ($action !== 'Index') {
-            $title .= ' : ' . $this->title($action);
-        }
-        printf('<h2>%s</h2>', $title);
-        $description = $this->description();
-        if ($description) {
-            $description = preg_replace('~\n\s*\n~', '<br /><br />', $description);
-            $description = preg_replace('~\s{2,}~', ' ', $description);
-            printf('<p class="description">%s</p>', $description);
-        }
-
-        parent::run();
-
-        echo '</div>';
-    }
-
-    /**
-     * Génère le pied de page de la page.
-     *
-     * Cette méthode est appellée quand WordPress est en train de générer le
-     * pied de page de votre  page.
-     *
-     * La méthode par défaut ne fait rien.
-     *
-     * Vous pouvez surchargez cette méthode si vous avez des choses à générer
-     * dans votre pied de page.
-     */
-    protected function footer() {
-    }
-
-    /**
-     * Retourne les assets (fichiers JS et CSS) dont a besoin la page.
-     *
-     * @return Assets
-     */
-    public function getAssets() {
-        return new Assets();
-    }
-
-    /**
-     * Ajoute une ou plusieurs actions de ce module comme options dans
-     * le menu dont le slug est passé en paramètre.
-     *
-     * @param string|string[] L'action ou les actions à ajouter au menu.
-     * @param string Le slug du menu dans lequel il faut ajouter les actions.
-     */
-    public function addToMenu($action, $menuSlug) {
-        foreach((array) $action as $action) {
-            add_submenu_page(
-                $menuSlug,
-                '',
-                $this->title($action),
-                $this->capability($action),
-                $this->url($action, true)
-            );
-        }
+    public function view($view, array $viewArgs = array(), $status = 200, $headers = array()){
+        !isset($viewArgs['this']) && $viewArgs['this'] = $this;
+        return new AdminViewResponse($view, $viewArgs, $status, $headers);
     }
 }

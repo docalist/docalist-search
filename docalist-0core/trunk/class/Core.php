@@ -16,12 +16,20 @@
 namespace Docalist;
 use Docalist\Tools\ToolsList;
 use Docalist\Cache\FileCache;
-use Docalist\Table\Manager;
+use Docalist\Table\TableManager;
+use Docalist\Table\TableInfo;
 
 /**
  * Plugin core de Docalist.
  */
 class Core extends AbstractPlugin {
+
+    /**
+     * La configuration du plugin.
+     *
+     * @var Settings
+     */
+    protected $settings;
 
     /**
      * Le cache de fichier de Docalist.
@@ -37,7 +45,7 @@ class Core extends AbstractPlugin {
      *
      * Initialisé lors du premier appel à {@link tableManager()}.
      *
-     * @var Manager
+     * @var TableManager
      */
     protected $tableManager;
 
@@ -45,30 +53,22 @@ class Core extends AbstractPlugin {
      * {@inheritdoc}
      */
     public function register() {
+        // Charge la configuration du plugin
+        $this->settings = new Settings('docalist-core');
+
         // Crée le filtre docalist_get_file_cache
         add_filter('docalist_get_file_cache', array($this, 'fileCache'));
+
+        // Crée le filtre docalist_get_table_manager
+        add_filter('docalist_get_table_manager', array($this, 'tableManager'));
 
         // Crée le filtre docalist_get_table
         add_filter('docalist_get_table', function($table) {
             return $this->tableManager()->get($table);
         });
 
-        // Enregistrre nos propres tables quand c'est nécessaire
-        add_action('docalist_register_tables', function(Manager $manager) {
-            $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'tables'  . DIRECTORY_SEPARATOR;
-            $manager->register(array(
-                'countries' => $dir . 'countries.php',
-                'languages' => $dir . 'languages.php',
-            ));
-        }, 10, 2);
-
-        // Utile ?
-        // add_filter('docalist_get_table_manager', array($this, 'tableManager'));
-
-        // Utile ?
-        // add_filter('docalist_get_table_path', function($table){
-        //     return $this->tableManager()->path($table);
-        // });
+        // Enregistre nos propres tables quand c'est nécessaire
+        add_action('docalist_register_tables', array($this, 'registerTables'));
 
         // Gestion des admin notices - à revoir, pas içi
         add_action('admin_notices', function(){
@@ -84,16 +84,15 @@ class Core extends AbstractPlugin {
      * @return FileCache
      */
     public function fileCache() {
-        // Initialise le cache au premier appel
         if (is_null($this->fileCache)) {
             // Fait chier wordpress !
-            // Impossible de récupérer home directory
+            // Impossible de récupérer le home directory de façon fiable.
             // ABSPATH : ne marche pas si wp dans un sous répertoire
             // get_home_path(), get_real_file_to_edit() : uniquement en admin
             // utiliser directement WP_PLUGIN_DIR  est déconseillé
-            // plugin_dir_path() ne fait pas de qu'on croit
+            // plugin_dir_path() ne fait pas ce qu'on croit
             // etc...
-            $root = dirname(dirname(__DIR__)); // répertoire /plugins
+            $root = dirname(dirname(dirname(__DIR__))); // répertoire parent de /plugins
             $dir = get_temp_dir() . 'docalist-cache';
             $this->fileCache = new FileCache($root, $dir);
         }
@@ -107,19 +106,13 @@ class Core extends AbstractPlugin {
      * L'instance est initialisée lors du premier appel.
      *
      * L'action 'docalist_register_tables' est déclenchée pour permettre aux
-     * plugins d'enregistrer leurs tables.
+     * plugins d'enregistrer leurs tables prédéfinies.
      *
-     * @return Manager
+     * @return TableManager
      */
     public function tableManager() {
-        // Au premier appel, initialise le manager
         if (is_null($this->tableManager)) {
-
-            // Crée l'instance
-            $this->tableManager = new Manager();
-
-            // Demande à tout le monde de déclarer ses tables
-            do_action('docalist_register_tables', $this->tableManager);
+            $this->tableManager = new TableManager($this->settings);
         }
 
         return $this->tableManager;
@@ -145,5 +138,28 @@ class Core extends AbstractPlugin {
         }
 
         delete_transient(self::ADMIN_NOTICE_TRANSIENT);
+    }
+
+    /**
+     * Enregistre les tables prédéfinies.
+     *
+     * @param TableManager $tableManager
+     */
+    public function registerTables(TableManager $tableManager) {
+        $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'tables'  . DIRECTORY_SEPARATOR;
+
+        $tableManager->register(new TableInfo([
+            'name' => 'countries',
+            'path' => $dir . 'countries.php',
+            'label' => __('Table des pays', 'docalist-core'),
+            'user' => false,
+        ]));
+
+        $tableManager->register(new TableInfo([
+            'name' => 'languages',
+            'path' => $dir . 'languages.php',
+            'label' => __('Table des langues', 'docalist-core'),
+            'user' => false,
+        ]));
     }
 }

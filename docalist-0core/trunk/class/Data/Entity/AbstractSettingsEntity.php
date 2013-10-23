@@ -13,23 +13,16 @@
 namespace Docalist\Data\Entity;
 
 use Docalist\Data\Repository\SettingsRepository;
-use Docalist\RegistrableInterface;
-use Docalist\RegistrableTrait;
 
 /**
  * Classe de base des entités stockées dans un dépôt SettingsRepository.
  */
-abstract class AbstractSettingsEntity extends AbstractEntity implements RegistrableInterface {
-    use RegistrableTrait;
-
+abstract class AbstractSettingsEntity extends AbstractEntity {
     protected static $repository;
 
     public function __construct($primaryKey) {
         // Stocke la clé primaire du settings
         $this->primarykey = $primaryKey;
-
-        //
-        $this->id = 'settings';
 
         // Initialise le dépôt si nécessaire
         if (is_null(self::$repository)) {

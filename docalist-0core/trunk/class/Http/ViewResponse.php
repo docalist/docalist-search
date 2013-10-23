@@ -26,7 +26,7 @@ use Exception;
  * et les données à transmettre à la vue.
  *
  * Le nom symbolique permet à l'utilisateur de surcharger les vues par défaut
- * en créant une vue du même nom dans le répertoire "vews" de son thème
+ * en créant une vue du même nom dans le répertoire "views" de son thème
  * (cf getViewPath()).
  */
 class ViewResponse extends Response {

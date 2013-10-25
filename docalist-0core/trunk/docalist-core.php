@@ -41,7 +41,7 @@ Autoloader::register('Docalist\Forms', __DIR__ . '/lib/docalist-forms/class');
 Autoloader::register('Symfony', __DIR__ . '/lib/symfony');
 
 // Charge le plugin "Core"
-Docalist::load('Docalist\Core', __FILE__);
+Docalist::load('Docalist\Core\Plugin', __FILE__);
 
 /*
 

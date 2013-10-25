@@ -17,6 +17,9 @@ namespace Docalist;
 /**
  * Demande une confirmation à l'utilisateur.
  *
+ * Si l'utilisateur clique "ok", la requête en cours est relancée avec en plus
+ * le paramètre confirm=1.
+ *
  * @param string $h2 Titre de la page (optionnel).
  * @param string $h3 Titre de la boite de confirmation (optionnel).
  * @param string $message Message à afficher.
@@ -30,28 +33,26 @@ $href = add_query_arg('confirm', '1');
 ?>
 
 <div class="wrap">
+    <?= screen_icon() ?>
+    <h2><?= $h2 ?></h2>
 
-<?= screen_icon() ?>
-<h2><?=$h2 ?></h2>
+    <div class="updated">
+        <?php if (isset($h3)) :?>
+            <h3><?= $h3 ?></h3>
+        <?php endif ?>
 
-<div class="updated">
-    <?php if (isset($h3)) :?>
-        <h3><?= $h3 ?></h3>
-    <?php endif ?>
+        <?php if (isset($message)) :?>
+            <p><?= $message ?></p>
+        <?php endif ?>
 
-    <?php if (isset($message)) :?>
-        <p><?= $message ?></p>
-    <?php endif ?>
+        <p>
+            <a href="<?= $href ?>" class="button-primary">
+                <?= __('Ok', 'docalist-core') ?>
+            </a>
 
-    <p>
-        <a href="<?=$href?>" class="button-primary">
-            <?= __('Ok', 'docalist-core') ?>
-        </a>
-
-        <a href="<?=$back?>" class="button">
-            <?= __('Annuler', 'docalist-core') ?>
-        </a>
-    </p>
-</div>
-
+            <a href="<?= $back ?>" class="button">
+                <?= __('Annuler', 'docalist-core') ?>
+            </a>
+        </p>
+    </div>
 </div>

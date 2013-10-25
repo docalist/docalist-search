@@ -14,7 +14,7 @@
  */
 namespace Docalist\Table;
 
-use Docalist\Settings;
+use Docalist\Core\Settings;
 use Docalist\Cache\FileCache;
 use Exception;
 

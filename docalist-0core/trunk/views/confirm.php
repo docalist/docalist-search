@@ -15,13 +15,13 @@
 namespace Docalist;
 
 /**
- * Demande une confirmation àl'utilisateur.
+ * Demande une confirmation à l'utilisateur.
+ *
+ * @param string $h2 Titre de la page (optionnel).
+ * @param string $h3 Titre de la boite de confirmation (optionnel).
+ * @param string $message Message à afficher.
+ * @param string $back Url du lien 'annuler' (optionnel)
  */
-
-/* @var $h2 string */
-/* @var $h3 string */
-/* @var $message string */
-/* @var $back string */
 
 ! isset($h2) && $h2 = __('Confirmation', 'docalist-core');
 ! isset($h3) && $h3 = __('Attention', 'docalist-core');

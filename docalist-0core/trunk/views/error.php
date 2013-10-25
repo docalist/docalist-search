@@ -18,7 +18,7 @@ namespace Docalist;
  * Affiche un message d'erreur
  *
  * @param string $h2 Titre de la page (optionnel).
- * @param string $h3 Titre de la boite de confirmation (optionnel).
+ * @param string $h3 Titre de la boite (optionnel).
  * @param string $message Message à afficher.
  * @param string $back Url du lien 'annuler' (optionnel)
  */

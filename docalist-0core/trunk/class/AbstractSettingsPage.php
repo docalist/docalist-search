@@ -19,7 +19,7 @@ use Docalist\Forms\Themes, Docalist\Forms\Fields;
 /**
  * Représente une metabox
  */
-abstract class AbstractSettingsPage extends AbstractAdminPage {
+abstract class AbstractSettingsPage extends AdminPage {
     /**
      * {@inheritdoc}
      */

@@ -23,7 +23,6 @@ namespace Docalist;
  * @param string $back Url du lien 'annuler' (optionnel)
  */
 ! isset($h2) && $h2 = __('Erreur', 'docalist-core');
-! isset($h3) && $h3 = __('Une erreur est survenue', 'docalist-core');
 $href = isset($back) ? esc_url($back) : 'javascript:history.go(-1)'
 ?>
 

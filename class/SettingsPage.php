@@ -14,13 +14,13 @@
  */
 namespace Docalist\Search;
 
-use Docalist\AbstractAdminPage, Docalist\Forms\Form;
+use Docalist\AdminPage, Docalist\Forms\Form;
 use Docalist\Data\Entity\EntityInterface;
 
 /**
  * Options de configuration du plugin.
  */
-class SettingsPage extends AbstractAdminPage {
+class SettingsPage extends AdminPage {
     /**
      *
      * @var Settings
@@ -38,18 +38,16 @@ class SettingsPage extends AbstractAdminPage {
      * @param Settings $settings
      */
     public function __construct(Settings $settings, Indexer $indexer) {
+        $this->settings = $settings;
+        $this->indexer = $indexer;
+
         // @formatter:off
-        parent::__construct('options-general.php',            // page parent
-            __('Options Docalist Search', 'docalist-search'), // titre de page
+        parent::__construct(
+            'docalist-search-settings',                       // ID
+            'options-general.php',                            // page parent
             __('Docalist Search', 'docalist-search')          // libellé menu
         );
         // @formatter:on
-
-        $this->settings = $settings;
-        $this->indexer = $indexer;
-        parent::register(); // @todo : à enlever après quand AbstractAdminPage ne sera plus un Registrable
-
-        // $this->indexer->ping();
     }
 
     /**

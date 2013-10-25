@@ -15,17 +15,19 @@
 
 namespace Docalist;
 
-use Docalist\Http\AdminViewResponse;
 use Docalist\Http\Response;
+use Docalist\Http\AdminViewResponse;
+
+use ReflectionObject, ReflectionMethod;
 
 /**
  * Une page d'administration dans le back-office.
  */
-abstract class AbstractAdminPage extends AbstractActions {
+class AdminPage extends Controller {
     /**
      * {@inheritdoc}
      */
-    static protected $parameterName = 'page';
+    protected $controllerParameter = 'page';
 
     /**
      * {@inheritdoc}
@@ -34,13 +36,13 @@ abstract class AbstractAdminPage extends AbstractActions {
 
     /**
      *
+     * @param string $id Identifiant unique de la page.
      * @param string $parentPage Url de la page parent.
-     * @param string $pageTitle Titre de la page.
      * @param string $menuTitle Libellé de la page utilisé dans le menu.
      */
-    public function __construct($parentPage = '', $pageTitle = '', $menuTitle = '') {
-        parent::__construct($parentPage, $pageTitle);
-        $this->menuTitle = $menuTitle;
+    public function __construct($id, $parentPage = '', $menuTitle = '') {
+        $this->menuTitle = $menuTitle ?: $id;
+        parent::__construct($id, $parentPage);
     }
 
     /**
@@ -49,25 +51,43 @@ abstract class AbstractAdminPage extends AbstractActions {
      * @return string
      */
     protected function menuTitle() {
-        return $this->menuTitle ?: $this->pageTitle();
+        return $this->menuTitle;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function register() {
+    protected function register() {
         // On ne fait rien si l'utilisateur n'a pas les droits requis
-        $capability = $this->defaultCapability();
-        if (! current_user_can($capability)) {
+        if (! $this->canRun()) {
             return;
         }
 
+        /*
+         * Remarque sur le titre de la page :
+         * add_menu_page() et add_submenu_page() prennent en paramètre un
+         * argument pageTitle qui est utilisé pour générer le titre qui figure
+         * dans la balise <title> de la page.
+         * Dans notre cas, ce titre n'est pas utilisé : comme la majorité des
+         * pages sont dynamiques et incluent plusieurs actions, cela ne suffit
+         * pas d'avoir un titre statique qui sera le même pour toutes les
+         * actions.
+         * A la place, nous générons dynamiquement le titre (quand la réponse
+         * retournée est une AdminViewResponse) en récupérant le premier <h2>
+         * généré par l'action (cf. plus bas add_filter 'admin_title').
+         * Si jamais la page n'a pas généré de h2, il faut quand même avoir un
+         * titre. Dans ce cas, c'est le libellé utilisé pour le menu qui sera
+         * utilisé : c'est ce qu'on passe en paramètre à add_(sub)_menu_page().
+         */
+
         // Crée la page dans le menu WordPress
         $parent = $this->parentPage();
+        $title = $this->menuTitle();
+        $capability = $this->capability();
         if (empty($parent)) {
-            $page = add_menu_page($this->pageTitle(), $this->menuTitle(), $capability, $this->id(), function() {});
+            $page = add_menu_page($title, $title, $capability, $this->id(), function() {});
         } else {
-            $page = add_submenu_page($parent, $this->pageTitle(), $this->menuTitle(), $capability, $this->id(), function() {});
+            $page = add_submenu_page($parent, $title, $title, $capability, $this->id(), function() {});
         }
 
         /*
@@ -146,6 +166,16 @@ abstract class AbstractAdminPage extends AbstractActions {
                 $response->sendContent();
                 $body = ob_get_clean();
 
+                // Récupère le titre (h2) de la page et le fournit à wp pour
+                // qu'on ait le bon titre dans la balise <title> de la page
+                if (preg_match('~<h2>(.*?)</h2>~', $body, $matches)) {
+                    $title = $matches[1];
+                    // @see admin-header.php:36
+                    add_filter('admin_title', function() use ($title) {
+                        return $title;
+                    });
+                }
+
                 // Affiche la réponse après que wp a généré le header et les menus
                 add_action($page, function() use($body, $garbage) {
                     // Si on a du garbage, on le signale en mode WP_DEBUG
@@ -176,8 +206,46 @@ abstract class AbstractAdminPage extends AbstractActions {
         });
     }
 
-    public function view($view, array $viewArgs = array(), $status = 200, $headers = array()){
+    protected function view($view, array $viewArgs = array(), $status = 200, $headers = array()){
         !isset($viewArgs['this']) && $viewArgs['this'] = $this;
         return new AdminViewResponse($view, $viewArgs, $status, $headers);
+    }
+
+    /**
+     * Retourne une ViewResponse demandant à l'utilisateur de confirmer son
+     * action.
+     *
+     * Le lien généré par le bouton "OK" rappelle la même url en ajoutant
+     * 'confirm=1" dans les paramètres de la query string.
+     *
+     * @param string $message Le message à afficher.
+     * @param string $title Le titre (optionnel).
+     *
+     * @return ViewResponse
+     */
+    protected function confirm($message = null, $title = null) {
+        return $this->view(
+            'docalist-core:confirm',
+            [ 'h2' => $title, 'message' => $message ]
+        );
+    }
+
+    /**
+     * Liste des outils disponibles
+     *
+     * Liste toutes les actions publiques du module.
+     *
+     * i.e. les méthodes publiques, dont le nom commence par le préfixe
+     * "action", et qui peuvent être appellées sans paramètres (aucun
+     * paramètre ou paramètres ayant une valeur par défaut).
+     */
+    protected function actionIndex() {
+        return $this->view(
+            'docalist-core:controller/actions-list',
+            [
+                'title' => $this->menuTitle(),
+                'actions' => $this->actions()
+            ]
+        );
     }
 }

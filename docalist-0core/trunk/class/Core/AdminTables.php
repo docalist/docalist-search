@@ -46,15 +46,6 @@ class AdminTables extends AdminPage {
     }
 
     /**
-     * Indique si la requête en cours est une requête POST.
-     *
-     * @return boolean
-     */
-    protected function isPost() {
-        return $_SERVER['REQUEST_METHOD'] == 'POST';
-    }
-
-    /**
      * Retourne le gestionnaire de tables.
      *
      * @return TableManager

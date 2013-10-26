@@ -539,6 +539,24 @@ class Controller {
     }
 
     /**
+     * Indique si la requête en cours est une requête POST.
+     *
+     * @return boolean
+     */
+    protected function isPost() {
+        return $_SERVER['REQUEST_METHOD'] == 'POST';
+    }
+
+    /**
+     * Indique si la requête en cours est une requête GET.
+     *
+     * @return boolean
+     */
+    protected function isGet() {
+        return $_SERVER['REQUEST_METHOD'] == 'GET';
+    }
+
+    /**
      * Retourne une réponse de type ViewResponse.
      *
      * @param string $view

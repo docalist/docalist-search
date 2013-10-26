@@ -8,11 +8,11 @@
  * LICENSE.txt file that was distributed with this source code.
  *
  * @package     Docalist
- * @subpackage  Core
+ * @subpackage  Views
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  * @version     $Id$
  */
-namespace Docalist;
+namespace DocalistViews;
 
 /**
  * Affiche un message d'erreur

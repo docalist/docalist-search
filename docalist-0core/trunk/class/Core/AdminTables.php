@@ -75,7 +75,7 @@ class AdminTables extends AdminPage {
      * Liste des tables d'autorité.
      */
     public function actionTablesList() {
-        return $this->view('docalist-core:tables/tables-list', [
+        return $this->view('docalist-core:table/list', [
             'tables' => $this->tableManager()->info(),
         ]);
     }
@@ -114,7 +114,7 @@ class AdminTables extends AdminPage {
         $data = array_values($data);
 
         // Affiche l'éditeur
-        return $this->view('docalist-core:tables/table-edit', [
+        return $this->view('docalist-core:table/edit', [
             'tableName' => $tableName,
             'tableInfo' => $tableInfo,
             'fields' => $fields,
@@ -157,7 +157,7 @@ class AdminTables extends AdminPage {
         $tableInfo->name = $name;
         $tableInfo->label = sprintf(__('Copie de %s', 'docalist-core'), $tableInfo->label);
 
-        return $this->view('docalist-core:tables/table-copy', [
+        return $this->view('docalist-core:table/copy', [
             'tableName' => $tableName,
             'tableInfo' => $tableInfo,
             'error' => $error
@@ -188,7 +188,7 @@ class AdminTables extends AdminPage {
             $tableInfo->label = $label;
         }
 
-        return $this->view('docalist-core:tables/table-properties', [
+        return $this->view('docalist-core:table/properties', [
             'tableName' => $tableName,
             'tableInfo' => $tableInfo,
             'error' => $error

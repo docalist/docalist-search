@@ -71,6 +71,13 @@ class Plugin extends AbstractPlugin {
         // Enregistre nos propres tables quand c'est nécessaire
         add_action('docalist_register_tables', array($this, 'registerTables'));
 
+        // Back office
+        add_action('admin_menu', function () {
+
+            // Page "Gestion des tables d'autorité"
+            new AdminTables();
+        });
+
         // Gestion des admin notices - à revoir, pas içi
         add_action('admin_notices', function(){
             $this->showAdminNotices();
@@ -147,7 +154,7 @@ class Plugin extends AbstractPlugin {
      * @param TableManager $tableManager
      */
     public function registerTables(TableManager $tableManager) {
-        $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'tables'  . DIRECTORY_SEPARATOR;
+        $dir = dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'tables'  . DIRECTORY_SEPARATOR;
 
         $tableManager->register(new TableInfo([
             'name' => 'countries',

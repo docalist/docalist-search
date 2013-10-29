@@ -153,12 +153,18 @@ class SQLite implements TableInterface {
      *
      * @return FileCache
      *
-     * @throws Exception Si aucun cache n'est disponible.
+     * @throws Exception Si aucun cache n'est disponible ou si l'objet retourné
+     * n'est pas un objet FileCache.
      */
     protected function fileCache() {
         $cache = apply_filters('docalist_get_file_cache', null);
         if (is_null($cache)) {
             $msg = __('Aucun FileCache disponible', 'docalist-core');
+            throw new Exception($msg);
+        }
+
+        if (! $cache instanceof FileCache) {
+            $msg = __('Type de cache incorrect', 'docalist-core');
             throw new Exception($msg);
         }
 

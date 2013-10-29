@@ -8,17 +8,20 @@ foreach($args as $name => $value) {
 }
 
 // THEAD - nom des champs
-//$hasDescription = false;
+$hasDescription = false;
 $writer->startElement('thead');
 $writer->startElement('tr');
 foreach($this->fields as $field) {
     $writer->startElement('th');
     $writer->writeAttribute('scope', 'col');
+/*
+    // Bulle d'aide
     if ($description = $field->description()) {
         $writer->writeAttribute('title', $description);
     }
+*/
     $writer->writeRaw($field->label() ?: $field->name());
-//    $hasDescription = $hasDescription || $field->description();
+    $hasDescription = $hasDescription || $field->description();
     $writer->fullEndElement(); // </th>
 }
 $writer->fullEndElement(); // </tr>
@@ -38,8 +41,7 @@ if (!$this->repeatable()) {
 }
 $writer->fullEndElement(); // </tbody>
 
-// TFOOT - bouton "ajouter une ligne"
-/*
+// TFOOT - description
 if ($this->repeatable() || $hasDescription) {
     $writer->startElement('tfoot');
     if ($hasDescription) {
@@ -53,7 +55,6 @@ if ($this->repeatable() || $hasDescription) {
     }
     $writer->fullEndElement(); // </foot>
 }
-*/
 $writer->fullEndElement(); // </table>
 if ($this->repeatable()) {
     $this->block('add');

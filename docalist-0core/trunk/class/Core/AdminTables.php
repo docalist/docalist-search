@@ -92,12 +92,27 @@ class AdminTables extends AdminPage {
 
         // Gère la sauvegarde
         if ($this->isPost()) {
-//             echo 'POST<br />';
-//             echo '<pre>';
-//             var_export($_POST);
-//             echo '</pre>';
-//             die();
-//             $this->tableManager()->update(null, null, $data);
+            // Récupère les données de la table
+            if (! isset($_POST['data'])) {
+                return $this->json([
+                    'success' => false,
+                    'error' => __('Aucune donnée transmise', 'docalist-core')
+                ]);
+            }
+            $data = wp_unslash($_POST['data']);
+
+            // On ne peut pas envoyer un tableau vide en jquery. A la place,
+            // la vue nous envoie une chaine vide qui signifie [].
+            empty($data) && $data = [];
+
+            try {
+                $this->tableManager()->update($tableName, null, null, $data);
+            } catch (Exception $e) {
+                return $this->json([
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ]);
+            }
 
             return $this->json([
                 'success' => true,

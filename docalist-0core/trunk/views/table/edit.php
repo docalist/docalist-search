@@ -184,7 +184,19 @@ wp_enqueue_script('handsontable', "$base/jquery.handsontable.full.js", ['jquery'
          * Enregistrer les modifications
          */
         $('#editForm').submit(function() {
-            $.post('', {data: table}, function() {});
+            // jquery ne peut pas poster un tableau vide (non transmis).
+            // à la place on envoie '' qui est détcté par le contrôleur.
+            $.post('', {data: table.length ? table : ''}, function(result) {
+                // Le contrôleur nous retourne :
+                // soit {success: true, url:'location'} -> rediriger vers l'url indiquée
+                // soit {success: false, error: 'erreur'} -> afficher l'erreur
+                if (result.success) {
+                    window.location.replace(result.url);
+                } else {
+                    alert('error : ' + result.error);
+                }
+
+            });
             return false;
         });
     });

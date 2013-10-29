@@ -40,7 +40,7 @@ use Docalist\Table\TableInfo;
     <?php endif ?>
 
     <?php
-        $form = new Form('', 'post');
+        $form = new Form();
         $form->input('name')->attribute('class', 'regular-text');
         $form->input('label')->attribute('class', 'large-text');
         $form->checkbox('nodata')

@@ -39,7 +39,14 @@ class CsvTable extends SQLite {
         $file = fopen($this->path, 'r');
 
         // Charge les entêtes de colonne
-        $this->fields = fgetcsv($file, 1024, ';');
+        // On peut avoir des lignes de commentaires (#xxx) avant les entêtes
+        for(;;) {
+            $this->fields = fgetcsv($file, 1024, ';');
+            if (substr($this->fields[0], 0, 1) === '#') {
+                continue;
+            }
+            break;
+        }
 
         $sql = $this->parseFields();
 
@@ -59,8 +66,12 @@ class CsvTable extends SQLite {
         $index = array_flip($this->fields);
         while (false !== $values = fgetcsv($file, 1024, ';'))
         {
-            $allvalues=$values;
-            foreach($values as $i=>$value)
+            // Les lignes qui commencent par "#" sont des commentaires
+            if (substr($values[0], 0, 1) === '#') {
+                continue;
+            }
+            $allvalues = $values;
+            foreach($values as $i => $value)
             {
                 if (isset($index['_' . $this->fields[$i]])) {
                     $allvalues[] = implode(' ', Tokenizer::tokenize($value));

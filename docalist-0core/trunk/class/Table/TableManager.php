@@ -79,12 +79,7 @@ class TableManager {
     /**
      * Déclare une table d'autorité.
      *
-     * @param string $name Nom (unique) de la table.
-     * @param string $path Path absolu de la table.
-     * @param string $label Libellé/description de la table ($name si vide).
-     * @param string $type Type de la table ($name si non fourni).
-     * @param bool $user Indique s'il s'agit d'une table utilisateur ou d'une
-     * table prédéfinie.
+     * @param TableInfo $tableInfo Informations sur la table.
      *
      * @throws Exception Si la table est déjà déclarée.
      */

@@ -19,10 +19,11 @@
  *
  * 2013-04-09 Version initiale
  * 2013-09-27 Mise au format docalist. 249 pays.
+ * 2013-11-03 Renomme 'alpha3' et 'name' en 'code' et 'label'.
  */
 
 return [
-    ['alpha3', 'alpha2', 'num', 'name'],
+    ['code', 'iso2', 'num', 'label'],
 
     ['ABW', 'AW', '533', __('Aruba', 'docalist-core')],
     ['AFG', 'AF', '004', __('Afghanistan', 'docalist-core')],

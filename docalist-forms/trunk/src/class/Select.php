@@ -48,7 +48,7 @@ class Select extends Choice {
 
     /**
      * Retoure ou modifier le libellé et la valeur de la première option
-     * affichée dns le select lorsque celui-ci n'est pas obligatoire.
+     * affichée dans le select lorsque celui-ci n'est pas obligatoire.
      *
      * Cette option n'est affichée que lorsque le select n'est pas obligatoire.
      *

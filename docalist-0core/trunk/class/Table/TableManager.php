@@ -100,18 +100,42 @@ class TableManager {
      * @param string $name Le nom de la table recherchée ou null pour obtenir
      * la liste de toutes les tables.
      *
+     * @param string $type Le type de table à retourner ou null pour retourner
+     * tous les types de tables.
+     *
      * @return null|TableInfo|TableInfo[] Retourne null si la table demandée
      * n'existe pas, un objet TableInfo si un nom de table a été indiqué et un
      * tableau d'objets TableInfo si aucun paramètre n'a été fourni.
      */
-    public function info($name = null) {
+    public function info($name = null, $type = null) {
+        // Retourne une liste de tables
         if (is_null($name)) {
-            return $this->tables;
+            // Pas de filtre sur le type
+            if (is_null($type)) {
+                return $this->tables;
+            }
+
+            // Ne garde que les tables du type indiqué
+            $tables = $this->tables;
+            foreach($tables as $name => $tableInfo) {
+                if ($tableInfo->type !== $type) {
+                    unset($tables[$name]);
+                }
+            }
+
+            return $tables;
         }
 
-        return isset($this->tables[$name]) ? $this->tables[$name] : null;
+        // Retourne une table unique
+        if (! isset($this->tables[$name])) {
+            return null;
+        }
 
-        // @todo: permettre de filtrer sur type et sur user
+        if ($type && $this->tables[$name]->type !== $type) {
+            return null;
+        }
+
+        return $this->tables[$name];
     }
 
     /**

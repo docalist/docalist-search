@@ -6,6 +6,7 @@
 
 /* Nouveau style field-table */
 .field-table {
+    table-layout: fixed;
     width: 99%; /* comme pour input.large-text */
     border-collapse: collapse;
 /*    background: yellow; */

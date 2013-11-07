@@ -87,8 +87,8 @@ class Field extends Schema implements FieldInterface {
             throw new InvalidArgumentException(sprintf($msg));
         }
 
-        // Le nom de champ ne doit contenir que des lettres
-        if (!ctype_alpha($name)) {
+        // Le nom de champ ne doit contenir que des lettres et des chiffres
+        if (!ctype_alnum($name)) {
             $msg = 'Invalid field name "%s": must contain only letters';
             throw new InvalidArgumentException(sprintf($msg, $name));
         }

@@ -14,6 +14,7 @@ $writer->startElement('tr');
 foreach($this->fields as $field) {
     $writer->startElement('th');
     $writer->writeAttribute('scope', 'col');
+    $writer->writeAttribute('class', $field->attribute('class'));
 /*
     // Bulle d'aide
     if ($description = $field->description()) {

@@ -431,29 +431,4 @@ class SettingsPage extends AdminPage {
 
         return $types;
     }
-
-    protected function description($action = null) {
-        is_null($action) && $action = $this->action();
-
-        switch ($action) {
-
-            case 'Index':
-                //@formatter:off
-                $intro = __(
-                    'Docalist Search est un plugin qui permet de doter votre site
-                    WordPress d\'un moteur de recherche moderne et performant.
-
-                    Utilisez les liens ci-dessous pour paramétrer votre moteur.',
-                    'docalist-search'
-                );
-
-                return sprintf($intro,
-                    '',   // %1
-                    '--'
-                );
-
-            default:
-                return parent::description($action);
-        }
-    }
 }

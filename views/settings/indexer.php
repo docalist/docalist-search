@@ -29,9 +29,43 @@ use Docalist\Forms\Form;
     <?= screen_icon() ?>
     <h2><?= __("Paramètres de l'indexeur", 'docalist-search') ?></h2>
 
-    <p class="description">
-        <?= __('Utilisez le formulaire ci-dessous pour modifier les paramètres :', 'docalist-search') ?>
-    </p>
+    <p class="description"><?php
+        //@formatter:off
+        echo __(
+            "Cette page vous permet de choisir les contenus de votre site
+            qui serons disponibles dans votre moteur de recherche et de
+            paramétrer le fonctionnement de l'indexeur.",
+            'docalist-search'
+        );
+        // @formatter:on
+    ?></p>
+    <p class="description"><?php
+        //@formatter:off
+        printf(
+            __(
+                'Lorsque vous créez ou que vous modifiez des documents en série
+                (lors d\'un import, par exemple) Docalist Search utilise un
+                buffer dans lequel il stocke les documents à mettre à jour
+                et à supprimer.
+
+                Ce buffer permet <a href="%1$s">d\'optimiser l\'indexation des
+                documents</a> en limitant le nombre de requêtes adressées à
+                ElasticSearch, mais il consomme de la mémoire sur votre serveur
+                et génère un délai avant que les nouveaux documents indexés
+                n\'apparaissent dans vos résultats de recherche.
+
+                Vous pouvez paramétrer le fonctionnement de ce buffer et fixer
+                des limites sur la quantité de mémoire utilisée et le nombre de
+                documents stockés dans le buffer.
+
+                Dès que l\'une des deux limites est atteinte, le buffer est
+                envoyé à ElasticSearch puis est réinitialisé.',
+                'docalist-search'
+            ),
+            'http://www.elasticsearch.org/guide/reference/api/bulk/'    // %1
+        );
+        // @formatter:on
+    ?></p>
 
     <?php if ($error) :?>
         <div class="error">

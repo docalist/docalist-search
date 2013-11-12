@@ -112,15 +112,29 @@ class SettingsPage extends AdminPage {
      * Paramètres du serveur ElasticSearch.
      */
     public function actionServerSettings() {
-        $box = new Form();
-        $box->input('url');
-        $box->input('index');
-        $box->input('timeout');
+        $settings = $this->settings->server;
 
-        return $this->handle($box, $this->settings->server);
-//         if ($this->handle($box, $this->settings->server)) {
-//             do_action('docalist_search_setup'); // crée l'index, etc.
-//         }
+        $error = '';
+        if ($this->isPost()) {
+            try {
+                $_POST = wp_unslash($_POST);
+                $settings->url = $_POST['url'];
+                $settings->index = $_POST['index'];
+                $settings->timeout = $_POST['timeout'];
+
+                // $settings->validate();
+                $this->settings->save();
+
+                return $this->redirect($this->url('Index'), 303);
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+            }
+        }
+
+        return $this->view('docalist-search:settings/server', [
+            'settings' => $settings,
+            'error' => $error
+        ]);
     }
 
     /**
@@ -154,11 +168,28 @@ class SettingsPage extends AdminPage {
      * Paramètres de l'indexeur.
      */
     public function actionIndexerSettings() {
-        $box = new Form();
-        $box->input('bulkMaxSize');
-        $box->input('bulkMaxCount');
+        $settings = $this->settings->indexer;
 
-        return $this->handle($box, $this->settings->indexer);
+        $error = '';
+        if ($this->isPost()) {
+            try {
+                $_POST = wp_unslash($_POST);
+                $settings->bulkMaxSize = $_POST['bulkMaxSize'];
+                $settings->bulkMaxCount = $_POST['bulkMaxCount'];
+
+                // $settings->validate();
+                $this->settings->save();
+
+                return $this->redirect($this->url('Index'), 303);
+            } catch (Exception $e) {
+                $error = $e->getMessage();
+            }
+        }
+
+        return $this->view('docalist-search:settings/indexer', [
+            'settings' => $settings,
+            'error' => $error
+        ]);
     }
 
     /**

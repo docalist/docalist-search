@@ -174,11 +174,15 @@ class SettingsPage extends AdminPage {
         if ($this->isPost()) {
             try {
                 $_POST = wp_unslash($_POST);
+                $settings->types = $_POST['types'];
                 $settings->bulkMaxSize = $_POST['bulkMaxSize'];
                 $settings->bulkMaxCount = $_POST['bulkMaxCount'];
 
                 // $settings->validate();
                 $this->settings->save();
+
+                // crée l'index, les mappings, etc.
+                $this->indexer->setup();
 
                 return $this->redirect($this->url('Index'), 303);
             } catch (Exception $e) {
@@ -188,7 +192,8 @@ class SettingsPage extends AdminPage {
 
         return $this->view('docalist-search:settings/indexer', [
             'settings' => $settings,
-            'error' => $error
+            'error' => $error,
+            'types' => $this->availableTypes()
         ]);
     }
 
@@ -204,19 +209,6 @@ class SettingsPage extends AdminPage {
         $box->checkbox('enabled');
 
         return $this->handle($box, $this->settings);
-    }
-
-    /**
-     * Contenus à indexer.
-     */
-    public function actionTypes() {
-        $box = new Form();
-        $box->description('@todo : Attention si vous désélectionnez un type, cela le supprime de l\'index ElasticSearch. Quand vous enregistrez, tous les mappings sont mis à jour.');
-        $box->checklist('types')->options($this->availableTypes());
-
-        if ($this->handle($box, $this->settings)) {
-            do_action('docalist_search_setup'); // crée l'index, les mappings, etc.
-        }
     }
 
     /**
@@ -263,7 +255,7 @@ class SettingsPage extends AdminPage {
         // Permet à l'utilisateur de choisir les types à réindexer
         if (empty($selected)) {
             // Parmi ceux qui sont indexés
-            $types = $this->settings->types->toArray();
+            $types = $this->settings->indexer->types->toArray();
             $types = array_flip($types);
             $types = array_intersect_key($this->availableTypes(), $types);
 

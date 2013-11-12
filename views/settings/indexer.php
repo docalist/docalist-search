@@ -22,6 +22,7 @@ use Docalist\Forms\Form;
  *
  * @param IndexerSettings $settings Les paramètres de l'indexeur.
  * @param string $error Erreur éventuelle à afficher.
+ * @param string[] $types Liste des types disponibles.
  */
 ?>
 <div class="wrap">
@@ -40,6 +41,7 @@ use Docalist\Forms\Form;
 
     <?php
         $form = new Form();
+        $form->checklist('types')->options($types);
         $form->input('bulkMaxSize');
         $form->input('bulkMaxCount');
         $form->submit(__('Enregistrer les modifications', 'docalist-search'));

@@ -19,6 +19,7 @@ use Docalist\Data\Entity\AbstractEntity;
 /**
  * Paramètres de l'indexeur.
  *
+ * @property string[] $types Contenus à indexer.
  * @property int $bulkMaxSize Taille maximale du buffer (Mo).
  * @property int $bulkMaxCount Nombre maximum de documents dans le buffer.
  */
@@ -27,6 +28,10 @@ class IndexerSettings extends AbstractEntity {
     protected function loadSchema() {
         // @formatter:off
         return array(
+            'types' => array(
+                'label' => __('Contenus à indexer', 'docalist-search'),
+                'type' => 'string*',
+            ),
             'bulkMaxSize' => array(
                 'label' =>__('Taille maximale du buffer (en Mo)', 'docalist-search'),
                 'description' => __('En méga-octets. Le buffer est vidé si la taille totale des documents en attente dépasse cette limite.', 'docalist-search'),

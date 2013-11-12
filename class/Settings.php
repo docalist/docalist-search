@@ -22,7 +22,6 @@ use Docalist\Data\Entity\AbstractSettingsEntity;
  * @property bool $enabled Indique si la recherche est activée.
  * @property ServerSettings $server Paramètres du serveur ElasticSearch.
  * @property IndexerSettings $indexer Paramètres de l'indexeur.
- * @property string[] $types Contenus à indexer.
  */
 class Settings extends AbstractSettingsEntity {
 
@@ -41,10 +40,6 @@ class Settings extends AbstractSettingsEntity {
             'indexer' => array(
                 'label' => __("Paramètres de l'indexeur", 'docalist-search'),
                 'type' => 'IndexerSettings',
-            ),
-            'types' => array(
-                'label' => __('Contenus à indexer', 'docalist-search'),
-                'type' => 'string*',
             ),
         );
         // @formatter:on

@@ -172,7 +172,7 @@ class Indexer /* implements RegistrableInterface */ {
             $all = apply_filters('docalist_search_get_types', array());
 
             // Récupère la liste des types indexés (choisis par l'admin)
-            $selected = array_flip($this->settings->types->toArray());
+            $selected = array_flip($this->settings->indexer->types->toArray());
 
             // Croise les deux
             $this->types = array_intersect_key($all, $selected);

@@ -108,6 +108,10 @@ class SettingsPage extends AdminPage {
         return $saved;
     }
 
+    public function actionIndex() {
+        return $this->view('docalist-search:settings/index');
+    }
+
     /**
      * Paramètres du serveur ElasticSearch.
      */

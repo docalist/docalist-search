@@ -55,6 +55,16 @@ namespace Docalist\Search\Views;
 
 
     <h3>
+        <a href="<?= esc_url($this->url('SearchSettings')) ?>">
+            <?= __("Paramètres de recherche", 'docalist-search') ?>
+        </a>
+    </h3>
+    <p class="description">
+        <?= __("Activer/désactiver la recherche avec Docalist Search.", 'docalist-search') ?>
+    </p>
+
+
+    <h3>
         <a href="<?= esc_url($this->url('Reindex')) ?>">
             <?= __("Réindexation manuelle", 'docalist-search') ?>
         </a>
@@ -62,4 +72,15 @@ namespace Docalist\Search\Views;
     <p class="description">
         <?= __("Permet de lancer une réindexation manuelle des contenus.", 'docalist-search') ?>
     </p>
+
+
+    <h3>
+        <a href="<?= esc_url($this->url('Status')) ?>">
+            <?= __("Statut", 'docalist-search') ?>
+        </a>
+    </h3>
+    <p class="description">
+        <?= __("Informations et statistiques sur le serveur et l'index ElasticSearch.", 'docalist-search') ?>
+    </p>
+
 </div>

@@ -85,7 +85,7 @@ class Plugin extends AbstractPlugin {
             $this->indexer = new Indexer($this->elasticSearchClient, $this->settings);
 
             // Page des réglages
-            new SettingsPage($this->settings, $this->indexer);
+            new SettingsPage($this->settings, $this->elasticSearchClient, $this->indexer);
         });
     }
 

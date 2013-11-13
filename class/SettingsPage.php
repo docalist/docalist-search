@@ -28,6 +28,14 @@ class SettingsPage extends AdminPage {
     protected $settings;
 
     /**
+     * Le client utilisé pour communiquer avec le serveur ElasticSearch
+     * (passé en paramètre au constructeur).
+     *
+     * @var ElasticSearchClient
+     */
+    protected $elasticSearchClient;
+
+    /**
      *
      * @var Indexer
      */
@@ -37,8 +45,9 @@ class SettingsPage extends AdminPage {
      *
      * @param Settings $settings
      */
-    public function __construct(Settings $settings, Indexer $indexer) {
+    public function __construct(Settings $settings, ElasticSearchClient $elasticSearchClient, Indexer $indexer) {
         $this->settings = $settings;
+        $this->elasticSearchClient = $elasticSearchClient;
         $this->indexer = $indexer;
 
         // @formatter:off
@@ -166,6 +175,17 @@ class SettingsPage extends AdminPage {
                     $this->settings->server->index
                 );
         }
+
+        // Etat du cluster pour l'index indiqué (status green, etc.)
+        // http://localhost:9200/_cluster/health/wp_prisme?pretty
+        // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/cluster-health.html
+
+        // Statut de l'index (taille, nb de docs,
+        // http://localhost:9200/wp_prisme/_status?pretty
+        // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/indices-status.html
+
+        // Stats sur les opérations effectuées sur l'index
+        // http://localhost:9200/wp_prisme/_stats?pretty
     }
 
     /**
@@ -209,10 +229,61 @@ class SettingsPage extends AdminPage {
      * @return boolean
      */
     public function actionSearchSettings() {
-        $box = new Form();
-        $box->checkbox('enabled');
 
-        return $this->handle($box, $this->settings);
+        // Teste si la recherche peut être activée
+        $error = '';
+        if (! $this->settings->enabled) {
+            $ping = $this->indexer->ping();
+
+            // 0. ES ne répond pas
+            if ($ping === 0) {
+                $msg = __('Vérifiez les <a href="%s">paramètres du serveur</a>.', 'docalist-search');
+                $msg = sprintf($msg, esc_url($this->url('ServerSettings')));
+                return $this->view('docalist-core:error', [
+                    'h2' => __('Paramètres de recherche', 'docalist-biblio'),
+                    'h3' => __("Le serveur ElasticSearch ne répond pas", 'docalist-biblio'),
+                    'message' => $msg,
+                ]);
+            }
+
+            // 1. ES répond mais l'index n'existe pas encore
+            if ($ping === 1) {
+                $msg = __('Vérifiez les <a href="%s">paramètres de l\'indexeur</a>.', 'docalist-search');
+                $msg = sprintf($msg, esc_url($this->url('IndexerSettings')));
+                return $this->view('docalist-core:error', [
+                    'h2' => __('Paramètres de recherche', 'docalist-biblio'),
+                    'h3' => __("L'index ElasticSearch n'existe pas.", 'docalist-biblio'),
+                    'message' => $msg,
+                ]);
+            }
+
+            // 2. ES répond et l'index existe, vérifie que l'index n'est pas vide
+            $response = $this->elasticSearchClient->get('_count');
+            if (!isset($response->count) || $response->count === 0) {
+                $msg = __('Lancez une <a href="%s">réindexation manuelle</a> de vos contenus.', 'docalist-search');
+                $msg = sprintf($msg, esc_url($this->url('Reindex')));
+                return $this->view('docalist-core:error', [
+                    'h2' => __('Paramètres de recherche', 'docalist-biblio'),
+                    'h3' => __("L'index ElasticSearch ne contient aucun document.", 'docalist-biblio'),
+                    'message' => $msg,
+                ]);
+            }
+        }
+
+        if ($this->isPost()) {
+            $_POST = wp_unslash($_POST);
+            $this->settings->enabled = (bool) $_POST['enabled'];
+
+            // $settings->validate();
+            $this->settings->save();
+
+            return $this->redirect($this->url('Index'), 303);
+        }
+
+        return $this->view('docalist-search:settings/search', [
+            'settings' => $this->settings,
+            'error' => $error
+        ]);
     }
 
     /**

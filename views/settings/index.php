@@ -73,14 +73,14 @@ namespace Docalist\Search\Views;
         <?= __("Permet de lancer une réindexation manuelle des contenus.", 'docalist-search') ?>
     </p>
 
-
+<?php /*
     <h3>
-        <a href="<?= esc_url($this->url('Status')) ?>">
+        <a href="<?= esc_url($this->url('ServerStatus')) ?>">
             <?= __("Statut", 'docalist-search') ?>
         </a>
     </h3>
     <p class="description">
         <?= __("Informations et statistiques sur le serveur et l'index ElasticSearch.", 'docalist-search') ?>
     </p>
-
+*/ ?>
 </div>

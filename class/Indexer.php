@@ -15,7 +15,7 @@
 namespace Docalist\Search;
 
 /* use Docalist\RegistrableInterface,Docalist\RegistrableTrait; */
-use InvalidArgumentException, RuntimeException;
+use Exception, InvalidArgumentException, RuntimeException;
 
 /**
  * L'indexeur

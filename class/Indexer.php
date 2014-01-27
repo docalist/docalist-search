@@ -14,15 +14,12 @@
  */
 namespace Docalist\Search;
 
-/* use Docalist\RegistrableInterface,Docalist\RegistrableTrait; */
 use Exception, InvalidArgumentException, RuntimeException;
 
 /**
  * L'indexeur
  */
-class Indexer /* implements RegistrableInterface */ {
-    /* use RegistrableTrait; */
-
+class Indexer {
     /**
      * Le client utilisé pour communiquer avec le serveur ElasticSearch
      * (passé en paramètre au constructeur).

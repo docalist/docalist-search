@@ -28,14 +28,6 @@ class SettingsPage extends AdminPage {
     protected $settings;
 
     /**
-     * Le client utilisé pour communiquer avec le serveur ElasticSearch
-     * (passé en paramètre au constructeur).
-     *
-     * @var ElasticSearchClient
-     */
-    protected $elasticSearchClient;
-
-    /**
      *
      * @var Indexer
      */
@@ -45,9 +37,8 @@ class SettingsPage extends AdminPage {
      *
      * @param Settings $settings
      */
-    public function __construct(Settings $settings, ElasticSearchClient $elasticSearchClient, Indexer $indexer) {
+    public function __construct(Settings $settings, Indexer $indexer) {
         $this->settings = $settings;
-        $this->elasticSearchClient = $elasticSearchClient;
         $this->indexer = $indexer;
 
         // @formatter:off
@@ -258,7 +249,7 @@ class SettingsPage extends AdminPage {
             }
 
             // 2. ES répond et l'index existe, vérifie que l'index n'est pas vide
-            $response = $this->elasticSearchClient->get('_count');
+            $response = docalist('elastic-search')->get('_count');
             if (!isset($response->count) || $response->count === 0) {
                 $msg = __('Lancez une <a href="%s">réindexation manuelle</a> de vos contenus.', 'docalist-search');
                 $msg = sprintf($msg, esc_url($this->url('Reindex')));

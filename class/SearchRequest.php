@@ -21,13 +21,6 @@ use Exception;
  */
 class SearchRequest {
     /**
-     * Le serveur Elastic Search qui va exécuter la requête.
-     *
-     * @var ElasticSearchClient
-     */
-    protected $server;
-
-    /**
      * Numéro de la page de résultats à retourner (1-based)
      *
      * @var int
@@ -96,15 +89,10 @@ class SearchRequest {
      * ));
      * </code>
      *
-     * @param ElasticSearch le serveur Elastic Search auquel sera envoyé la
-     * requête.
-     *
      * @param array $args un tableau contenant les paramètres de la recherche à
      * exécuter.
      */
-    public function __construct(ElasticSearchClient $server, $args = null) {
-        $this->server = $server;
-
+    public function __construct($args = null) {
         if ($args) {
             // Arguments dont le nom correspond à un setter de notre classe
             foreach (array('page', 'size', 'sort') as $arg) {
@@ -644,13 +632,14 @@ class SearchRequest {
      * être obtenus ultérieurement en appellant results()).
      */
     public function execute($searchType = null) {
+        $es = docalist('elastic-search');
         $searchType && $searchType = "?search_type=$searchType";
-        $response = $this->server->get("_search$searchType", $this->elasticSearchRequest());
+        $response = $es->get("_search$searchType", $this->elasticSearchRequest());
         if (isset($response->error)) {
             throw new Exception($response->error);
         }
 
-        return new SearchResults($response, $this->server->time());
+        return new SearchResults($response, $es->time());
     }
 
     /**
@@ -660,7 +649,7 @@ class SearchRequest {
      * @return string
      */
     public function explainQuery() {
-        $response = $this->server->get('_validate/query?explain', $this->elasticSearchQuery());
+        $response = docalist('elastic-search')->get('_validate/query?explain', $this->elasticSearchQuery());
 
         return $response->explanations[0];
     }

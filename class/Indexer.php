@@ -21,14 +21,6 @@ use Exception, InvalidArgumentException, RuntimeException;
  */
 class Indexer {
     /**
-     * Le client utilisé pour communiquer avec le serveur ElasticSearch
-     * (passé en paramètre au constructeur).
-     *
-     * @var ElasticSearchClient
-     */
-    protected $elasticSearchClient;
-
-    /**
      * La configuration du moteur de recherche
      * (passée en paramètre au constructeur).
      *
@@ -117,11 +109,9 @@ class Indexer {
     /**
      * Construit un nouvel indexeur.
      *
-     * @param ElasticSearchClient $elasticSearchClient
      * @param Settings $settings
      */
-    public function __construct(ElasticSearchClient $elasticSearchClient, Settings $settings) {
-        $this->elasticSearchClient = $elasticSearchClient;
+    public function __construct(Settings $settings) {
         $this->settings = $settings;
         $this->bulkMaxSize = $settings->indexer->bulkMaxSize * 1024 * 1024; // en Mo dans la config
         $this->bulkMaxCount = $settings->indexer->bulkMaxCount;
@@ -386,6 +376,8 @@ class Indexer {
         set_time_limit(3600);
         ignore_user_abort(true);
 
+        $es = docalist('elastic-search');
+
         // Réindexe chacun des types demandé
         foreach($types as $type => $label) {
             // Démarre le chronomètre et stocke l'heure de début dans les stats
@@ -393,7 +385,7 @@ class Indexer {
             $this->updateStat($type, 'start', $startTime);
 
             // Récupère l'heure actuelle du serveur ES (pour purger les docs)
-            $serverStartTime = $this->currentServerTime();
+            $serverStartTime = $this->currentServerTime($es);
 
             // Informe qu'on va réindexer $type
             do_action('docalist_search_before_reindex_type', $type, $label);
@@ -413,7 +405,7 @@ class Indexer {
 
                 // Force un rafraichissement des index
                 // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-refresh/
-                $this->elasticSearchClient->post("_refresh");
+                $es->post("_refresh");
 
                 // Remarque : le refresh n'est nécessaire que pour avoir de
                 // manière précise le nombre de docs qui vont être supprimés.
@@ -424,12 +416,12 @@ class Indexer {
                 // Compte les documents de type $type dont timestamp < start
                 // http://www.elasticsearch.org/guide/reference/api/count/
                 $query = sprintf('{"range":{"_timestamp":{"lt":%.0f}}}', $serverStartTime);
-                $result = $this->elasticSearchClient->post("$type/_count", $query);
+                $result = $es->post("$type/_count", $query);
 
                 // Supprime ces documents via un deleteByQuery(_timestamp<start)
                 if ($result->count) {
                     // @see http://www.elasticsearch.org/guide/reference/api/delete-by-query/
-                    $this->elasticSearchClient->delete("$type/_query", $query);
+                    $es->delete("$type/_query", $query);
                 }
 
                 // Met à jour la statistique sur le nombre de documents supprimés
@@ -483,6 +475,8 @@ class Indexer {
      * du serveur via la fonction time().
      * @see http://www.elasticsearch.org/guide/reference/modules/scripting/
      *
+     * @param ElasticSearchClient $es
+     *
      * @return int|null Retourne l'heure en cours sur le serveur (en
      * millisecondes écoulées depuis epoch) ou null si l'index en cours ne
      * contient aucun document.
@@ -490,10 +484,10 @@ class Indexer {
      * Remarque : le temps retourné est en millisecondes (contrairement à la
      * fonction php microtime qui retourne des secondes).
      */
-    protected function currentServerTime() {
+    protected function currentServerTime(ElasticSearchClient $es) {
         $query = '{"size": 1,"script_fields":{"time":{"script":"time()"}}}';
         try {
-            $data = $this->elasticSearchClient->get('_search', $query);
+            $data = $es->get('_search', $query);
         } catch (Exception $e) {
             // l'index n'existe pas
             return null; // on sait pas
@@ -525,7 +519,7 @@ class Indexer {
         do_action('docalist_search_before_flush', $count, $size);
 
         // Envoie le buffer à ES
-        $result = $this->elasticSearchClient->bulk('_bulk', $this->bulk);
+        $result = docalist('elastic-search')->bulk('_bulk', $this->bulk);
         // @todo : permettre un timeout plus long pour les requêtes bulk
         // @todo si erreur, réessayer ? (par exemple avec un timeout plus long)
 
@@ -624,13 +618,15 @@ class Indexer {
         // de supprimer un type qui n'est plus indexé.
 
         // ES 0.90.3 ne supporte pas un appel de la forme suivante :
-        // $this->elasticSearchClient->delete(implode(',', (array)$types));
+        // $es->delete(implode(',', (array)$types));
         // donc on supprime les types demandés un par un.
 
-        // Supprimer tous les types indiqués
+        $es = docalist('elastic-search');
+
+        // Supprime tous les types indiqués
         foreach($types as $type) {
             // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-delete-mapping/
-            $this->elasticSearchClient->delete($type);
+            $es->delete($type);
         }
     }
 
@@ -650,8 +646,10 @@ class Indexer {
      *   les paramètres existe.
      */
     public function ping() {
+        $es = docalist('elastic-search');
+
         try {
-            $status = $this->elasticSearchClient->head();
+            $status = $es->head();
         }
         catch (Exception $e) {
             return 0;   // Le serveur ne répond pas
@@ -681,10 +679,12 @@ class Indexer {
             $settings = apply_filters("docalist_search_get_{$type}_settings", $settings);
         }
 
+        $es = docalist('elastic-search');
+
         // Cas 1. L'index n'existe pas encore, on le crée
-        if (! $this->elasticSearchClient->exists()) {
+        if (! $es->exists()) {
             // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index/
-            $this->elasticSearchClient->put('', $settings);
+            $es->put('', $settings);
         }
 
         // Cas 2. L'index existe déjà, maj les settings, supprime les vieux types
@@ -693,7 +693,7 @@ class Indexer {
 
             // Récupère tous les types qui existent (les mappings)
             // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-get-mapping/
-            $types = $this->elasticSearchClient->get('_mapping');
+            $types = $es->get('_mapping');
             // réponse de la forme : { "index":{"type1":{...}, "type2":{...}}
 
             // Détermine ceux qu'on n'indexe plus : diff (old, new)
@@ -709,9 +709,9 @@ class Indexer {
             // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-update-settings/
             // Remarque : Pour mettre à jour les analyseurs, il faut fermer
             // puis réouvrir l'index
-            $this->elasticSearchClient->post('_close');
-            $this->elasticSearchClient->put('_settings', $settings);
-            $this->elasticSearchClient->post('_open');
+            $es->post('_close');
+            $es->put('_settings', $settings);
+            $es->post('_open');
         }
 
         // Enregistre (ou met à jour) les mappings de chaque type
@@ -733,7 +733,7 @@ class Indexer {
 
             // Stocke le mapping
             $mapping = array($type => $mapping);
-            $this->elasticSearchClient->put("$type/_mapping", $mapping);
+            $es->put("$type/_mapping", $mapping);
 
             // @todo Tester si le mapping contient des erreurs.
         }

@@ -16,20 +16,11 @@ namespace Docalist\Search;
 
 use Docalist\QueryString;
 use WP_Query;
-use InvalidArgumentException, RuntimeException;
 
 /**
  * La classe qui gère les recherches.
  */
 class Searcher {
-
-    /**
-     * Le client utilisé pour communiquer avec le serveur ElasticSearch
-     * (passé en paramètre au constructeur).
-     *
-     * @var ElasticSearchClient
-     */
-    protected $elasticSearchClient;
 
     /**
      * La configuration du moteur de recherche
@@ -54,11 +45,9 @@ class Searcher {
     /**
      * Construit le moteur de recherche.
      *
-     * @param ElasticSearchClient $elasticSearchClient
      * @param Settings $settings
      */
-    public function __construct(ElasticSearchClient $elasticSearchClient, Settings $settings) {
-        $this->elasticSearchClient = $elasticSearchClient;
+    public function __construct(Settings $settings) {
         $this->settings = $settings;
 
         add_filter('query_vars', function($vars) {
@@ -83,7 +72,7 @@ class Searcher {
 
         });
 
-        // Crée nos propres ""search rewrite rules" et permet aux plugins d'en
+        // Crée nos propres "search rewrite rules" et permet aux plugins d'en
         // créer de nouvelles. Les routes créées sont prioritaires sur toutes
         // les autres (on les insère en tout début du tableau des routes wp)
         add_filter( 'rewrite_rules_array', function(array $rules) {
@@ -216,13 +205,13 @@ class Searcher {
      *
      * - afficher un formulaire de recherche avancée qui reprend les paramètres
      * - expliquer comment a été interprétée la recherche
-     * - faire une export des réponses correspondant à cette recherche
+     * - faire un export des réponses correspondant à cette recherche
      * - ajouter dans un panier
      * - faire un traitement en batch sur l'ensemble des réponses
      * - etc.
      *
      * La seule solution est de désactiver complètement la recherche wordpress
-     * et ne lancer une recherche que si on nous le demande explicitement.
+     * et de ne lancer une recherche que si on nous le demande explicitement.
      *
      * Pour cela, on introduit une nouvelle query_var : "docalist-search".
      * Cette query var doit être fournie en query string (peu courant) ou
@@ -286,7 +275,7 @@ class Searcher {
             $args->add('_type', $query->query_vars['post_type']);
         }
 
-        $this->request = new SearchRequest($this->elasticSearchClient, $args);
+        $this->request = new SearchRequest($args);
 
         // Synchronize size et posts_per_page pour que le pager fonctionne
         $size = $this->request->size();
@@ -393,7 +382,7 @@ class Searcher {
             ]
         ];
 
-        $result = $this->elasticSearchClient->post('_suggest', $query);
+        $result = docalist('elastic-search')->post('_suggest', $query);
 
         if (isset($result->lookup[0]->options)) {
             return $result->lookup[0]->options;

@@ -60,10 +60,12 @@ class Plugin {
         // Charge la configuration du plugin
         $this->settings = new Settings('docalist-search');
 
-        add_filter('init', function() {
+        // Crée le service "elastic-search"
+        docalist()->add('elastic-search', function() {
+            return new ElasticSearchClient($this->settings->server);
+        });
 
-            // Initialise le client ElasticSearch
-            $this->elasticSearchClient = new ElasticSearchClient($this->settings->server);
+        add_filter('init', function() {
 
             // Enregistre les types de contenus indexables
             new PostIndexer();
@@ -73,7 +75,7 @@ class Plugin {
 
             // Si la recherche est activée, initialise le moteur
             if ($this->settings->enabled) {
-                $this->searcher = new Searcher($this->elasticSearchClient, $this->settings);
+                $this->searcher = new Searcher($this->settings);
             }
         });
 
@@ -85,10 +87,10 @@ class Plugin {
         // Back office
         add_action('admin_menu', function() {
             // Indexer
-            $this->indexer = new Indexer($this->elasticSearchClient, $this->settings);
+            $this->indexer = new Indexer($this->settings);
 
             // Page des réglages
-            new SettingsPage($this->settings, $this->elasticSearchClient, $this->indexer);
+            new SettingsPage($this->settings, $this->indexer);
         });
     }
 

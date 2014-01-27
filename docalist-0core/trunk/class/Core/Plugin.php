@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Core" plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2014 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -23,7 +23,7 @@ use Docalist\Table\TableInfo;
 /**
  * Plugin core de Docalist.
  */
-class Plugin extends AbstractPlugin {
+class Plugin {
 
     /**
      * La configuration du plugin.
@@ -51,9 +51,73 @@ class Plugin extends AbstractPlugin {
     protected $tableManager;
 
     /**
+     * Liste des services.
+     *
+     * @var object[]
+     */
+    protected $services = array();
+
+    /**
+     * Ajoute un service dans le container.
+     *
+     * @param string $id identifiant unique de l'objet.
+     * @param mixed $service le service à ajouter. Cela peut être un scalaire (un
+     * paramètre de configuration, par exemple), un objet (par exemple un plugin)
+     * ou une closure qui sera invoquée lors du premier appel.
+     *
+     * @throws Exception S'il existe déjà un service avec l'identifiant indiqué.
+     *
+     * @return self
+     */
+    public function add($id, $service) {
+        if (isset($this->services[$id])) {
+            $message = __('%s existe déjà.', 'docalist-core');
+            throw new Exception(sprintf($message, $id));
+        }
+
+        $this->services[$id] = $service;
+
+        return $this;
+    }
+
+    /**
+     * Indique si le container contient un service avec l'identifiant indiqué.
+     *
+     * @param unknown $id l'identifiant du service recherché.
+     *
+     * @return bool
+     */
+    public function has($id) {
+        return isset($this->services[$id]);
+    }
+
+    /**
+     * Retourne le service ayant l'identifiant indiqué.
+     *
+     * @param string $id l'identifiant de l'objet à retourner
+     *
+     * @throws Exception Si l'identifiant indiqué n'existe pas.
+     *
+     * @return mixed
+     */
+    public function get($id) {
+        if (! isset($this->services[$id])) {
+            $message = __('%s non trouvé.', 'docalist-core');
+            throw new Exception(sprintf($message, $id));
+        }
+
+        $service = $this->services[$id];
+        if ($service instanceof Closure) {
+            return $this->services[$id] = $service($this);
+        }
+
+        return $service;
+    }
+
+    /**
      * {@inheritdoc}
      */
-    public function register() {
+    public function __construct() {
         // Charge la configuration du plugin
         $this->settings = new Settings('docalist-core');
 
@@ -79,9 +143,9 @@ class Plugin extends AbstractPlugin {
         });
 
         // Gestion des admin notices - à revoir, pas içi
-        add_action('admin_notices', function(){
-            $this->showAdminNotices();
-        });
+//         add_action('admin_notices', function(){
+//             $this->showAdminNotices();
+//         });
     }
 
     /**
@@ -130,6 +194,7 @@ class Plugin extends AbstractPlugin {
      * Affiche les admin-notices qui ont été enregistrés
      * (cf AbstractPlugin::adminNotice).
      */
+/*
     protected function showAdminNotices() {
         // Adapté de : http://www.dimgoto.com/non-classe/wordpress-admin_notice/
         if (false === $notices = get_transient(self::ADMIN_NOTICE_TRANSIENT)) {
@@ -147,7 +212,7 @@ class Plugin extends AbstractPlugin {
 
         delete_transient(self::ADMIN_NOTICE_TRANSIENT);
     }
-
+*/
     /**
      * Enregistre les tables prédéfinies.
      *

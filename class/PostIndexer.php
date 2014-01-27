@@ -15,7 +15,6 @@
 namespace Docalist\Search;
 
 use WP_Query, WP_Post;
-use InvalidArgumentException, RuntimeException;
 
 /**
  * Une classe qui permet d'indexer les articles de WordPress

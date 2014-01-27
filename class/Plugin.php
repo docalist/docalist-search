@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2014 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -13,16 +13,14 @@
  * @version     SVN: $Id$
  */
 namespace Docalist\Search;
-use Docalist\AbstractPlugin, Docalist\QueryString;
-use StdClass, Exception;
-use WP_Query;
+use Docalist\QueryString;
 
 /* Documentation : doc/search-design.md */
 
 /**
  * Plugin Docalist Search.
  */
-class Plugin extends AbstractPlugin {
+class Plugin {
 
     /**
      * Les paramètres du moteur de recherche.
@@ -55,29 +53,30 @@ class Plugin extends AbstractPlugin {
     /**
      * {@inheritdoc}
      */
-    public function register() {
+    public function __construct() {
+        add_filter('init', function() {
+            // Charge la configuration du plugin
+            $this->settings = new Settings('docalist-search');
 
-        // Configuration du plugin
-        $this->settings = new Settings('docalist-search');
+            // Initialise le client ElasticSearch
+            $this->elasticSearchClient = new ElasticSearchClient($this->settings->server);
 
-        // Client ElasticSearch
-        $this->elasticSearchClient = new ElasticSearchClient($this->settings->server);
+            // Enregistre les types de contenus indexables
+            new PostIndexer();
 
-        // Enregistre les types de contenus indexables
-        new PostIndexer();
+            // Enregistre la liste des facettes disponibles
+            $this->registerFacets();
 
-        // Enregistre la liste des facettes disponibles
-        $this->registerFacets();
+            // Si la recherche est activée, initialise le moteur
+            if ($this->settings->enabled) {
+                $this->searcher = new Searcher($this->elasticSearchClient, $this->settings);
+            }
+        });
 
         // Déclare notre widget "Search Facets"
         add_action('widgets_init', function() {
             register_widget( __NAMESPACE__ . '\FacetsWidget' );
         });
-
-        // Si la recherche est activée, active le moteur
-        if ($this->settings->enabled) {
-            $this->searcher = new Searcher($this->elasticSearchClient, $this->settings);
-        }
 
         // Back office
         add_action('admin_menu', function() {

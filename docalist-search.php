@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012,2013 Daniel Ménard
+ * Copyright (C) 2012-2014 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -10,7 +10,7 @@
  * Plugin Name: Docalist Search
  * Plugin URI:  http://docalist.org
  * Description: Docalist Search Plugin.
- * Version:     0.1
+ * Version:     0.2
  * Author:      Daniel Ménard
  * Author URI:  http://docalist.org/
  * Text Domain: docalist-search
@@ -21,14 +21,22 @@
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  * @version     SVN: $Id$
  */
-
 namespace Docalist\Search;
-use Docalist, Docalist\Autoloader;
+use Docalist;
 
-if (class_exists('Docalist')) {
-    // Enregistre notre espace de noms
-    Autoloader::register(__NAMESPACE__, __DIR__ . '/class');
+/**
+ * Affiche une erreur dans le back-office si Docalist Core n'est pas activé.
+ */
+add_action('admin_notices', function() {
+    if (! class_exists('Docalist')) {
+        echo '<div class="error"><p>Docalist Search requires Docalist Core.</p></div>';
+    }
+});
 
-    // Charge le plugin
-    Docalist::load('Docalist\Search\Plugin', __FILE__);
-}
+/**
+ * Initialise notre plugin une fois que Docalist Core est chargé.
+ */
+add_action('docalist_loaded', function (Docalist $docalist) {
+    $docalist->get('autoloader')->add(__NAMESPACE__, __DIR__ . '/class');
+    $docalist->add('docalist-search', new Plugin());
+});

@@ -22,76 +22,44 @@
  * @version     SVN: $Id$
  */
 
-namespace Docalist\Core;
-use Docalist, Docalist\Autoloader;
+// pas de namespace, la fonction docalist() est globale.
 
-// Initialise l'autoloader
-require_once __DIR__ . '/class/Autoloader.php';
+/**
+ * Retourne l'instance du plugin Docalist Core ou un service de Docalist si
+ * un paramètre est passé.
+ *
+ * @param string $service L'identifiant du service à retourner ou null pour
+ * obtenir l'instance de Docalist.
+ *
+ * @return Docalist\Core\Plugin
+ */
+function docalist($service = null) {
+    static $docalist;
 
-// Charge la classe de base du framework
-require_once __DIR__ . '/class/Docalist.php';
+    // Au premier appel, on initialise l'instance
+    if (is_null($docalist)) {
+        // Initialise l'autoloader
+        require_once __DIR__ . '/class/Autoloader.php';
+        $autoloader = new Docalist\Autoloader([
+            'Docalist' => __DIR__ . '/class',
+            'Docalist\Forms' => __DIR__ . '/lib/docalist-forms/class',
+            'Symfony' => __DIR__ . '/lib/Symfony'
+        ]);
 
-// Enregistre notre espace de nom
-Autoloader::register('Docalist', __DIR__ . '/class');
+        // Initialise le plugin
+        $docalist = new Docalist\Core\Plugin();
+        $docalist->add('autoloader', $autoloader);
 
-// Enregistre docalist-forms
-Autoloader::register('Docalist\Forms', __DIR__ . '/lib/docalist-forms/class');
+        // La classe Docalist est un alias global de Docalist\Core\Plugin
+        class_alias('Docalist\Core\Plugin', 'Docalist');
+    }
 
-// Enregistre les composants symfony utilisés
-Autoloader::register('Symfony', __DIR__ . '/lib/Symfony');
-
-// Charge le plugin "Core"
-Docalist::load('Docalist\Core\Plugin', __FILE__);
-
-/*
-
-A revoir dans une nouvelle version.
-Objectifs :
-- Se débarrasser des classes statiques.
-- Etre sur que docalist-core est chargé en premier, sans avoir le truc du 0-core
-- Que les plugins docalist ne plantent pas si docalist core est désactivé
-
-Principe :
-- wordpress charge tous les plugins
-- ceux-ci ne font rien : ils se contentent d'installer un filtre wordpress qui
-  sera appellé quand docalist core sera chargé
-
-Dans docalist core :
-namespace Docalist\Core;
-
-add_action('plugins_loaded', function() {
-    // Initialise l'autoloader
-    require_once __DIR__ . '/class/Autoloader.php';
-    $autoloader = new Autoloader();
-
-    // Enregistre notre espace de nom
-    $autoloader->register(__NAMESPACE__, __DIR__ . '/class');
-
-    // Charge le plugin
-    $docalist = new Plugin();
-
-    do_action('docalist_loaded', $docalist);
-});
-
-Eventuellement, stocker $docalist dans une var globale ?
-Et avoir une fonction générique :
-function docalist($key) {
-    global $docalist;
-
-    return $key ? $docalist->get($key) : $docalist;
+    return $service ? $docalist->get($service) : $docalist;
 }
 
-Dans un plugin :
-
-add_action('docalist_loaded', function(Docalist\Core\Plugin $docalist) {
-    // Enregistre notre espace de noms
-    $docalist->autoload(__NAMESPACE__, __DIR__ . '/class');
-
-    // Charge le plugin
-    $docalist->add(new Plugin)
+/**
+ * Charge les plugins Docalist
+ */
+add_action('plugins_loaded', function() {
+    do_action('docalist_loaded', docalist());
 });
-
-// $docalist->autoload(xxx) est juste un raccourci vers
-// $docalist->autoloader()->register(xxx)
-
-*/

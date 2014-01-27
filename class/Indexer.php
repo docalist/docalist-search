@@ -24,7 +24,7 @@ class Indexer {
      * La configuration du moteur de recherche
      * (passée en paramètre au constructeur).
      *
-     * @var Settings
+     * @var IndexerSettings
      */
     protected $settings;
 
@@ -75,7 +75,7 @@ class Indexer {
 
     /**
      * La taille maximale, en octets, autorisée pour le buffer
-     * (settings.indexer.bulkMaxSize).
+     * (settings.bulkMaxSize).
      *
      * @var int
      */
@@ -83,7 +83,7 @@ class Indexer {
 
     /**
      * Le nombre maximum de documents autorisés dans le buffer
-     * (settings.indexer.bulkMaxCount).
+     * (settings.bulkMaxCount).
      *
      * @var int
      */
@@ -109,12 +109,12 @@ class Indexer {
     /**
      * Construit un nouvel indexeur.
      *
-     * @param Settings $settings
+     * @param IndexerSettings $settings
      */
-    public function __construct(Settings $settings) {
+    public function __construct(IndexerSettings $settings) {
         $this->settings = $settings;
-        $this->bulkMaxSize = $settings->indexer->bulkMaxSize * 1024 * 1024; // en Mo dans la config
-        $this->bulkMaxCount = $settings->indexer->bulkMaxCount;
+        $this->bulkMaxSize = $settings->bulkMaxSize * 1024 * 1024; // en Mo dans la config
+        $this->bulkMaxCount = $settings->bulkMaxCount;
         $this->bulk = '';
         $this->bulkCount = 0;
         $this->stats = array();
@@ -159,7 +159,7 @@ class Indexer {
             $all = apply_filters('docalist_search_get_types', array());
 
             // Récupère la liste des types indexés (choisis par l'admin)
-            $selected = array_flip($this->settings->indexer->types->toArray());
+            $selected = array_flip($this->settings->types->toArray());
 
             // Croise les deux
             $this->types = array_intersect_key($all, $selected);
@@ -694,14 +694,20 @@ class Indexer {
             // Récupère tous les types qui existent (les mappings)
             // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-get-mapping/
             $types = $es->get('_mapping');
-            // réponse de la forme : { "index":{"type1":{...}, "type2":{...}}
+
+            // La réponse est de la forme : { "index":{"type1":{...}, "type2":{...}}
+            // Comme on veut juste les noms des types, on supprime l'étage "index"
+            $types = $types->{key($types)};
+
+            // On ne veut que les noms des types
+            $types = array_keys((array) $types);
 
             // Détermine ceux qu'on n'indexe plus : diff (old, new)
-            $types = array_keys((array) $types->{$this->settings->server->index});
             $types = array_diff($types, array_keys($this->types));
 
             // Suppression
             $types && $this->clear($types);
+
             // @todo : ne supprimer que des types qu'on a nous-mêmes créé ?
             // stocker un "_meta" dans le type, interdire suppression si absent
 

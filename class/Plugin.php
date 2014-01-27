@@ -87,7 +87,7 @@ class Plugin {
         // Back office
         add_action('admin_menu', function() {
             // Indexer
-            $this->indexer = new Indexer($this->settings);
+            $this->indexer = new Indexer($this->settings->indexer);
 
             // Page des réglages
             new SettingsPage($this->settings, $this->indexer);

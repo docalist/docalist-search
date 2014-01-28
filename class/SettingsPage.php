@@ -29,17 +29,10 @@ class SettingsPage extends AdminPage {
 
     /**
      *
-     * @var Indexer
-     */
-    protected $indexer;
-
-    /**
-     *
      * @param Settings $settings
      */
-    public function __construct(Settings $settings, Indexer $indexer) {
+    public function __construct(Settings $settings) {
         $this->settings = $settings;
-        $this->indexer = $indexer;
 
         // @formatter:off
         parent::__construct(
@@ -147,7 +140,10 @@ class SettingsPage extends AdminPage {
      * Indique si le serveur répond et teste si l'index existe.
      */
     public function actionServerStatus() {
-        switch($this->indexer->ping()) {
+        /* @var $indexer Indexer */
+        $indexer = docalist('docalist-search-indexer');
+
+        switch($indexer->ping()) {
             case 0:
                 $msg = __("L'url %s ne répond pas.", 'docalist-search');
                 return printf($msg,
@@ -197,7 +193,9 @@ class SettingsPage extends AdminPage {
                 $this->settings->save();
 
                 // crée l'index, les mappings, etc.
-                $this->indexer->setup();
+                /* @var $indexer Indexer */
+                $indexer = docalist('docalist-search-indexer');
+                $indexer->setup();
 
                 return $this->redirect($this->url('Index'), 303);
             } catch (Exception $e) {
@@ -224,7 +222,9 @@ class SettingsPage extends AdminPage {
         // Teste si la recherche peut être activée
         $error = '';
         if (! $this->settings->enabled) {
-            $ping = $this->indexer->ping();
+            /* @var $indexer Indexer */
+            $indexer = docalist('docalist-search-indexer');
+            $ping = $indexer->ping();
 
             // 0. ES ne répond pas
             if ($ping === 0) {
@@ -362,7 +362,9 @@ class SettingsPage extends AdminPage {
         $this->reindexUI();
 
         // Lance la réindexation des types sélectionnés
-        $this->indexer->reindex($selected);
+        /* @var $indexer Indexer */
+        $indexer = docalist('docalist-search-indexer');
+        $indexer->reindex($selected);
 
         echo "Réindexation terminée.";
     }

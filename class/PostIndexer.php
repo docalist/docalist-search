@@ -14,6 +14,7 @@
  */
 namespace Docalist\Search;
 
+use Docalist\Search\Indexer;
 use WP_Query, WP_Post;
 
 /**
@@ -66,10 +67,14 @@ class PostIndexer {
             'no_found_rows' => true
         );
 
+        // Récupère l'indexeur
+        /* @var $indexer Indexer */
+        $indexer = docalist('docalist-search-indexer');
+
         while ($posts = $query->query($args)) {
             //echo "Query exécutée avec offset=", $args['offset'], ', result=', count($posts), '<br />';
             foreach($posts as $post) {
-                do_action('docalist_search_index', $type, $post->ID, $this->map($post));
+                $indexer->index($type, $post->ID, $this->map($post));
             }
             $args['offset'] += count($posts);
             break;

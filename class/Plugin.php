@@ -30,20 +30,6 @@ class Plugin {
     protected $settings;
 
     /**
-     * Le client utilisé pour communiquer avec le serveur ElasticSearch.
-     *
-     * @var ElasticSearchClient
-     */
-    protected $elasticSearchClient;
-
-    /**
-     * L'indexeur.
-     *
-     * @var Indexer
-     */
-    protected $indexer;
-
-    /**
      * Le moteur de recherche.
      *
      * @var Searcher
@@ -63,6 +49,11 @@ class Plugin {
         // Crée le service "elastic-search"
         docalist()->add('elastic-search', function() {
             return new ElasticSearchClient($this->settings->server);
+        });
+
+        // Crée le service "docalist-search-indexer"
+        docalist()->add('docalist-search-indexer', function(){
+            return new Indexer($this->settings->indexer);
         });
 
         add_filter('init', function() {
@@ -86,11 +77,8 @@ class Plugin {
 
         // Back office
         add_action('admin_menu', function() {
-            // Indexer
-            $this->indexer = new Indexer($this->settings->indexer);
-
             // Page des réglages
-            new SettingsPage($this->settings, $this->indexer);
+            new SettingsPage($this->settings);
         });
     }
 

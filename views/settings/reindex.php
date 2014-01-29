@@ -87,6 +87,8 @@ add_action('docalist_search_before_reindex', function(array $types) { ?>
             // @formatter:on
             ?>
         </p>
+
+        <h3><?= __('Création / mise à jour des paramètres de l\'index', 'docalist-search') ?></h3>
         <?php
         flush();
 }, 1, 1); ?>
@@ -97,12 +99,13 @@ add_action('docalist_search_before_reindex', function(array $types) { ?>
  *
  * Affiche un titre h3 et ouvre un <ul>.
  */
-add_action('docalist_search_before_reindex_type', function($type, $label) use(&$total) {
-    $total = 0; ?>
+add_action('docalist_search_before_reindex_type', function($type, $label) use(&$total) { ?>
+    <p><?= __('Index OK.', 'docalist-search') ?></p>
     <h3><?= $label ?></h3>
     <p><?= __('Chargement des documents à indexer à partir de la base WordPress...', 'docalist-search') ?></p>
     <ul class="ul-square">
     <?php
+    $total = 0;
     flush();
 }, 1, 2);
 ?>

@@ -338,9 +338,6 @@ class Indexer {
      * réindexation est terminée.
      */
     public function reindex($types = null) {
-        // Créé l'index, les mappings si pas fait, met à jour sinon
-        $this->setup();
-
         // Vérifie les types indiqués
         if (is_null($types)) {
             $types = array_keys($this->types); // tout
@@ -358,11 +355,14 @@ class Indexer {
         }
         unset($label);
 
-        // Vide le buffer (au cas où) pour que les stats soient justes
-        $this->flush();
-
         // Informe qu'on va commencer une réindexation
         do_action('docalist_search_before_reindex', $types);
+
+        // Créé l'index, les mappings si pas fait, met à jour sinon
+        $this->setup();
+
+        // Vide le buffer (au cas où) pour que les stats soient justes
+        $this->flush();
 
         // Permet au script de s'exécuter aussi longtemps que nécessaire
         set_time_limit(3600);

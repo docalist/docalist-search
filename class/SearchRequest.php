@@ -649,7 +649,12 @@ class SearchRequest {
      * @return string
      */
     public function explainQuery() {
-        $response = docalist('elastic-search')->get('_validate/query?explain', $this->elasticSearchQuery());
+        // $response = docalist('elastic-search')->get('_validate/query?explain', $this->elasticSearchQuery());
+
+        // ES-1.0 : validate-query require a top-level "query" parameter
+        // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/master/_search_requests.html
+        $query = ['query' => $this->elasticSearchQuery()];
+        $response = docalist('elastic-search')->get('_validate/query?explain', $query);
 
         return $response->explanations[0];
     }

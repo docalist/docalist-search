@@ -407,7 +407,12 @@ class Indexer {
 
                 // Compte les documents de type $type dont timestamp < start
                 // http://www.elasticsearch.org/guide/reference/api/count/
-                $query = sprintf('{"range":{"_timestamp":{"lt":%.0f}}}', $serverStartTime);
+                // $query = sprintf('{"range":{"_timestamp":{"lt":%.0f}}}', $serverStartTime);
+
+                // ES-1.0 : count now requires a top-level "query" parameter
+                // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/master/_search_requests.html
+                $query = sprintf('{"query":{"range":{"_timestamp":{"lt":%.0f}}}}', $serverStartTime);
+
                 $result = $es->post("$type/_count", $query);
 
                 // Supprime ces documents via un deleteByQuery(_timestamp<start)
@@ -485,7 +490,14 @@ class Indexer {
             return null; // on sait pas
         }
 
-        return isset($data->hits->hits[0]) ? $data->hits->hits[0]->fields->time : null;
+        $time = isset($data->hits->hits[0]) ? $data->hits->hits[0]->fields->time : null;
+
+        // ES-1.0 : time est maintenant un tableau.
+        // Field values are now always returned as arrays.
+        // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/master/_return_values.html
+        is_array($time) && $time = $time[0];
+
+        return $time;
     }
 
     /**

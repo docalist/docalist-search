@@ -78,7 +78,7 @@ use Docalist\Search\SearchResults;
  * - Tous préfixés par le nom du plugin, mais avec un underscore à la place du
  *   tiret (par exemple "docalist_search".
  * - get pour les filtres, verbe pour les actions : docalist_search_get_results,
- *   docalist_search_delete
+ *   docalist_search_do_something
  * - before et after pour les actions qui signalent quelque chose :
  *   docalist_search_before_reindex, docalist_search_after_reindex
  *

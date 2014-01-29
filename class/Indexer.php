@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2014 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -54,7 +54,7 @@ class Indexer {
      * Exemple :
      *
      * <code>
-     * {"index":{"_type": "dclref", "_id":1234}}\n      // indexer cet notice
+     * {"index":{"_type": "dclref", "_id":1234}}\n      // indexer cette notice
      * {"ref":12,"title":"test1", etc.}\n
      * {"delete":{"_type": "post", "_id":13}}\n         // supprimer cet article
      * {"index":{"_type": "dclresource", "_id":5678}}\n // indexer cette ressource
@@ -119,14 +119,6 @@ class Indexer {
         $this->bulkCount = 0;
         $this->stats = array();
         // $this->types est initialisé lors du premier appel à checkType()
-
-        // Installe les actions qu'on gère
-        add_action('docalist_search_setup', array($this, 'setup'), 10, 0);
-        add_action('docalist_search_index', array($this, 'index'), 10, 3);
-        add_action('docalist_search_delete', array($this, 'delete'), 10, 2);
-        add_action('docalist_search_reindex', array($this, 'reindex'), 10, 1);
-        add_action('docalist_search_flush', array($this, 'flush'), 10, 0);
-        add_action('docalist_search_clear', array($this, 'reindex'), 10, 1);
     }
 
     /**
@@ -334,10 +326,10 @@ class Indexer {
      * @action "docalist_search_before_reindex_type(type,label)" déclenchée
      * quand la réindexation du type $type commence.
      *
-     * @action "docalist_search_reindex_$type" déclenchée pour réindexer
+     * @action "docalist_search_reindex_$type" déclenchée pour réindexer les
      * documents du type $type. Le plugin qui gère ce type doit parcourir sa
-     * collection de documents et appeller l'action "docalist_search_index"
-     * pour chaque document.
+     * collection de documents et appeller la méthode index() pour chaque
+     * document.
      *
      * @action "docalist_search_after_reindex_type(type,label,stats)" déclenchée
      * quand la réindexation du type $type est terminée.

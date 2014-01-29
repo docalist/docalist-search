@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2014 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -14,8 +14,9 @@
  */
 namespace Docalist\Search;
 
-use Docalist\AdminPage, Docalist\Forms\Form;
-use Docalist\Data\Entity\EntityInterface;
+use Docalist\AdminPage;
+use Docalist\Forms\Form;
+use Docalist\Http\CallbackResponse;
 
 /**
  * Options de configuration du plugin.
@@ -41,64 +42,6 @@ class SettingsPage extends AdminPage {
             __('Docalist Search', 'docalist-search')          // libellé menu
         );
         // @formatter:on
-    }
-
-    /**
-     *
-     * @param Form $form
-     * @param EntityInterface $part
-     *
-     * @return boolean Retourne true si les paramètrs ont été enregistrés.
-     */
-    protected function handle(Form $form, EntityInterface $part) {
-        $saved = false;
-        $submit = __('Enregistrer les modifications', 'docalist-search');
-
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            if (isset($_POST['reset'])) {
-                $noreset = true; // ne pas réafficher le bouton reset
-                foreach ($part as $key => $value) {
-                    $part->$key = null;
-                }
-
-                $submit = __('Restaurer ces valeurs par défaut', 'docalist-search');
-                $msg = __('Le formulaire affiche maintenant les paramètres avec leur valeur par défaut. <b>Cliquez sur le bouton "%s"</b> pour supprimer vos paramètres actuels.', 'docalist-search');
-                $msg = sprintf($msg, $submit);
-            } else {
-                $form->bind($_POST);
-                foreach ($form->data() as $key => $data) {
-                    $part->$key = $data;
-                }
-
-                $this->settings->save();
-                $msg = __('Vos options ont bien été enregistrées.', 'docalist-search');
-                $saved = true;
-            }
-            printf('<div class="updated"><p>%s</p></div>', $msg);
-        }
-
-        // Définit l'url et la méthode du formulaire
-        $form->attribute('action', $this->url())->attribute('method', 'post'); // @todo: charset ?
-
-        // Ajoute la description de l'action en texte d'intro
-        /* $form->description($this->description()); déjà fait par AbstractActions::run(). */
-
-        // Ajoute un bouton "enregistrer" au formulaire
-        $form->submit($submit);
-
-        // Ajoute un bouton "reset" au formulaire
-        if (!isset($noreset)) {
-            // @formatter:off
-            $form->button(__('Restaurer les valeurs d\'usine...', 'docalist-search'))
-                 ->name('reset')
-                 ->attribute('type', 'submit');
-                // @todo : mettre le bouton reset au bon endroit
-            // @formatter:off
-        }
-
-        $form->bind($part)->render('wordpress');
-
-        return $saved;
     }
 
     public function actionIndex() {
@@ -325,129 +268,32 @@ class SettingsPage extends AdminPage {
             $types = array_flip($types);
             $types = array_intersect_key($this->availableTypes(), $types);
 
-            // Erreur si l'admin n'a pas encore choisit les types à indexer
-            if (empty($types)) {
-                //@formatter:off
-                $msg = __(
-                    'Avant de lancer l\'indexation de vos documents, vous devez
-                    choisir les contenus qui seront disponibles dans votre moteur
-                    de recherche.
-
-                    Allez dans la page <a href="%s">"%s"</a>, choisissez vos
-                    contenus puis revenez sur cette page pour lancer
-                    l\'indexation.',
-                    'docalist-search'
-                );
-
-                return printf($msg, //@todo : générer br dans msg
-                    $this->url('Types'),
-                    $this->title('Types')
-                );
-                // @formatter:on
-            }
-
-            // Affiche le formulaire
-            //@formatter:off
-            $box = new Form();
-            $box->checklist('selected')
-                ->label(__('Choisissez les types à réindexer', 'docalist-search'))
-                ->options($types);
-            $box->submit(__('Réindexer les types sélectionnés', 'docalist-search'));
-            // @formatter:on
-
-            return $box->render('wordpress');
+            return $this->view('docalist-search:settings/reindex-choose', [
+                'types' => $types,
+            ]);
         }
 
-        // Installe les actions qui vont nous permettre de suivre le process
-        $this->reindexUI();
+        // On va retourner une réponse de type "callback" qui va lancer la
+        // réindexation à proprement parler lorsqu'elle sera générée.
+        $response = new CallbackResponse(function() use($selected) {
 
-        // Lance la réindexation des types sélectionnés
-        /* @var $indexer Indexer */
-        $indexer = docalist('docalist-search-indexer');
-        $indexer->reindex($selected);
-
-        echo "Réindexation terminée.";
-    }
-
-    protected $count;
-    protected $startTime;
-
-    protected function reindexUI() {
-        add_action('docalist_search_before_reindex', function(array $types) {
+            // Supprime la bufferisation pour voir le suivi en temps réel
             while(ob_get_level()) ob_end_flush();
 
-            if (count($types) === 1) {
-                $msg =__('Une collection à réindexer : %2$s.', 'docalist-search');
-            } else {
-                $msg =__('%1$s collections à réindexer : %2$s.', 'docalist-search');
-            }
-            $msg = sprintf($msg, count($types), implode(', ', $types)); // @todo afficher libellé plutôt que postype
-            printf('<p>%s</p>', $msg);
-            flush();
-        }, 10, 1);
+            // Pour suivre le déroulement de la réindexation, on affiche
+            // une vue qui installe différents filtres sur les événements
+            // déclenchés par l'indexeur.
+            $this->view('docalist-search:settings/reindex')->sendContent();
 
-        add_action('docalist_search_before_reindex_type', function($type, $label) {
-            printf('<h3><p>%s</p></h3>', $label);
-            printf('<table border="1" style="border-collapse:collapse; table-layout:fixed; text-align: right;"><tr><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th><th>%s</th></tr>',
-                __('Documents', 'docalist-search'),
-                __('Temps écoulé', 'docalist-search'),
-                __('memory_get_usage', 'docalist-search'),
-                __('memory_get_usage(true)', 'docalist-search'),
-                __('memory_get_peak_usage()', 'docalist-search'),
-                __('memory_get_peak_usage(true)', 'docalist-search')
-            );
-            flush();
+            // Lance la réindexation
+            docalist('docalist-search-indexer')->reindex($selected);
+        });
 
-            $this->startTime = microtime(true);
-            $this->count = 0;
-        }, 10, 2);
+        // Indique que notre réponse doit s'afficher dans le back-office wp
+        $response->adminPage(true);
 
-        add_action('docalist_search_index', function($type) {
-            ++$this->count;
-            if (0 === $this->count % 1000) {
-                printf('<tr><td>%d</td><td>%.2f</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>',
-                    $this->count,
-                    microtime(true) - $this->startTime,
-                    memory_get_usage(),
-                    memory_get_usage(true),
-                    memory_get_peak_usage(),
-                    memory_get_peak_usage(true)
-                );
-                flush();
-            }
-        }, 999, 1);
-
-        add_action('docalist_search_after_flush', function($count, $size) {
-            $msg =__('Flush du cache (%d documents, %s octets)', 'docalist-search');
-            $msg = sprintf($msg, $count, $size);
-
-            printf('<tr><td colspan="6" style="text-align: center">%s</td></tr>', $msg);
-            flush();
-        }, 10, 2);
-
-        add_action('docalist_search_after_reindex_type', function($type, $label, $stats) {
-            printf('<tr><td>%d</td><td>%.2f</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr></table>',
-                $this->count,
-                microtime(true) - $this->startTime,
-                memory_get_usage(),
-                memory_get_usage(true),
-                memory_get_peak_usage(),
-                memory_get_peak_usage(true)
-            );
-
-            $msg =__('Terminé, %d document(s) ajouté(s) ou mis à jour, %d document(s) supprimé(s) en %.2f secondes.', 'docalist-search');
-            $msg = sprintf($msg, $stats['added'], $stats['deleted'], microtime(true) - $this->startTime);
-            printf('<p>%s</p>', $msg);
-            var_dump($stats);
-            flush();
-        }, 10, 3);
-
-        add_action('docalist_search_after_reindex', function(array $types, array $stats) {
-            $msg=__('Réindexation terminée.', 'docalist-search');
-            printf('<h1><p>%s</p></h1>', $msg);
-            var_dump($stats);
-            flush();
-        }, 10, 2);
+        // Terminé
+        return $response;
     }
 
     /**

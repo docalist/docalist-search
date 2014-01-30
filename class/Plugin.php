@@ -50,7 +50,7 @@ class Plugin {
         });
 
         // Crée le service "docalist-search-engine"
-        docalist()->add('docalist-search-engine',  new Searcher($this->settings));
+        docalist()->add('docalist-search-engine',  new SearchEngine($this->settings));
 
         add_filter('init', function() {
 
@@ -144,7 +144,7 @@ class Plugin {
      * filtre n'est actif.
      */
     public function theCurrentFilters($format = null, $separator = null, $wrapper = null) {
-        // $request = $this->searcher->request();
+        // $request = $this->searchengine->request();
         $request = docalist('docalist-search-engine')->request();
 
         // Retourne une chaine vide si on n'a aucun filtre actif

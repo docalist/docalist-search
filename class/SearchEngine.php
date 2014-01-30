@@ -20,7 +20,7 @@ use WP_Query;
 /**
  * La classe qui gère les recherches.
  */
-class Searcher {
+class SearchEngine {
 
     /**
      * La configuration du moteur de recherche

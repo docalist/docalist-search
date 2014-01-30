@@ -96,7 +96,7 @@ use Docalist\Search\SearchResults;
  *
  * @return SearchRequest|null
  *
- * @See Searcher::__construct()
+ * @See SearchEngine::__construct()
  */
 function docalist_search_get_request() {
     return apply_filters(__FUNCTION__, null);
@@ -108,7 +108,7 @@ function docalist_search_get_request() {
  * @return SearchResults|null l'objet Results ou null si on n'a pas de requête
  * en cours.
  *
- * @See Searcher::__construct()
+ * @See SearchEngine::__construct()
  */
 function docalist_search_get_results() {
     return apply_filters(__FUNCTION__, null);
@@ -124,7 +124,7 @@ function docalist_search_get_results() {
  * est à la position 1) ou zéro si l'id indiqué ne figure pas dans la liste
  * des réponses.
  *
- * @See Searcher::__construct()
+ * @See SearchEngine::__construct()
  */
 function docalist_search_get_rank($id) {
     return apply_filters(__FUNCTION__, $id);
@@ -141,7 +141,7 @@ function docalist_search_get_rank($id) {
  *
  * @return string Le lien généré.
  *
- * @See Searcher::__construct()
+ * @See SearchEngine::__construct()
  */
 function docalist_search_get_hit_link($id) {
     return apply_filters(__FUNCTION__, $id);

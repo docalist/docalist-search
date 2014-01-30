@@ -30,13 +30,6 @@ class Plugin {
     protected $settings;
 
     /**
-     * Le moteur de recherche.
-     *
-     * @var Searcher
-     */
-    protected $searcher;
-
-    /**
      * {@inheritdoc}
      */
     public function __construct() {
@@ -56,6 +49,9 @@ class Plugin {
             return new Indexer($this->settings->indexer);
         });
 
+        // Crée le service "docalist-search-engine"
+        docalist()->add('docalist-search-engine',  new Searcher($this->settings));
+
         add_filter('init', function() {
 
             // Enregistre les types de contenus indexables
@@ -63,11 +59,6 @@ class Plugin {
 
             // Enregistre la liste des facettes disponibles
             $this->registerFacets();
-
-            // Si la recherche est activée, initialise le moteur
-            if ($this->settings->enabled) {
-                $this->searcher = new Searcher($this->settings);
-            }
         });
 
         // Déclare notre widget "Search Facets"
@@ -153,7 +144,8 @@ class Plugin {
      * filtre n'est actif.
      */
     public function theCurrentFilters($format = null, $separator = null, $wrapper = null) {
-        $request = $this->searcher->request();
+        // $request = $this->searcher->request();
+        $request = docalist('docalist-search-engine')->request();
 
         // Retourne une chaine vide si on n'a aucun filtre actif
         $request && $filters = $request->filters();

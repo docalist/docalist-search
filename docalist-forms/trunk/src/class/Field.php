@@ -150,7 +150,7 @@ abstract class Field {
     /**
      * @var bool Indique si le champ est répétable.
      */
-    protected $repeatable = false;
+    protected $repeatable = null;
 
     /**
      *
@@ -507,7 +507,7 @@ abstract class Field {
     public function repeatable($repeatable = null) {
         // Getter
         if (is_null($repeatable)) {
-            if ($this->repeatable) {
+            if (!is_null($this->repeatable)) {
                 return $this->repeatable;
             }
 

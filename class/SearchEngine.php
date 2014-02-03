@@ -101,8 +101,8 @@ class SearchEngine {
             return $this->request ? $this->request->asEquation() : $s;
         } );
 
-        add_action('wp_ajax_docalist_search_lookup', array($this, 'ajaxLookup'));
-        add_action('wp_ajax_nopriv_docalist_search_lookup', array($this, 'ajaxLookup'));
+        add_action('wp_ajax_docalist-search-lookup', array($this, 'ajaxLookup'));
+        add_action('wp_ajax_nopriv_docalist-search-lookup', array($this, 'ajaxLookup'));
     }
 
     /**

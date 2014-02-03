@@ -16,6 +16,8 @@ namespace Docalist\Search;
 
 use Docalist\QueryString;
 use WP_Query;
+use Docalist\Http\JsonResponse;
+use Exception;
 
 /**
  * La classe qui gère les recherches.
@@ -395,44 +397,22 @@ class SearchEngine {
      * Action ajax permettant de faire des lookups.
      */
     public function ajaxLookup() {
-        header('Content-Type: application/json; charset=UTF-8');
-
         if (! isset($_REQUEST['q'])) {
-            exit($this->json('q required'));
+            throw new Exception('q is required');
         }
         $q = $_REQUEST['q'];
 
         if (! isset($_REQUEST['field'])) {
-            exit($this->json('field required'));
+            throw new Exception('field is required');
         }
         $field = $_REQUEST['field'];
 
-        if (isset($_REQUEST['size'])) {
-            $size = (int) $_REQUEST['size'];
-        } else {
-            $size = 10;
-        }
+        $size = isset($_REQUEST['size']) ? (int) $_REQUEST['size'] : 10;
 
-        $results = $this->lookup($q, $field, $size);
+        $result = $this->lookup($q, $field, $size);
 
-        exit($this->json($results));
-    }
-
-    /**
-     * Retourne une chaine contenant la version sérialisée en JSON des données
-     * passées en paramètre.
-     *
-     * Si la requête en cours contient l'argument 'pretty', génère du json
-     * lisible.
-     *
-     * @param mixed $data
-     *
-     * @return string
-     */
-    protected function json($data) {
-        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
-        isset($_REQUEST['pretty']) && $options |= JSON_PRETTY_PRINT;
-
-        return json_encode($data, $options);
+        $json = new JsonResponse($result);
+        $json->send();
+        exit(); // nécessaire sinon, wp génère le exit code
     }
 }

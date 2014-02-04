@@ -1,7 +1,7 @@
 /**
  * This file is part of the "Docalist Forms" package.
  *
- * Copyright (C) 2012,2013 Daniel Ménard
+ * Copyright (C) 2012-2014 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -27,7 +27,7 @@ jQuery(document).ready(function($) {
         // Principe : on crée une div jaune avec exactment les mêmes dimensions
         // que l'élément et on la place au dessus en absolute puis on l'estompe
         // (fadeout) gentiment avant de la supprimer.
-        // Adapté de : http://goo.gl/9pr4Q
+        // Adapté de : http://stackoverflow.com/a/13106698
         $("<div/>").width(el.outerWidth()).height(el.outerHeight()).css({
             'position' : 'absolute',
             'left' : el.offset().left,
@@ -51,7 +51,7 @@ jQuery(document).ready(function($) {
         //
         // 1. déterminer l'élément à cloner à partir du bouton qui a été cliqué
         // 2. cloner cet élément
-        // 3. enlever du clone les sous-éléments qui sont eux-même des clones
+        // 3. supprime du clone les éléments qu'il ne faut pas cloner (.do-not-clone)
         // 4. renommer les attributs name, id, for, etc.
         // 5. réinitialiser les champs du clone à vide
         // 6. insérer le clone au bon endroit
@@ -88,16 +88,13 @@ jQuery(document).ready(function($) {
         }
 
         // node pointe maintenant sur le noeud à cloner
-        console.log('noeud à cloner : ', node.eq(0));
-
+        
         // 2. Clone le noeud
         var clone = node.clone();
-
-        // 3. Exclue du clone les éléments qui sont eux-mêmes des clones
-        $('.clone', clone).remove();
-
-        // Ajoute la classe 'clone' au noeud pour qu'on sache que c'est un clone
-        clone.addClass('clone');
+        
+        // 3. Supprime du clone les éléments qu'il ne faut pas cloner (.do-not-clone)
+        // (clones existants, scripts d'init des TableLookup, eléments créés par selectize, etc.)
+        $('.do-not-clone', clone).remove();
 
         // 4. Renomme les champs
 
@@ -113,34 +110,24 @@ jQuery(document).ready(function($) {
             $.each(['name'], function(i, name){
                 var value = input.attr(name); // valeur de l'attribut name, id ou for
                 if (! value) return;
-                var old = value;
                 var curLevel = 0;
-                console.log('renommage attribut', name, 'value=', value, 'level=', level);
                 value = value.replace(/\[(\d+)\]/g, function(match, i) {
-                    console.log('match=', match, 'i=', i, 'curlevel=', curLevel);
                     if (++curLevel !== level) return match;
                     return '[' + (parseInt(i)+1) + ']';
                 });
                 input.attr(name, value);
-                console.log("result", name, ':', old, '->', value);
-                console.log('--------------------------');
             });
+            
             // Renomme les attributs id et for
             $.each(['id', 'for'], function(i, name){
                 var value = input.attr(name); // valeur de l'attribut name, id ou for
                 if (! value) return;
-                var old = value;
                 var curLevel = 0;
-                console.log('renommage attribut', name, 'value=', value, 'level=', level);
-                //value = value.replace(/\[(\d+)\]/g, function(match, i) {
                 value = value.replace(/-(\d+)(-|$)/g, function(match, i, end) {
-                    console.log('match=', match, 'i=', i, 'curlevel=', curLevel);
                     if (++curLevel !== level) return match;
                     return '-' + (parseInt(i)+1) + (end ? '-' : '');
                 });
                 input.attr(name, value);
-                console.log("result", name, ':', old, '->', value);
-                console.log('--------------------------');
             });
         });
 
@@ -160,8 +147,14 @@ jQuery(document).ready(function($) {
         // 7. Fait flasher le clone pour que l'utilisateur voit l'élément inséré
         highlight(clone);
 
+        // Installe selectize sur les éléments du clone
+        // TODO
+        $('.selectized', clone).tableLookup();
+
         // Donne le focus au premier champ trouvé dans le clone
-        clone.is(':input') ? clone.focus() : $(':input:first', clone).focus();
+        var first = clone.is(':input') ? clone : $(':input:first', clone);
+        first.is('.selectized') ? first[0].selectize.focus() : first.focus();
+        //clone.is(':input') ? clone.focus() : $(':input:first', clone).focus();
     });
 });
 
@@ -170,7 +163,7 @@ jQuery(document).ready(function($) {
  */
 jQuery.fn.tableLookup = function() {
     $=jQuery;
-
+    
     // Les paramètres figurent en attributs "data-" du select
     var settings = $.extend({
         table: 'countries',      // Nom de la table à utiliser
@@ -198,6 +191,9 @@ jQuery.fn.tableLookup = function() {
         
         // Par défaut, selectize trie par score. On veut un tri alpha.
         sortField: settings.labelField, 
+
+        // Ajoute la classe "do-not-clone" aux containers créés par selectize
+        wrapperClass: 'selectize-control do-not-clone',
         
         // La recherche porte à la fois sur le libellé et sur le code
         // Cela permet par exemple de recherche "ENG" et de trouver "Anglais"

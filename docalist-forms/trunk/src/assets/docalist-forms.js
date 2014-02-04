@@ -164,3 +164,69 @@ jQuery(document).ready(function($) {
         clone.is(':input') ? clone.focus() : $(':input:first', clone).focus();
     });
 });
+
+/**
+ * Initialise un contrôle de type TableLookup.
+ */
+jQuery.fn.tableLookup = function() {
+    $=jQuery;
+
+    // Les paramètres figurent en attributs "data-" du select
+    var settings = $.extend({
+        table: 'countries',      // Nom de la table à utiliser
+        valueField: 'code',      // Nom du champ qui contient le code
+        labelField: 'label',     // Nom du champ qui contient le libellé
+
+        zzz:''
+    }, $(this).data());
+    
+    $(this).selectize({
+        // Le JSON retourné par "docalist-table-lookup" est de la forme :
+        // [ { "code": "xx", "label": "aa" }, { "code": "yy", "label": "bb" } ]
+        
+        valueField: settings.valueField, // Nom du champ qui contient la valeur
+        labelField: settings.labelField, // Nom du champ qui contient le libellé
+
+        // Table d'autorité = liste fermé, on ne peut pas créer de nouvelles valeurs
+        create: false,
+        
+        // Charge les options dispo en tâche de fond dès l'initialisation
+        preload: true,
+        
+        // Crée le popup dans le body plutôt que dans le contrôle 
+        dropdownParent: 'body',
+        
+        // Par défaut, selectize trie par score. On veut un tri alpha.
+        sortField: settings.labelField, 
+        
+        // La recherche porte à la fois sur le libellé et sur le code
+        // Cela permet par exemple de recherche "ENG" et de trouver "Anglais"
+        searchField: [settings.valueField, settings.labelField],
+    
+        // Lance une requête ajax pour charger les entrées qui commencent par query
+        load: function(query, callback) {
+            // Dans le back-office, la variable ajaxurl est définie par WP et
+            // pointe vers la page "wordpress/wp-admin/admin-ajax.php"
+            // @see http://codex.wordpress.org/AJAX_in_Plugins
+            var url = ajaxurl + '?action=docalist-table-lookup';
+            
+            // Paramètres de la requête : cf. Docalist-core\Plugin\tableLookup()
+            url += '&table=' + settings.table;
+            url += '&order=' + '_' + settings.labelField; // _ = champ caché = insensible à la casse
+            if (query.length) {
+                url += '&where=' + encodeURIComponent('code like "' + query + '%"');
+            }
+
+            $.ajax({
+                url : url,
+                type: 'GET',
+                error: function() {
+                    callback();
+                },
+                success: function(res) {
+                    callback(res);
+                }
+            });
+        }
+    });
+};

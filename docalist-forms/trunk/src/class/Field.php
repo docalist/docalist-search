@@ -898,7 +898,7 @@ abstract class Field {
             } else {
                 $id .= ++self::$usedId[$id];
             }
-
+            $id = rtrim(strtr($id, array('['=>'-', ']'=>'')), '-');
             $this->attributes['id'] = $id;
         }
         return $this->attributes['id'];

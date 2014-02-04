@@ -109,19 +109,38 @@ jQuery(document).ready(function($) {
         $(':input,label', clone).andSelf().each(function(){
             var input = $(this);
 
-            $.each(['name', 'id', 'for'], function(i, name){
+            // Renomme l'attribut name
+            $.each(['name'], function(i, name){
                 var value = input.attr(name); // valeur de l'attribut name, id ou for
                 if (! value) return;
                 var old = value;
                 var curLevel = 0;
-                console.log('renommage de ', value, 'level=', level);
+                console.log('renommage attribut', name, 'value=', value, 'level=', level);
                 value = value.replace(/\[(\d+)\]/g, function(match, i) {
                     console.log('match=', match, 'i=', i, 'curlevel=', curLevel);
                     if (++curLevel !== level) return match;
                     return '[' + (parseInt(i)+1) + ']';
                 });
                 input.attr(name, value);
-                console.log("Renommage", name, ':', old, '->', value);
+                console.log("result", name, ':', old, '->', value);
+                console.log('--------------------------');
+            });
+            // Renomme les attributs id et for
+            $.each(['id', 'for'], function(i, name){
+                var value = input.attr(name); // valeur de l'attribut name, id ou for
+                if (! value) return;
+                var old = value;
+                var curLevel = 0;
+                console.log('renommage attribut', name, 'value=', value, 'level=', level);
+                //value = value.replace(/\[(\d+)\]/g, function(match, i) {
+                value = value.replace(/-(\d+)(-|$)/g, function(match, i, end) {
+                    console.log('match=', match, 'i=', i, 'curlevel=', curLevel);
+                    if (++curLevel !== level) return match;
+                    return '-' + (parseInt(i)+1) + (end ? '-' : '');
+                });
+                input.attr(name, value);
+                console.log("result", name, ':', old, '->', value);
+                console.log('--------------------------');
             });
         });
 

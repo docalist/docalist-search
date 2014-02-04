@@ -355,4 +355,14 @@ abstract class Fields extends Field {
         return $t;
     }
 
+    /**
+     * Crée un champ de type "Selectize" et l'ajoute à la collection.
+     *
+     * @param string $name Le nom du champ.
+     *
+     * @return Select Le champ créé.
+     */
+    public function tableLookup($name, $table = null, $valueField = 'code', $labelField = 'label') {
+        return $this->add(new TableLookup($name, $table, $valueField, $labelField));
+    }
 }

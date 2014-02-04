@@ -105,6 +105,7 @@ class Themes {
                     array(
                         'name' => 'docalist-forms',
                         'src' => 'assets/docalist-forms.js',
+                        'position' => 'top',
                     ),
                 ),
             ),

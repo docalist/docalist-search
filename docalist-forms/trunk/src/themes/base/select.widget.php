@@ -6,7 +6,7 @@ $this->block('attributes', $args);
 if (! $this->multiple()) // && (! $this->required())
 {
     $option = $this->firstOption();
-    $this->block('option', array(
+    $option && $this->block('option', array(
         'value' => $option['value'],
         'label' => $option['label'],
         'selected' => false,

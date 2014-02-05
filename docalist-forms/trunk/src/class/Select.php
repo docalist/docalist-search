@@ -58,22 +58,33 @@ class Select extends Choice {
      * $select->firstOption('Choisissez une valeur', 0);
      * </code>
      *
+     * Vous pouvez également désactiver la première option d'un select
+     * multiple en appellant
+     * <code>
+     * $select->firstOption(false);
+     * </code>
+     *
      * @param string $label Libellé à afficher
      * @param string $value Optionnel, valeur de l'option.
      *
-     * @return array|$this Appellée sans paramètre, la méthode retourne un
-     * tableau qui contient le libellé (clé label) et la valeur (clé value)
-     * actuellement utilisés. Utilisée en setter, la méthode retourne $this.
+     * @return array|false|$this Appellée sans paramètre, la méthode retourne
+     * un tableau qui contient le libellé (clé label) et la valeur (clé value)
+     * actuellement utilisés ; ou false si la première option a été désactivée.
+     * Utilisée en setter, la méthode retourne $this.
      */
     public function firstOption($label = null, $value = '') {
         if (is_null($label)) {
             return $this->firstOption;
         }
 
-        $this->firstOption = array(
-            'label' => $label,
-            'value' => $value
-        );
+        if ($label === false) {
+            $this->firstOption = false;
+        } else {
+            $this->firstOption = array(
+                'label' => $label,
+                'value' => $value
+            );
+        }
 
         return $this;
     }

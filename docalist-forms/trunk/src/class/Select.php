@@ -47,7 +47,7 @@ class Select extends Choice {
     }
 
     /**
-     * Retoure ou modifier le libellé et la valeur de la première option
+     * Retourne ou modifier le libellé et la valeur de la première option
      * affichée dans le select lorsque celui-ci n'est pas obligatoire.
      *
      * Cette option n'est affichée que lorsque le select n'est pas obligatoire.
@@ -66,8 +66,9 @@ class Select extends Choice {
      * actuellement utilisés. Utilisée en setter, la méthode retourne $this.
      */
     public function firstOption($label = null, $value = '') {
-        if (is_null($label))
+        if (is_null($label)) {
             return $this->firstOption;
+        }
 
         $this->firstOption = array(
             'label' => $label,

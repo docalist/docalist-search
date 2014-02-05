@@ -74,10 +74,12 @@ button.cloner:hover {
 /*
     Ajuste les styles de CSS pour que cela s'intègre dans le thème WordPress.
 */
+.selectize-control{
+    line-height: 0;
+}
 .selectize-input {
-/*  background-color: rgb(243, 231, 231)!important; */
   padding: 3px;
-  margin: 1px 0;
+  margin: 0;
   border: 1px solid #dfdfdf;
   -webkit-box-shadow: none;
           box-shadow: none;
@@ -86,10 +88,11 @@ button.cloner:hover {
 .selectize-dropdown,
 .selectize-input,
 .selectize-input input {
+  font-size: 12px;
   line-height: 15px;
 }
 
-.selectize-input.focus {
+.selectize-input.focus, .selectize-dropdown {
     border-color: #aaa;
 }
 

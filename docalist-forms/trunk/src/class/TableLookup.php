@@ -24,6 +24,8 @@ namespace Docalist\Forms;
  */
 class TableLookup extends Select {
     protected $firstOption = false;
+    protected $attributes = array('placeholder' => '…');
+
     protected $table;
     protected $valueField;
     protected $labelField;

@@ -47,10 +47,10 @@ class Select extends Choice {
     }
 
     /**
-     * Retourne ou modifier le libellé et la valeur de la première option
+     * Retourne ou modifie le libellé et la valeur de la première option
      * affichée dans le select lorsque celui-ci n'est pas obligatoire.
      *
-     * Cette option n'est affichée que lorsque le select n'est pas obligatoire.
+     * Cette option n'est affichée que lorsque le select n'est pas multiple.
      *
      * Par défaut, une chaine vide est affichée (avec value=""). Vous pouvez
      * modifier l'option en appellant par exemple

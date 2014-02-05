@@ -70,3 +70,37 @@ button.cloner:hover {
 /*    background-image: url('add.png'); */
     border-color: #ccc;
 }
+
+/*
+    Ajuste les styles de CSS pour que cela s'intègre dans le thème WordPress.
+*/
+.selectize-input {
+/*  background-color: rgb(243, 231, 231)!important; */
+  padding: 3px;
+  margin: 1px 0;
+  border: 1px solid #dfdfdf;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+.selectize-dropdown,
+.selectize-input,
+.selectize-input input {
+  line-height: 15px;
+}
+
+.selectize-input.focus {
+    border-color: #aaa;
+}
+
+/*
+    wordpress a une règle générique ".highlight" qui met la zone.
+    (dans wp-admin.css et dans colors-fresh.css)
+    on essaie de corriger içi
+*/
+.selectize-dropdown [data-selectable] .highlight {
+    padding: 0;
+    margin: 0;
+    font-weight: inherit;
+    border: 0;
+}

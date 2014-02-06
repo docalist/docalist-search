@@ -34,17 +34,17 @@ class PostIndexer {
         });
 
         // Fonction appellée pour réindexer tous les articles
-        add_action('docalist_search_reindex_post', function(){
-            $this->reindex('post');
+        add_action('docalist_search_reindex_post', function(Indexer $indexer){
+            $this->reindex($indexer, 'post');
         });
 
         // Fonction appellée pour réindexer toutes les pages
-        add_action('docalist_search_reindex_page', function(){
-            $this->reindex('page');
+        add_action('docalist_search_reindex_page', function(Indexer $indexer){
+            $this->reindex($indexer, 'page');
         });
     }
 
-    protected function reindex($type) {
+    protected function reindex(Indexer $indexer, $type) {
         $offset = 0;
         $size = 1000;
 
@@ -66,10 +66,6 @@ class PostIndexer {
 
             'no_found_rows' => true
         );
-
-        // Récupère l'indexeur
-        /* @var $indexer Indexer */
-        $indexer = docalist('docalist-search-indexer');
 
         while ($posts = $query->query($args)) {
             //echo "Query exécutée avec offset=", $args['offset'], ', result=', count($posts), '<br />';

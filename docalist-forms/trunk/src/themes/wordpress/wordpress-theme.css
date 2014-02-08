@@ -20,6 +20,7 @@
 .field-table tbody td {
     padding: 0;
     line-height: normal;
+    vertical-align: top;
 }
 .field-table td+td {
     padding-left: 10px; /* espace horizontal entre deux cellules */

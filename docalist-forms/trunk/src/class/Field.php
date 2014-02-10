@@ -394,6 +394,7 @@ abstract class Field {
 
         $this->occurence = $occurence;
         $occurence ? $this->addClass('clone') : $this->removeClass('clone');
+        $this->generateId();
 
         return $this;
     }
@@ -891,6 +892,12 @@ abstract class Field {
     }
 
     public function generateId() {
+        $id = $this->controlName() ? : $this->type();
+        $id = rtrim(strtr($id, array('['=>'-', ']'=>'')), '-');
+        $this->attributes['id'] = $id;
+        return $id;
+
+/*
         if (!isset($this->attributes['id'])) {
             $id = $this->controlName() ? : $this->type();
             if (!isset(self::$usedId[$id])) {
@@ -902,6 +909,7 @@ abstract class Field {
             $this->attributes['id'] = $id;
         }
         return $this->attributes['id'];
+*/
     }
 
     public function toArray($withData = false) {

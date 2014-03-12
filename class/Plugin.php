@@ -40,17 +40,17 @@ class Plugin {
         $this->settings = new Settings('docalist-search');
 
         // Crée le service "elastic-search"
-        docalist()->add('elastic-search', function() {
+        docalist('services')->add('elastic-search', function() {
             return new ElasticSearchClient($this->settings->server);
         });
 
         // Crée le service "docalist-search-indexer"
-        docalist()->add('docalist-search-indexer', function(){
+        docalist('services')->add('docalist-search-indexer', function(){
             return new Indexer($this->settings->indexer);
         });
 
         // Crée le service "docalist-search-engine"
-        docalist()->add('docalist-search-engine',  new SearchEngine($this->settings));
+        docalist('services')->add('docalist-search-engine',  new SearchEngine($this->settings));
 
         add_filter('init', function() {
 

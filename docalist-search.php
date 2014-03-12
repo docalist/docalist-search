@@ -22,13 +22,12 @@
  * @version     SVN: $Id$
  */
 namespace Docalist\Search;
-use Docalist;
 
 /**
  * Affiche une erreur dans le back-office si Docalist Core n'est pas activé.
  */
 add_action('admin_notices', function() {
-    if (! class_exists('Docalist')) {
+    if (! function_exists('docalist')) {
         echo '<div class="error"><p>Docalist Search requires Docalist Core.</p></div>';
     }
 });
@@ -36,7 +35,7 @@ add_action('admin_notices', function() {
 /**
  * Initialise notre plugin une fois que Docalist Core est chargé.
  */
-add_action('docalist_loaded', function (Docalist $docalist) {
-    $docalist->get('autoloader')->add(__NAMESPACE__, __DIR__ . '/class');
-    $docalist->add('docalist-search', new Plugin());
+add_action('docalist_loaded', function () {
+    docalist('autoloader')->add(__NAMESPACE__, __DIR__ . '/class');
+    docalist('services')->add('docalist-search', new Plugin());
 });

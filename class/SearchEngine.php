@@ -100,9 +100,6 @@ class SearchEngine {
         add_filter('get_search_query', function($s) {
             return $this->request ? $this->request->asEquation() : $s;
         } );
-
-        add_action('wp_ajax_docalist-search-lookup', array($this, 'ajaxLookup'));
-        add_action('wp_ajax_nopriv_docalist-search-lookup', array($this, 'ajaxLookup'));
     }
 
     /**
@@ -354,10 +351,8 @@ class SearchEngine {
      * Recherche dans un champ tous les termes qui commencent par un préfixe
      * donné.
      *
-     * @param string $q le préfixe recherché.
-     * @param string $field le champ dans lequel s'effectue la recherche.
-     * @param number $size Le nombre de termes à retourner (optionnel, 10 par
-     * défaut).
+     * @param string $source nom du champ index.
+     * @param string $search préfixe recherché.
      *
      * @return string|array En cas de succès, retourne un tableau de termes.
      * Chaque terme est un objet contenant les clés "term" et "count". Par
@@ -369,50 +364,45 @@ class SearchEngine {
      *
      * Si aucun terme ne commence par le préfixe indiqué, la méthode retourne
      * un tableau vide.
-     *
-     * En cas d'erreur, la méthode retourne une chaine contenant le message
-     * d'erreur.
      */
-    public function lookup($q, $field, $size = 10) {
+    public function lookup($source, $search) {
+        // Remarques :
+        // 1. Pour le moment, le "completion suggester" ne permet pas de filtrer
+        //    par type. Ce sera possible plus tard avec le "ContextSuggester".
+        //    cf. https://github.com/elasticsearch/elasticsearch/issues/3958
+        //    Les lookups faits sur un champ portent donc sur toutes les bases
+        //    de données qui contiennent ce champ.
+        // 2. Il n'est pas possible de lancer une recherche avec search='', ça
+        //    retourne zéro réponses.
+        // 3. Le mode "recherche par code" (avec search entre crochets) n'est
+        //    pas supporté (les crochets sont supprimés).
+
+        // On ne gère pas la recherche par code, ignore les crochets
+        if (strlen($search) >= 2 && $search[0] === '[' && substr($search, -1) === ']') {
+            $search = substr($search, 1, -1);
+        }
+
+        // Construit la requête Elastic Search
+        // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-suggesters-completion.html
         $query = [
             'lookup' => [
-                'text' => $q,
+                'text' => $search,
                 'completion' => [
-                    'field' => $field,
-                    'size' => $size
+                    'field' => $source,
+                    'size' => 10,
+                    // 'fuzzy' => true
                 ]
             ]
         ];
 
+        // Exécute la requête
         $result = docalist('elastic-search')->post('_suggest', $query);
 
+        // Récupère les suggestions
         if (isset($result->lookup[0]->options)) {
             return $result->lookup[0]->options;
         } else {
             return array(); // erreur ?
         }
-    }
-
-    /**
-     * Action ajax permettant de faire des lookups.
-     */
-    public function ajaxLookup() {
-        if (! isset($_REQUEST['q'])) {
-            throw new Exception('q is required');
-        }
-        $q = $_REQUEST['q'];
-
-        if (! isset($_REQUEST['field'])) {
-            throw new Exception('field is required');
-        }
-        $field = $_REQUEST['field'];
-
-        $size = isset($_REQUEST['size']) ? (int) $_REQUEST['size'] : 10;
-
-        $result = $this->lookup($q, $field, $size);
-
-        $json = new JsonResponse($result);
-        $json->send();
-        exit(); // nécessaire sinon, wp génère le exit code
     }
 }

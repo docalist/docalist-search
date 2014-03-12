@@ -393,7 +393,7 @@ abstract class Field {
         }
 
         $this->occurence = $occurence;
-        $occurence ? $this->addClass('clone') : $this->removeClass('clone');
+        $occurence ? $this->addClass('do-not-clone') : $this->removeClass('do-not-clone');
         $this->generateId();
 
         return $this;

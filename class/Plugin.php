@@ -71,6 +71,11 @@ class Plugin {
             // Page des réglages
             new SettingsPage($this->settings);
         });
+
+        // Définit les lookups de type "index"
+        add_filter('docalist_index_lookup', function($value, $source, $search) {
+            return docalist('docalist-search-engine')->lookup($source, $search);
+        }, 10, 3);
     }
 
     /**

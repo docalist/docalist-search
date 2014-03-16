@@ -573,7 +573,7 @@ abstract class Field {
             } elseif (is_null($data)) {
                 // $data = $data;
             } else {
-                throw new \Exception('bad value for bind');
+                throw new Exception('bad value for bind');
             }
         } else {
             if($debug) echo '&rArr;Field ', $this->type(), '.&lt;noname&gt;::bind()<br />';

@@ -39,7 +39,7 @@ class TableLookup extends Select {
         $this->labelField = $labelField;
     }
 
-    public function table(array $table = null) {
+    public function table($table = null) {
         if (is_null($table))
             return $this->table;
 
@@ -48,7 +48,7 @@ class TableLookup extends Select {
         return $this;
     }
 
-    public function valueField(array $valueField = null) {
+    public function valueField($valueField = null) {
         if (is_null($valueField))
             return $this->valueField;
 
@@ -57,7 +57,7 @@ class TableLookup extends Select {
         return $this;
     }
 
-    public function labelField(array $labelField = null) {
+    public function labelField($labelField = null) {
         if (is_null($labelField))
             return $this->labelField;
 

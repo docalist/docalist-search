@@ -73,7 +73,7 @@ button.cloner:hover {
 }
 
 /*
-    Ajuste les styles de CSS pour que cela s'intègre dans le thème WordPress.
+    Ajuste les styles de Selectize pour que ça s'intègre dans le BO WordPress.
 */
 .selectize-control{
     line-height: 0;
@@ -106,4 +106,64 @@ button.cloner:hover {
     margin: 0;
     font-weight: inherit;
     border: 0;
+}
+
+/*
+    Styles pour les lookups de types thesaurus.
+*/
+.selectize-dropdown-content {
+    max-height: 400px;
+}
+
+.selectize-dropdown .des, 
+.selectize-dropdown .nondes {
+    font-size: 13px;
+}
+
+.selectize-dropdown .des .term, /* le nom du descripteur */
+.selectize-dropdown .US b {         /* le nom d'un EM */
+    font-weight: bold;
+}
+
+.selectize-dropdown .nondes .term, /* le nom d'un non-des */ 
+.selectize-dropdown .UF b {            /* le nom d'un EP */
+    font-style: italic;
+    font-weight: normal;
+    color: #888;
+}
+
+.selectize-dropdown .des div,       /* un bloc de relations */
+.selectize-dropdown .nondes div {
+    padding-left: 2.5em;
+}
+
+.selectize-dropdown .des i,    /* le libellé d'un bloc de relations */
+.selectize-dropdown .nondes i {
+    font-style: normal;
+    margin-left: -2em;
+    float: left;
+    text-transform: uppercase;
+    color: #aaa;
+}
+
+.selectize-dropdown .BT b { /* TG */ 
+    color: #008;
+}
+
+.selectize-dropdown .NT b { /* TS */ 
+    color: #800;
+}
+
+.selectize-dropdown .RT b { /* TA */ 
+    color: #080;
+}
+.selectize-dropdown .description b,
+.selectize-dropdown .SN b 
+{
+    font-weight: normal;
+    font-size: 12px;
+}
+
+.selectize-dropdown b[rel]:hover {
+    text-decoration: underline;
 }

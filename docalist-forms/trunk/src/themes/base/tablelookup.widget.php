@@ -33,8 +33,11 @@ $where = $valueField . ' IN (' . implode(',', $options) . ')';
 // On veut une réponse de la forme $valueField => $labelField pour le select
 $what = "$valueField,$labelField";
 
+// Le nom complet de la table est de la forme type:table
+list($type, $name) = explode(':', $table);
+
 // Recherche tous les articles
-$results = docalist('table-manager')->get($table)->search($what, $where);
+$results = docalist('table-manager')->get($name)->search($what, $where);
 
 // 3. Construit le tableau d'options, en respectant l'ordre initial des articles
 $options = [];

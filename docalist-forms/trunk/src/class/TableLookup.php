@@ -15,6 +15,8 @@
 
 namespace Docalist\Forms;
 
+use Exception;
+
 /**
  * Un Select qui permet à l'utilisateur de choisir une ou plusieurs valeurs
  * définies dans une table d'autorité.
@@ -34,7 +36,7 @@ class TableLookup extends Select {
     public function __construct($name, $table = null, $valueField = 'code', $labelField = 'label') {
         parent::__construct($name);
 
-        $this->table = $table;
+        $table && $this->table($table);
         $this->valueField = $valueField;
         $this->labelField = $labelField;
     }
@@ -42,6 +44,10 @@ class TableLookup extends Select {
     public function table($table = null) {
         if (is_null($table))
             return $this->table;
+
+        if (! preg_match('~[a-z]+:[a-zA-Z0-9_-]+~', $table)) {
+            throw new Exception('Nom de table incorrect. Format attendu "type:table".');
+        }
 
         $this->table = $table;
 

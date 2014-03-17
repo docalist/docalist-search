@@ -14,8 +14,6 @@
  */
 namespace Docalist\Search\Views;
 
-use Docalist\Forms\Form;
-
 /**
  * Cette vue est affichée lorsque une réindexation manuelle est lancée.
  *

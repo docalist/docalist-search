@@ -46,7 +46,7 @@ class TableLookup extends Select {
             return $this->table;
 
         if (! preg_match('~[a-z]+:[a-zA-Z0-9_-]+~', $table)) {
-            throw new Exception('Nom de table incorrect. Format attendu "type:table".');
+            throw new Exception('Nom de table incorrect. Format attendu "format:table".');
         }
 
         $this->table = $table;

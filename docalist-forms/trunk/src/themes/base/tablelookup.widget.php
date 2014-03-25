@@ -21,35 +21,43 @@ if ($this->data instanceof Docalist\Data\Entity\SchemaBasedObjectInterface) {
     $data = (array)$this->data;
 }
 
-// 2. Interroge la table pour obtenir le libellé de chacun des articles
-
-// Construit la clause WHERE ... IN (...)
-$options = [];
-foreach ($data as $option) {
-    $options[]= "'" . strtr($option, "'", "\\'") . "'";
-}
-$where = $valueField . ' IN (' . implode(',', $options) . ')';
-
-// On veut une réponse de la forme $valueField => $labelField pour le select
-$what = "$valueField,$labelField";
-
 // Le nom complet de la table est de la forme type:table
 list($type, $name) = explode(':', $table);
 
-// Recherche tous les articles
-$results = docalist('table-manager')->get($name)->search($what, $where);
+// Si le lookup porte sur un index, on a directement les données
+if ($type === 'index') {
+  $options = $data;
+}
 
-// 3. Construit le tableau d'options, en respectant l'ordre initial des articles
-$options = [];
-foreach($data as $key) {
-    // article trouvé
-    if (isset($results[$key])) {
-        $options[$key] = $results[$key];
+// Sinon, il faut convertir les codes présents dans le champ en libellés
+else {
+    // 2. Interroge la table pour obtenir le libellé de chacun des articles
+
+    // Construit la clause WHERE ... IN (...)
+    $options = [];
+    foreach ($data as $option) {
+        $options[]= "'" . strtr($option, "'", "\\'") . "'";
     }
+    $where = $valueField . ' IN (' . implode(',', $options) . ')';
 
-    // article non trouvé
-    else {
-        $options[$key] = 'Invalide : ' . $key;
+    // On veut une réponse de la forme $valueField => $labelField pour le select
+    $what = "$valueField,$labelField";
+
+    // Recherche tous les articles
+    $results = docalist('table-manager')->get($name)->search($what, $where);
+
+    // 3. Construit le tableau d'options, en respectant l'ordre initial des articles
+    $options = [];
+    foreach($data as $key) {
+        // article trouvé
+        if (isset($results[$key])) {
+            $options[$key] = $results[$key];
+        }
+
+        // article non trouvé
+        else {
+            $options[$key] = 'Invalide : ' . $key;
+        }
     }
 }
 

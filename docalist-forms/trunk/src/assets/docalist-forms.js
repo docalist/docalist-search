@@ -442,20 +442,21 @@ jQuery.fn.tableLookup = function() {
                         html += '<span class="title" title="' + escape(item.description) + '">?</span>';
                     }
                     */
+                    
+                    // Description
+                    if (item.description) {
+                        html += '<span class="description" title="' + escape(item.description) + '">?</span>';
+                    }
+                    
+                    // Scope Note
+                    if (item.SN) {
+                        html += '<span class="SN" title="' + escape(item.SN) + '">!</span>';
+                    }
+                    
                     // Relations
                     $.each(['USE','MT','BT','NT', 'RT','UF'], function(index, field) {
                         if (item[field]) {
                             html += listRelations(field, item[field]);
-                        }
-                    });
-                    
-                    // Autres informations
-                    $.each(['description', 'SN'], function(index, field) {
-                        if (item[field]) {
-                            html += '<div class="' + field + '">';
-                            html += '<i>' + relName(field) + '</i> ';
-                            html += '<b>' + item[field] + '</b>';
-                            html += '</div>'
                         }
                     });
                     

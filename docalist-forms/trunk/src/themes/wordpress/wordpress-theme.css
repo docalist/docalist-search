@@ -157,11 +157,23 @@ button.cloner:hover {
 .selectize-dropdown .RT b { /* TA */ 
     color: #080;
 }
+/*
 .selectize-dropdown .description b,
 .selectize-dropdown .SN b 
 {
     font-weight: normal;
     font-size: 12px;
+}
+*/
+
+.selectize-dropdown .description,
+.selectize-dropdown .SN 
+{
+    background: #ddd;
+    color: #999;
+    border-radius: 6px;
+    padding: 0 0.5em;
+    margin-left: 0.5em;
 }
 
 .selectize-dropdown b[rel]:hover {

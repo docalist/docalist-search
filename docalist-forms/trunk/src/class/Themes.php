@@ -104,7 +104,7 @@ class Themes {
                     array('name' => 'jquery'),
                     array(
                         'name' => 'docalist-forms',
-                        'src' => 'assets/docalist-forms.js?140318',
+                        'src' => 'assets/docalist-forms.js?260318',
                         'position' => 'top',
                     ),
                 ),
@@ -146,7 +146,7 @@ class Themes {
                     array(
                         'type' => 'css',
                         'name' => 'wordpress-theme',
-                        'src' => 'themes/wordpress/wordpress-theme.css?140318',
+                        'src' => 'themes/wordpress/wordpress-theme.css?260318',
                     ),
                 )
             ),

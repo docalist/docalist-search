@@ -338,6 +338,9 @@ class SearchEngine {
      * (seul $query nous intéresse).
      */
     public function onPostsResults(array $posts = null, WP_Query & $query) {
+        if (count($this->results->hits()) !== count($posts)) {
+            echo "<p>WARNING : L'index docalist-search est désynchronisé.</p>";
+        }
         $total = $this->results ? $this->results->total() : 0;
         $size = $this->request->size();
 

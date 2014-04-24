@@ -52,7 +52,7 @@ class Plugin {
         // Crée le service "docalist-search-engine"
         docalist('services')->add('docalist-search-engine',  new SearchEngine($this->settings));
 
-        add_filter('init', function() {
+        add_action('init', function() {
 
             // Enregistre les types de contenus indexables
             new PostIndexer();

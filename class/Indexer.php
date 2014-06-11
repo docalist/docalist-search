@@ -377,7 +377,7 @@ class Indexer {
             $this->updateStat($type, 'start', $startTime);
 
             // Récupère l'heure actuelle du serveur ES (pour purger les docs)
-            $serverStartTime = $this->currentServerTime($es);
+            $lastUpdate = $this->lastUpdate($es);
 
             // Informe qu'on va réindexer $type
             do_action('docalist_search_before_reindex_type', $type, $label);
@@ -393,7 +393,7 @@ class Indexer {
             $this->flush();
 
             // Supprime les posts qui n'ont pas été mis à jour
-            if (! is_null($serverStartTime)) {
+            if (! is_null($lastUpdate)) {
 
                 // Force un rafraichissement des index
                 // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-refresh/
@@ -407,11 +407,11 @@ class Indexer {
 
                 // Compte les documents de type $type dont timestamp < start
                 // http://www.elasticsearch.org/guide/reference/api/count/
-                // $query = sprintf('{"range":{"_timestamp":{"lt":%.0f}}}', $serverStartTime);
+                // $query = sprintf('{"range":{"_timestamp":{"lt":%.0f}}}', $lastUpdate);
 
                 // ES-1.0 : count now requires a top-level "query" parameter
                 // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/master/_search_requests.html
-                $query = sprintf('{"query":{"range":{"_timestamp":{"lt":%.0f}}}}', $serverStartTime);
+                $query = sprintf('{"query":{"range":{"_timestamp":{"lt":%.0f}}}}', $lastUpdate);
 
                 $result = $es->post("$type/_count", $query);
 
@@ -458,44 +458,36 @@ class Indexer {
     }
 
     /**
-     * Détermine l'heure actuelle sur le serveur Elastic Search.
+     * Retourne la date/heure de dernière modification de l'index Elastic Search.
      *
-     * Cétte méthode est utilisée pour purger l'index, c'est-à-dire supprimer
+     * Cette méthode est utilisée pour purger l'index, c'est-à-dire supprimer
      * les documents qui n'ont pas été réindexés depuis une certaine date.
      *
      * La méthode lance une recherche sur l'index en cours. Si l'index n'existe
      * pas ou s'il ne contient aucun document, la méthode retourne null : cela
      * signifie que l'index est vide et qu'il n'y a aucun document à purger.
      *
-     * Dans le cas contraire, le premier document trouvé est retourné
-     * (n'importe lequel), avec un champ scripté qui retourne l'heure en cours
-     * du serveur via la fonction time().
-     * @see http://www.elasticsearch.org/guide/reference/modules/scripting/
+     * Dans le cas contraire, le champ _timestamp du dernier document ajouté ou
+     * mis à jour est retourné.
      *
      * @param ElasticSearchClient $es
      *
-     * @return int|null Retourne l'heure en cours sur le serveur (en
+     * @return int|null Retourne l'heure de dernière modification (en
      * millisecondes écoulées depuis epoch) ou null si l'index en cours ne
      * contient aucun document.
      *
      * Remarque : le temps retourné est en millisecondes (contrairement à la
      * fonction php microtime qui retourne des secondes).
      */
-    protected function currentServerTime(ElasticSearchClient $es) {
-        $query = '{"size": 1,"script_fields":{"time":{"script":"time()"}}}';
+    protected function lastUpdate(ElasticSearchClient $es) {
         try {
-            $data = $es->get('_search', $query);
+            $data = $es->get('_search?sort=_timestamp:desc&size=1&fields');
         } catch (Exception $e) {
             // l'index n'existe pas
-            return null; // on sait pas
+            return null; // on ne sait pas
         }
 
-        $time = isset($data->hits->hits[0]) ? $data->hits->hits[0]->fields->time : null;
-
-        // ES-1.0 : time est maintenant un tableau.
-        // Field values are now always returned as arrays.
-        // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/master/_return_values.html
-        is_array($time) && $time = $time[0];
+        $time = isset($data->hits->hits[0]->sort[0]) ? $data->hits->hits[0]->sort[0] : null;
 
         return $time;
     }

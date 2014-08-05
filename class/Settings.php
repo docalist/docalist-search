@@ -35,11 +35,11 @@ class Settings extends AbstractSettingsEntity {
             ),
             'server' => array(
                 'label' => __('Serveur elasticsearch', 'docalist-search'),
-                'type' => 'ServerSettings',
+                'type' => 'Docalist\Search\ServerSettings',
             ),
             'indexer' => array(
                 'label' => __("Paramètres de l'indexeur", 'docalist-search'),
-                'type' => 'IndexerSettings',
+                'type' => 'Docalist\Search\IndexerSettings',
             ),
         );
         // @formatter:on

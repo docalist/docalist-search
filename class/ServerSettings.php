@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2014 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -14,7 +14,7 @@
  */
 namespace Docalist\Search;
 
-use Docalist\Data\Entity\AbstractEntity;
+use Docalist\Type\Object;
 
 /**
  * Options de configuration du serveur ElasticSearch.
@@ -23,9 +23,9 @@ use Docalist\Data\Entity\AbstractEntity;
  * @property string $index Nom de l'index ElasticSearch utilisé.
  * @property int $timeout Timeout des requêtes, en secondes.
  */
-class ServerSettings extends AbstractEntity {
+class ServerSettings extends Object {
     // @formatter:off
-    protected function loadSchema() {
+    static protected function loadSchema() {
         global $wpdb;
 
         return array(

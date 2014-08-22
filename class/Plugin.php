@@ -37,20 +37,24 @@ class Plugin {
         load_plugin_textdomain('docalist-search', false, 'docalist-search/languages');
 
         // Charge la configuration du plugin
-        $this->settings = new Settings('docalist-search');
+        $this->settings = new Settings(docalist('settings-repository'));
 
-        // Crée le service "elastic-search"
-        docalist('services')->add('elastic-search', function() {
-            return new ElasticSearchClient($this->settings->server);
-        });
+        // Enregistre nos services
+        docalist('services')->add([
 
-        // Crée le service "docalist-search-indexer"
-        docalist('services')->add('docalist-search-indexer', function(){
-            return new Indexer($this->settings->indexer);
-        });
+            // Service "elastic-search"
+            'elastic-search' => function() {
+                return new ElasticSearchClient($this->settings->server);
+            },
 
-        // Crée le service "docalist-search-engine"
-        docalist('services')->add('docalist-search-engine',  new SearchEngine($this->settings));
+            // Service "docalist-search-indexer"
+            'docalist-search-indexer' => function(){
+                return new Indexer($this->settings->indexer);
+            },
+
+            // Service "docalist-search-engine"
+            'docalist-search-engine' =>  new SearchEngine($this->settings)
+        ]);
 
         add_action('init', function() {
 

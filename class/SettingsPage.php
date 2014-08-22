@@ -104,19 +104,19 @@ class SettingsPage extends AdminPage {
             case 0:
                 $msg = __("L'url %s ne répond pas.", 'docalist-search');
                 return printf($msg,
-                    $this->settings->server->url
+                    $this->settings->server->url()
                 );
             case 1:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s n'existe pas.", 'docalist-search');
                 return printf($msg,
-                    $this->settings->server->url,
-                    $this->settings->server->index
+                    $this->settings->server->url(),
+                    $this->settings->server->index()
                 );
             case 2:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s existe.", 'docalist-search');
                 return printf($msg,
-                    $this->settings->server->url,
-                    $this->settings->server->index
+                    $this->settings->server->url(),
+                    $this->settings->server->index()
                 );
         }
 
@@ -178,7 +178,7 @@ class SettingsPage extends AdminPage {
 
         // Teste si la recherche peut être activée
         $error = '';
-        if (! $this->settings->enabled) {
+        if (! $this->settings->enabled()) {
             /* @var $indexer Indexer */
             $indexer = docalist('docalist-search-indexer');
             $ping = $indexer->ping();
@@ -278,7 +278,7 @@ class SettingsPage extends AdminPage {
         // Permet à l'utilisateur de choisir les types à réindexer
         if (empty($selected)) {
             // Parmi ceux qui sont indexés
-            $types = $this->settings->indexer->types->toArray();
+            $types = $this->settings->indexer->types();
             $types = array_flip($types);
             $types = array_intersect_key($this->availableTypes(), $types);
 

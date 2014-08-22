@@ -113,8 +113,8 @@ class Indexer {
      */
     public function __construct(IndexerSettings $settings) {
         $this->settings = $settings;
-        $this->bulkMaxSize = $settings->bulkMaxSize * 1024 * 1024; // en Mo dans la config
-        $this->bulkMaxCount = $settings->bulkMaxCount;
+        $this->bulkMaxSize = $settings->bulkMaxSize() * 1024 * 1024; // en Mo dans la config
+        $this->bulkMaxCount = $settings->bulkMaxCount();
         $this->bulk = '';
         $this->bulkCount = 0;
         $this->stats = array();
@@ -151,7 +151,7 @@ class Indexer {
             $all = apply_filters('docalist_search_get_types', array());
 
             // Récupère la liste des types indexés (choisis par l'admin)
-            $selected = array_flip($this->settings->types->toArray());
+            $selected = array_flip($this->settings->types());
 
             // Croise les deux
             $this->types = array_intersect_key($all, $selected);

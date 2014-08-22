@@ -68,9 +68,9 @@ class ElasticSearchClient {
      *
      */
     public function configure(ServerSettings $settings) {
-        $this->server = $settings->url;
-        $this->index = $settings->index;
-        $this->timeout = $settings->timeout;
+        $this->server = $settings->url();
+        $this->index = $settings->index();
+        $this->timeout = $settings->timeout();
 
         $this->context = stream_context_create(array(
             // cf http://www.php.net/manual/en/context.http.php

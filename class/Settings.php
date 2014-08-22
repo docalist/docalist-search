@@ -15,11 +15,12 @@
 namespace Docalist\Search;
 
 use Docalist\Type\Settings as TypeSettings;
+use Docalist\Type\Boolean;
 
 /**
  * Options de configuration du plugin.
  *
- * @property bool $enabled Indique si la recherche est activée.
+ * @property Boolean $enabled Indique si la recherche est activée.
  * @property ServerSettings $server Paramètres du serveur ElasticSearch.
  * @property IndexerSettings $indexer Paramètres de l'indexeur.
  */

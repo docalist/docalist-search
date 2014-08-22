@@ -15,13 +15,15 @@
 namespace Docalist\Search;
 
 use Docalist\Type\Object;
+use Docalist\Type\String;
+use Docalist\Type\Integer;
 
 /**
  * Options de configuration du serveur ElasticSearch.
  *
- * @property string $url Url complète du serveur ElasticSearch.
- * @property string $index Nom de l'index ElasticSearch utilisé.
- * @property int $timeout Timeout des requêtes, en secondes.
+ * @property String $url Url complète du serveur ElasticSearch.
+ * @property String $index Nom de l'index ElasticSearch utilisé.
+ * @property Integer $timeout Timeout des requêtes, en secondes.
  */
 class ServerSettings extends Object {
     // @formatter:off

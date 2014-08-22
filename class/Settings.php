@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2014 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -14,7 +14,7 @@
  */
 namespace Docalist\Search;
 
-use Docalist\Data\Entity\AbstractSettingsEntity;
+use Docalist\Type\Settings as TypeSettings;
 
 /**
  * Options de configuration du plugin.
@@ -23,25 +23,26 @@ use Docalist\Data\Entity\AbstractSettingsEntity;
  * @property ServerSettings $server Paramètres du serveur ElasticSearch.
  * @property IndexerSettings $indexer Paramètres de l'indexeur.
  */
-class Settings extends AbstractSettingsEntity {
+class Settings extends TypeSettings {
+    protected $id = 'docalist-search-settings';
 
-    protected function loadSchema() {
+    static protected function loadSchema() {
         // @formatter:off
-        return array(
-            'enabled' => array(
+        return [
+            'enabled' => [
                 'type' => 'bool',
                 'label' => __('Activer la recherche', 'docalist-search'),
                 'default' => false,
-            ),
-            'server' => array(
+            ],
+            'server' => [
                 'label' => __('Serveur elasticsearch', 'docalist-search'),
-                'type' => 'Docalist\Search\ServerSettings',
-            ),
-            'indexer' => array(
+                'type' => 'ServerSettings',
+            ],
+            'indexer' => [
                 'label' => __("Paramètres de l'indexeur", 'docalist-search'),
-                'type' => 'Docalist\Search\IndexerSettings',
-            ),
-        );
+                'type' => 'IndexerSettings',
+            ],
+        ];
         // @formatter:on
     }
 }

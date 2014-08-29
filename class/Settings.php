@@ -30,19 +30,21 @@ class Settings extends TypeSettings {
     static protected function loadSchema() {
         // @formatter:off
         return [
-            'enabled' => [
-                'type' => 'bool',
-                'label' => __('Activer la recherche', 'docalist-search'),
-                'default' => false,
-            ],
-            'server' => [
-                'label' => __('Serveur elasticsearch', 'docalist-search'),
-                'type' => 'ServerSettings',
-            ],
-            'indexer' => [
-                'label' => __("Paramètres de l'indexeur", 'docalist-search'),
-                'type' => 'IndexerSettings',
-            ],
+            'fields' => [
+                'enabled' => [
+                    'type' => 'bool',
+                    'label' => __('Activer la recherche', 'docalist-search'),
+                    'default' => false,
+                ],
+                'server' => [
+                    'label' => __('Serveur elasticsearch', 'docalist-search'),
+                    'type' => 'ServerSettings',
+                ],
+                'indexer' => [
+                    'label' => __("Paramètres de l'indexeur", 'docalist-search'),
+                    'type' => 'IndexerSettings',
+                ]
+            ]
         ];
         // @formatter:on
     }

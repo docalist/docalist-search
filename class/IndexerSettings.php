@@ -28,22 +28,24 @@ class IndexerSettings extends Object {
     static protected function loadSchema() {
         // @formatter:off
         return [
-            'types' => [
-                'label' => __('Contenus à indexer', 'docalist-search'),
-                'type' => 'string*',
-            ],
-            'bulkMaxSize' => [
-                'label' =>__('Taille maximale du buffer (en Mo)', 'docalist-search'),
-                'description' => __('En méga-octets. Le buffer est vidé si la taille totale des documents en attente dépasse cette limite.', 'docalist-search'),
-                'type' => 'int',
-                'default' => 10,
-            ],
-            'bulkMaxCount' => [
-                'label' =>__('Nombre maximum de documents', 'docalist-search'),
-                'description' => __('Le buffer est vidé si le nombre de documents en attente dépasse ce nombre.', 'docalist-search'),
-                'type' => 'int',
-                'default' => 10000,
-            ],
+            'fields' => [
+                'types' => [
+                    'label' => __('Contenus à indexer', 'docalist-search'),
+                    'type' => 'string*',
+                ],
+                'bulkMaxSize' => [
+                    'label' =>__('Taille maximale du buffer (en Mo)', 'docalist-search'),
+                    'description' => __('En méga-octets. Le buffer est vidé si la taille totale des documents en attente dépasse cette limite.', 'docalist-search'),
+                    'type' => 'int',
+                    'default' => 10,
+                ],
+                'bulkMaxCount' => [
+                    'label' =>__('Nombre maximum de documents', 'docalist-search'),
+                    'description' => __('Le buffer est vidé si le nombre de documents en attente dépasse ce nombre.', 'docalist-search'),
+                    'type' => 'int',
+                    'default' => 10000,
+                ]
+            ]
         ];
         // @formatter:off
     }

@@ -339,13 +339,17 @@ class FacetsWidget extends WP_Widget {
         $form = new Fragment();
 
         $form->input('title')
-        ->attribute('id', $this->get_field_id('title')) // pour que le widget affiche le bon titre en backoffice. cf widgets.dev.js, fonction appendTitle(), L250
-        ->label(__('Titre du widget', 'docalist-search'))
-        ->addClass('widefat');
+            ->attribute('id', $this->get_field_id('title')) // pour que le widget affiche le bon titre en backoffice. cf widgets.dev.js, fonction appendTitle(), L250
+            ->label(__('Titre du widget', 'docalist-search'))
+            ->addClass('widefat');
         /*
          $html = $form->fieldset('Liste des facettes à afficher')
         ->description(__('Choisissez les facettes à afficher.', 'docalist-search'));
         */
+        $form->input('startfacetlist')
+        ->label(__('1. ID CHANGED Début de la liste des facettes :', 'docalist-search'))
+        ->description('desc')
+        ->addClass('widefat');
 
         $facets = apply_filters('docalist_search_get_facets', array());
         foreach($facets as $name => & $facet) {
@@ -353,25 +357,25 @@ class FacetsWidget extends WP_Widget {
         }
 
         $form->table('facets')
-        ->label(__('Facettes', 'docalist-search'))
-        ->repeatable(true)
-        ->select('name')
-        ->label(__('Facette', 'docalist-search'))
-        ->description(__('Choisissez dans la liste la facette que vous voulez utiliser', 'docalist-search'))
-        ->options($facets)
+            ->label(__('Facettes', 'docalist-search'))
+            ->repeatable(true)
+            ->select('name')
+            ->label(__('Facette', 'docalist-search'))
+            ->description(__('Choisissez dans la liste la facette que vous voulez utiliser', 'docalist-search'))
+            ->options($facets)
         ->parent()
-        ->input('size')
-        ->label(__('Taille initiale', 'docalist-search'))
-        ->description(__('Nombre d\'entrées à afficher initialement (laisser vide pour utiliser la valeur par défaut)', 'docalist-search'))
+            ->input('size')
+            ->label(__('Taille initiale', 'docalist-search'))
+            ->description(__('Nombre d\'entrées à afficher initialement (laisser vide pour utiliser la valeur par défaut)', 'docalist-search'))
         ->parent()
-        ->input('label')
-        ->label(__('Titre à afficher', 'docalist-search'))
-        ->description(__('Titre de la facette (laisser vide pour utiliser le titre par défaut)', 'docalist-search'))
+            ->input('label')
+            ->label(__('Titre à afficher', 'docalist-search'))
+            ->description(__('Titre de la facette (laisser vide pour utiliser le titre par défaut)', 'docalist-search'))
         ->parent()
-        ->select('role')
-        ->options($this->roles())
-        ->label(__('Droits requis', 'docalist-search'))
-        ->description(__('La facette ne sera affichée que pour les utilisateurs ayant le rôle indiqué (vide = tous)', 'docalist-search'))
+            ->select('role')
+            ->options($this->roles())
+            ->label(__('Droits requis', 'docalist-search'))
+            ->description(__('La facette ne sera affichée que pour les utilisateurs ayant le rôle indiqué (vide = tous)', 'docalist-search'))
         ;
 
         $description  = __('Les zones suivantes vous permettent de personnaliser le code html généré par le widget. ', 'docalist-search');
@@ -387,60 +391,60 @@ class FacetsWidget extends WP_Widget {
         $close = __(' Vous devez fermer tous les tags ouverts en %s', 'docalist-search');
 
         $html->input('start-facet-list')
-        ->label(__('1. Début de la liste des facettes :', 'docalist-search'))
-        ->description(sprintf($open, '10.'))
-        ->addClass('widefat');
+            ->label(__('1. Début de la liste des facettes :', 'docalist-search'))
+            ->description(sprintf($open, '10.'))
+            ->addClass('widefat');
 
         $html->input('start-facet')
-        ->label(__("2. Début d'une facette :", 'docalist-search'))
-        ->addClass('widefat')
-        ->description(
-            __('La chaine <code>%s</code> sera remplacée par un nom de classe de la forme "facet-xxx" construit à partir du nom de la facette (par exemple : facet-type-keyword pour la facette type.keyword).', 'docalist-search')
-            . sprintf($open, '9.')
-        );
+            ->label(__("2. Début d'une facette :", 'docalist-search'))
+            ->addClass('widefat')
+            ->description(
+                __('La chaine <code>%s</code> sera remplacée par un nom de classe de la forme "facet-xxx" construit à partir du nom de la facette (par exemple : facet-type-keyword pour la facette type.keyword).', 'docalist-search')
+                . sprintf($open, '9.')
+            );
 
         $html->input('facet-title')
-        ->label(__("3. Titre de la facette :", 'docalist-search'))
-        ->addClass('widefat')
-        ->description(__('La chaine <code>%s</code> sera remplacée par le titre de la facette.', 'docalist-search'));
+            ->label(__("3. Titre de la facette :", 'docalist-search'))
+            ->addClass('widefat')
+            ->description(__('La chaine <code>%s</code> sera remplacée par le titre de la facette.', 'docalist-search'));
 
         $html->input('start-term-list')
-        ->label(__("4. Début de la liste des termes :", 'docalist-search'))
-        ->addClass('widefat')
-        ->description(
-            __('La chaine <code>%s</code> sera remplacée par un nom de classe CSS de la forme "terms-xxx" construit à partir du nom de la facette (exemple : terms-type-keyword pour la facette type.keyword).', 'docalist-search')
-            . sprintf($open, '8.')
-        );
+            ->label(__("4. Début de la liste des termes :", 'docalist-search'))
+            ->addClass('widefat')
+            ->description(
+                __('La chaine <code>%s</code> sera remplacée par un nom de classe CSS de la forme "terms-xxx" construit à partir du nom de la facette (exemple : terms-type-keyword pour la facette type.keyword).', 'docalist-search')
+                . sprintf($open, '8.')
+            );
 
         $html->input('count')
-        ->label(__("5. Nombre d'occurences d'un terme :", 'docalist-search'))
-        ->addClass('widefat')
-        ->description(__("La chaine <code>%s</code> sera remplacée par le nombre d'occurences. Le résultat est ensuite injecté dans les libellés 6 et 7.", 'docalist-search'));
+            ->label(__("5. Nombre d'occurences d'un terme :", 'docalist-search'))
+            ->addClass('widefat')
+            ->description(__("La chaine <code>%s</code> sera remplacée par le nombre d'occurences. Le résultat est ensuite injecté dans les libellés 6 et 7.", 'docalist-search'));
 
         $html->input('term')
-        ->label(__("6. Terme normal :", 'docalist-search'))
-        ->addClass('widefat')
-        ->description(__("Premier <code>%s</code> = url, second <code>%s</code> = libellé du terme, troisème <code>%s</code> = nombre d'occurences (cf. 5)", 'docalist-search'));
+            ->label(__("6. Terme normal :", 'docalist-search'))
+            ->addClass('widefat')
+            ->description(__("Premier <code>%s</code> = url, second <code>%s</code> = libellé du terme, troisème <code>%s</code> = nombre d'occurences (cf. 5)", 'docalist-search'));
 
         $html->input('term-active')
-        ->label(__("7. Terme sélectionné :", 'docalist-search'))
-        ->addClass('widefat')
-        ->description(__("Premier <code>%s</code> = url, second <code>%s</code> = libellé du terme, troisème <code>%s</code> = nombre d\'occurences (cf. 5)", 'docalist-search'));
+            ->label(__("7. Terme sélectionné :", 'docalist-search'))
+            ->addClass('widefat')
+            ->description(__("Premier <code>%s</code> = url, second <code>%s</code> = libellé du terme, troisème <code>%s</code> = nombre d\'occurences (cf. 5)", 'docalist-search'));
 
         $html->input('end-term-list')
-        ->label(__("8. Fin de la liste des termes :", 'docalist-search'))
-        ->description(sprintf($close, '4.'))
-        ->addClass('widefat');
+            ->label(__("8. Fin de la liste des termes :", 'docalist-search'))
+            ->description(sprintf($close, '4.'))
+            ->addClass('widefat');
 
         $html->input('end-facet')
-        ->label(__("9. Fin d'une facette :", 'docalist-search'))
-        ->description(sprintf($close, '2.'))
-        ->addClass('widefat');
+            ->label(__("9. Fin d'une facette :", 'docalist-search'))
+            ->description(sprintf($close, '2.'))
+            ->addClass('widefat');
 
         $html->input('end-facet-list')
-        ->label(__('10. Fin de la liste des facettes :', 'docalist-search'))
-        ->description(sprintf($close, '1.'))
-        ->addClass('widefat');
+            ->label(__('10. Fin de la liste des facettes :', 'docalist-search'))
+            ->description(sprintf($close, '1.'))
+            ->addClass('widefat');
 
         return $form;
     }

@@ -156,7 +156,8 @@ class FacetsWidget extends WP_Widget {
         }
 
         // Phase 3 - Affiche les facettes
-        $html = $settings['html'];
+//        $html = $settings['html'];
+        $html = $this->defaultSettings()['html']; // cf. commentaire dans createEditForm().
         $currentUrl = Uri::fromCurrent()->clear('page');
         $first = true;
         foreach ($facets as $name => $facet) {
@@ -336,6 +337,14 @@ class FacetsWidget extends WP_Widget {
      * @return Fragment
      */
     protected function createSettingsForm() {
+/*
+ 2014/09/04 : supprime le paramètrage du code html de la facette.
+ Tel que c'est contruit dans wordpress, le widgets ne peuvent pas avoir un input
+ qui contient du code html. Si c'est las cas, les __i__ ne sont pas correctement
+ remplacés car la regexp utilisé dans widgets.js (/<[^<>]+>/g) exclut des
+ bouts du code html. Du coup, on perd les settings.
+ */
+
         $form = new Fragment();
 
         $form->input('title')
@@ -346,10 +355,6 @@ class FacetsWidget extends WP_Widget {
          $html = $form->fieldset('Liste des facettes à afficher')
         ->description(__('Choisissez les facettes à afficher.', 'docalist-search'));
         */
-        $form->input('startfacetlist')
-        ->label(__('1. ID CHANGED Début de la liste des facettes :', 'docalist-search'))
-        ->description('desc')
-        ->addClass('widefat');
 
         $facets = apply_filters('docalist_search_get_facets', array());
         foreach($facets as $name => & $facet) {
@@ -377,15 +382,15 @@ class FacetsWidget extends WP_Widget {
             ->label(__('Droits requis', 'docalist-search'))
             ->description(__('La facette ne sera affichée que pour les utilisateurs ayant le rôle indiqué (vide = tous)', 'docalist-search'))
         ;
-
+/*
         $description  = __('Les zones suivantes vous permettent de personnaliser le code html généré par le widget. ', 'docalist-search');
         $description .= __('Par défaut, le widget génère une liste de facettes (ul). ', 'docalist-search');
         $description .= __('Chaque élément (li) de cette liste contient un titre (h4) et une liste (ul) de termes. ', 'docalist-search');
         $description .= __("Chaque terme (li) est un lien (a) avec le libellé du terme et son nombre d'occurences et permet de sélectionner ou de désélectionner le terme. ", 'docalist-search');
 
         $html = $form->fieldset('Code HTML généré<br />(options avancées)')
-        ->description($description)
-        ->name('html');
+            ->description($description)
+            ->name('html');
 
         $open = __(' Les tags html ouverts ici devront être fermés en %s', 'docalist-search');
         $close = __(' Vous devez fermer tous les tags ouverts en %s', 'docalist-search');
@@ -445,7 +450,7 @@ class FacetsWidget extends WP_Widget {
             ->label(__('10. Fin de la liste des facettes :', 'docalist-search'))
             ->description(sprintf($close, '1.'))
             ->addClass('widefat');
-
+*/
         return $form;
     }
 

@@ -507,6 +507,9 @@ class Indexer {
             return 0;
         }
 
+        // Réinitialise le cache wordpress
+        wp_cache_init();
+
         // Stocke le nombre de commandes pour pouvoir le retourner après
         $count = $this->bulkCount;
         $size = strlen($this->bulk);

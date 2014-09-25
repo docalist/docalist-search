@@ -336,7 +336,7 @@ class FacetsWidget extends WP_Widget {
      *
      * @return Fragment
      */
-    protected function createSettingsForm() {
+    protected function settingsForm() {
 /*
  2014/09/04 : supprime le paramètrage du code html de la facette.
  Tel que c'est contruit dans wordpress, le widgets ne peuvent pas avoir un input
@@ -364,23 +364,24 @@ class FacetsWidget extends WP_Widget {
         $form->table('facets')
             ->label(__('Facettes', 'docalist-search'))
             ->repeatable(true)
+            ->repeatLevel(2)
             ->select('name')
-            ->label(__('Facette', 'docalist-search'))
-            ->description(__('Choisissez dans la liste la facette que vous voulez utiliser', 'docalist-search'))
-            ->options($facets)
-        ->parent()
-            ->input('size')
-            ->label(__('Taille initiale', 'docalist-search'))
-            ->description(__('Nombre d\'entrées à afficher initialement (laisser vide pour utiliser la valeur par défaut)', 'docalist-search'))
-        ->parent()
-            ->input('label')
-            ->label(__('Titre à afficher', 'docalist-search'))
-            ->description(__('Titre de la facette (laisser vide pour utiliser le titre par défaut)', 'docalist-search'))
-        ->parent()
-            ->select('role')
-            ->options($this->roles())
-            ->label(__('Droits requis', 'docalist-search'))
-            ->description(__('La facette ne sera affichée que pour les utilisateurs ayant le rôle indiqué (vide = tous)', 'docalist-search'))
+                ->label(__('Facette', 'docalist-search'))
+                ->description(__('Choisissez dans la liste la facette que vous voulez utiliser', 'docalist-search'))
+                ->options($facets)
+            ->parent()
+                ->input('size')
+                ->label(__('Taille initiale', 'docalist-search'))
+                ->description(__('Nombre d\'entrées à afficher initialement (laisser vide pour utiliser la valeur par défaut)', 'docalist-search'))
+            ->parent()
+                ->input('label')
+                ->label(__('Titre à afficher', 'docalist-search'))
+                ->description(__('Titre de la facette (laisser vide pour utiliser le titre par défaut)', 'docalist-search'))
+            ->parent()
+                ->select('role')
+                ->options($this->roles())
+                ->label(__('Droits requis', 'docalist-search'))
+                ->description(__('La facette ne sera affichée que pour les utilisateurs ayant le rôle indiqué (vide = tous)', 'docalist-search'))
         ;
 /*
         $description  = __('Les zones suivantes vous permettent de personnaliser le code html généré par le widget. ', 'docalist-search');
@@ -455,32 +456,15 @@ class FacetsWidget extends WP_Widget {
     }
 
     /**
-     * Retourne le formulaire permettant de paramètrer le widget.
-     *
-     * Si le formulaire n'a pas encore été, la méthode appelle
-     * {@link createSettingsForm()} et stocke le résultat dans la propriété
-     * {@link $settingsForm}.
-     *
-     * @return Fragment
-     */
-    protected function settingsForm() {
-        if (! $this->settingsForm) {
-            $this->settingsForm = $this->createSettingsForm();
-        }
-
-        return $this->settingsForm;
-    }
-
-    /**
      * Retourne les paramètres par défaut du widget.
      *
      * @return array
      */
     protected function defaultSettings() {
-        return array(
+        return [
             'title' => __('Affiner la recherche', 'docalist-search'),
-            'facets' => array(),
-            'html' => array(
+            'facets' => [],
+            'html' => [
                 'start-facet-list' => '<ul class="facets">',
                 'start-facet'      =>     '<li class="%s">',
                 'facet-title'      =>         '<h4>%s</h4>',
@@ -491,8 +475,8 @@ class FacetsWidget extends WP_Widget {
                 'end-term-list'    =>         '</ul>',
                 'end-facet'        =>     '</li>',
                 'end-facet-list'   => '</ul>',
-            ),
-        );
+            ],
+        ];
     }
 
     /**
@@ -501,27 +485,28 @@ class FacetsWidget extends WP_Widget {
      * @see WP_Widget::form()
      */
     public function form($instance) {
-        $theme = 'wordpress';
-
         // Récupère le formulaire à afficher
         $form = $this->settingsForm();
+
+        // Lie le formulaire aux paramètres du widget
+        $form->bind($instance ?: $this->defaultSettings());
+
+        // Dans WordPress, les widget ont un ID et sont multi-instances. Le
+        // formulaire doit donc avoir le même nom que le widget.
+        // Par ailleurs, l'API Widgets de WordPress attend des noms
+        // de champ de la forme "widget-id_base-[number][champ]". Pour générer
+        // cela facilement, on donne directement le bon nom au formulaire.
+        // Pour que les facettes soient orrectement clonées, le champ facets
+        // définit explicitement repeatLevel=2 (cf. settingsForm)
+        $name = 'widget-' . $this->id_base . '[' . $this->number . ']';
+        $form->name($name);
 
         // Envoie les assets requis par ce formulaire
         // Comme le début de la page a déjà été envoyé, les assets vont
         // être ajoutés en fin de page. On n'a pas de FOUC car le formulaire
         // ne sera affiché que lorsque l'utilisateur le demandera.
+        $theme = 'wordpress';
         Utils::enqueueAssets(Themes::assets($theme)->add($form->assets()));
-
-        // Dans WordPress, les widget ont un ID et sont multi-instances. Le
-        // formulaire doit donc être répétable et doit avoir le même nom que
-        // le widget. Par ailleurs, l'API Widgets de WordPress attend des noms
-        // de champ de la forme "widget-id_base-[number][champ]". Pour générer
-        // cela facilement, on positionne le formulaire sur la number-ième occurence.
-        $name = 'widget-' . $this->id_base;
-        $form->name($name)->repeatable(true)->occurence($this->number);
-
-        // Lie le formulaire aux paramètres du widget
-        $form->bind(array($name => $instance ?: $this->defaultSettings()));
 
         // Affiche le formulaire
         $form->render($theme);
@@ -564,9 +549,9 @@ class FacetsWidget extends WP_Widget {
         // renumérote si on en a supprimé
         $settings['facets'] = array_values($settings['facets']);
 
-        //echo '<pre>$new=', htmlspecialchars(var_export($new,true)), '</pre>';
-        //echo '<pre>form data=', htmlspecialchars(var_export($data,true)), '</pre>';
-        //die();
+//         echo '<pre>$new=', htmlspecialchars(var_export($new,true)), '</pre>';
+//         echo '<pre>form data=', htmlspecialchars(var_export($settings,true)), '</pre>';
+//         die();
         return $settings;
     }
 }

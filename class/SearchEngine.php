@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2014 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -361,8 +361,8 @@ class SearchEngine {
      * Chaque terme est un objet contenant les clés "term" et "count". Par
      * exemple la recherche "NOT" sur un champ "auteur" pourrait retourner :
      * [
-     *     {"term": "NOTAT (Nicole)", "count": 1 },
-     *     {"term": "NOTHOMB (AMELIE)", "count": 3},
+     *     {"term": "NOTAT (Nicole)", "score": 1 },
+     *     {"term": "NOTHOMB (AMELIE)", "score": 3},
      * ]
      *
      * Si aucun terme ne commence par le préfixe indiqué, la méthode retourne
@@ -386,14 +386,47 @@ class SearchEngine {
         }
 
         // Construit la requête Elastic Search
+
+        if ($search === '') {
+            $query = [
+                'aggs' => [
+                    'lookup' => [
+                        "terms" => [
+                            "field" => "$source.filter",
+                            "size" => 100,
+                            "order" => [ "_term" => "asc" ]
+                        ]
+                    ]
+                ]
+            ];
+
+            // Exécute la requête
+            $result = docalist('elastic-search')->post('_search?search_type=count', $query);
+            if (! isset($result->aggregations->lookup->buckets)) {
+                return [];
+            }
+
+            $result = $result->aggregations->lookup->buckets;
+            foreach($result as $bucket) {
+                $bucket->text = $bucket->key;
+                unset($bucket->key);
+
+                $bucket->score = $bucket->doc_count;
+                unset($bucket->doc_count);
+            }
+
+            return $result;
+        }
+
         // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-suggesters-completion.html
         $query = [
             'lookup' => [
                 'text' => $search,
                 'completion' => [
-                    'field' => $source,
-                    'size' => 10,
+                    'field' => "$source.suggest",
+                    'size' => 100,
                     // 'fuzzy' => true
+                    'prefix_len' => 1,
                 ]
             ]
         ];
@@ -402,10 +435,10 @@ class SearchEngine {
         $result = docalist('elastic-search')->post('_suggest', $query);
 
         // Récupère les suggestions
-        if (isset($result->lookup[0]->options)) {
-            return $result->lookup[0]->options;
-        } else {
-            return array(); // erreur ?
+        if (! isset($result->lookup[0]->options)) {
+            return [];
         }
+
+        return $result->lookup[0]->options;
     }
 }

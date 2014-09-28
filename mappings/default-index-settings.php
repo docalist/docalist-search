@@ -108,8 +108,8 @@ return [
                  */
                 'suggest' => [
                     'type' => 'custom',
-                    'tokenizer' => 'lowercase',
-                    'filter' => ['asciifolding'],
+                    'tokenizer' => 'keyword',
+                    'filter' => ['lowercase', 'asciifolding'],
                 ],
 
                 /*

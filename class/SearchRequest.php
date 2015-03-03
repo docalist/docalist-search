@@ -386,6 +386,9 @@ class SearchRequest {
             'fields' => array() // on ne veut que ID
         );
 
+        // Tri des réponses
+        // TODO
+
         // Nombre de réponses par page
         if( $this->size !== 10) {
             $request['size'] = $this->size;
@@ -430,8 +433,15 @@ class SearchRequest {
             // - un ensemble de champs (topic.*=social)
             if (empty($field)) {
                 // @todo : filtre docalist_search_get_default_fields
-                $field='dclrefprisme.type,dclrefprisme.genre,dclrefprisme.media,dclrefprisme.author,dclrefprisme.organisation,dclrefprisme.title,dclrefprisme.othertitle,dclrefprisme.translation,dclrefprisme.journal,dclrefprisme.issn,dclrefprisme.isbn,dclrefprisme.editor,dclrefprisme.collection,dclrefprisme.event,dclrefprisme.degree,dclrefprisme.abstract,dclrefprisme.topic,dclrefprisme.doi';
-                $field .=',post.title,post.content,page.title,page.content';
+
+                // Pour les notices :
+                $field = 'type,genre,media,title,othertitle,translation,author,organisation,date,journal,number,editor,collection,event,content,topic';
+
+                // number.issn : ES n'applique pas les mappings (créo* -> le "é" n'est pas remplacé par "e")
+                // donc au final, tout number par défaut
+
+                // Pour les posts et les pages
+                // $field .= ',title,content'; // champs déjà présents pour "notices"
             }
 
             foreach((array) $search as $search) {
@@ -446,7 +456,7 @@ class SearchRequest {
                         'fields' => explode(',', $field),
 
                         // Opérateur
-                        'minimum_should_match' => '100%',
+                        'minimum_should_match' => '75%',
 
                         // Force les troncatures à passer par l'analyzer du champ
                         'analyze_wildcard' => true,

@@ -455,8 +455,9 @@ class SearchRequest {
                         // Champ(s) par défaut
                         'fields' => explode(',', $field),
 
-                        // Opérateur
-                        'minimum_should_match' => '75%',
+                        // Opérateur (cf. #246)
+                        'default_operator' => 'AND',
+                        // 'minimum_should_match' => '75%',
 
                         // Force les troncatures à passer par l'analyzer du champ
                         'analyze_wildcard' => true,

@@ -2,15 +2,15 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2014 Daniel Ménard
+ * Copyright (C) 2012-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
  * Plugin Name: Docalist Search
  * Plugin URI:  http://docalist.org
- * Description: Docalist Search Plugin.
- * Version:     0.2
+ * Description: An ElasticSearch-based search engine for indexing posts, pages, docalist databases and other custom post types.
+ * Version:     2.0.0
  * Author:      Daniel Ménard
  * Author URI:  http://docalist.org/
  * Text Domain: docalist-search

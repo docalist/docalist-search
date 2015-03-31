@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -14,45 +14,120 @@
  */
 namespace Docalist\Search;
 
-use Docalist\Search\Indexer;
-use WP_Query, WP_Post;
+use WP_Query, WP_Post, WP_User;
 
 /**
- * Une classe qui permet d'indexer les articles de WordPress
+ * Un indexeur pour les articles de WordPress.
  */
-class PostIndexer {
+class PostIndexer extends TypeIndexer {
     /**
-     * Construit un nouvel indexeur.
+     * Construit l'indexeur.
+     *
+     * @param string $type Optionnel, le type de contenu géré par cet indexeur
+     * ("post" par défaut, mais les classes descendantes peuvent ainsi passer
+     * un autre type).
      */
-    public function __construct() {
-        // Cette classe sait indexer les articles et les pages
-        add_filter('docalist_search_get_types', function ($types) {
-            $types['post'] = get_post_type_object('post')->labels->name;
-            $types['page'] = get_post_type_object('page')->labels->name;
-
-            return $types;
-        });
-
-        // Fonction appellée pour réindexer tous les articles
-        add_action('docalist_search_reindex_post', function(Indexer $indexer){
-            $this->reindex($indexer, 'post');
-        });
-
-        // Fonction appellée pour réindexer toutes les pages
-        add_action('docalist_search_reindex_page', function(Indexer $indexer){
-            $this->reindex($indexer, 'page');
-        });
+    public function __construct($type = 'post') {
+        parent::__construct($type);
     }
 
-    protected function reindex(Indexer $indexer, $type) {
+    /**
+     * Retourne la liste des status à indexer.
+     *
+     * @return string
+     */
+    public function statuses() {
+        return ['publish', 'pending', 'private'];
+    }
+
+    public function contentId($post) { /* @var $post WP_Post */
+        return $post->ID;
+    }
+
+    public function mapping() {
+        $mapping = new MappingBuilder('fr-text'); // todo : rendre configurable
+
+        foreach(self::$stdFields as $field) {
+            static::standardMapping($field, $mapping);
+        }
+
+        return $mapping->mapping();
+    }
+
+
+    public function map($post) { /* @var $post WP_Post */
+        $document = [];
+        foreach(self::$stdFields as $field) {
+            $value = $post->$field;
+            $value && static::standardMap($field, $value, $document);
+        }
+
+        return $document;
+    }
+
+    /**
+     * Réindexe tous les documents de ce type.
+     *
+     * @param Indexer $indexer
+     */
+    public function indexAll(Indexer $indexer) {
+        global $wpdb;
+
+        $offset = 0;
+        $limit = 1000;
+
+        // Prépare la requête utilisée pour charger les posts par lots de $limit
+        $sql = sprintf(
+           'SELECT * FROM %s '
+         . "WHERE post_type = '%s' AND post_status IN ('%s') "
+         . 'ORDER BY ID ASC '
+         . 'LIMIT %s OFFSET %s',
+
+            $wpdb->posts,
+            $this->type(),
+            implode("','", $this->statuses()),
+            '%d',
+            '%d'
+        );
+
+        // remarque : pas besoin d'appeler prepare(). Un post_type ou un
+        // statut ne contiennent que des lettres et on contrôle les deux autres
+        // entiers passés en paramètre.
+
+        for (;;) {
+            // Prépare la requête pour le prochain lot
+            $query = sprintf($sql, $limit, $offset);
+
+            // $output == OBJECT (par défaut) est le plus efficace, pas de recopie
+            $posts = $wpdb->get_results($query);
+
+            // Si le lot est vide, c'est qu'on a terminé
+            if (empty($posts)) {
+                break;
+            }
+
+            // Indexe tous les posts de ce lot
+            foreach($posts as $post) {
+                $this->index($post, $indexer);
+            }
+
+            // Passe au lot suivant
+            $offset += count($posts);
+
+            // La ligne (commentée) suivante est pratique pour les tests
+            // if ($offset >= 1000) break;
+        }
+    }
+/*
+    public function OLDindexAll(Indexer $indexer) {
         $offset = 0;
         $size = 1000;
 
         $query = new WP_Query();
 
-        $args = array(
-            'post_type' => $type,
-            'post_status' => 'publish',
+        $args = [
+            'post_type' => $this->type(),
+            'post_status' => $this->statuses(),
 
             'offset' => $offset,
             'posts_per_page'=> $size,
@@ -65,26 +140,15 @@ class PostIndexer {
             'update_post_meta_cache' => false,
 
             'no_found_rows' => true
-        );
+        ];
 
         while ($posts = $query->query($args)) {
-            //echo "Query exécutée avec offset=", $args['offset'], ', result=', count($posts), '<br />';
+            echo '<pre>', $query->request, '</pre>';
             foreach($posts as $post) {
-                $indexer->index($type, $post->ID, $this->map($post));
+                $this->index($post, $indexer);
             }
             $args['offset'] += count($posts);
-            break;
         }
     }
-
-    protected function map(WP_Post $post) {
-        $document = array(
-            'title' => $post->post_title,
-            'date' => $post->post_date,
-            'content' => $post->post_content,
-            'status' => $post->post_status,
-        );
-
-        return $document;
-    }
+*/
 }

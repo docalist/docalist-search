@@ -163,7 +163,7 @@ class SettingsPage extends AdminPage {
         return $this->view('docalist-search:settings/indexer', [
             'settings' => $settings,
             'error' => $error,
-            'types' => $this->availableTypes()
+            'types' => docalist('docalist-search-indexer')->availableTypes(true)
         ]);
     }
 
@@ -277,13 +277,8 @@ class SettingsPage extends AdminPage {
     public function actionReindex($selected = null) {
         // Permet à l'utilisateur de choisir les types à réindexer
         if (empty($selected)) {
-            // Parmi ceux qui sont indexés
-            $types = $this->settings->indexer->types();
-            $types = array_flip($types);
-            $types = array_intersect_key($this->availableTypes(), $types);
-
             return $this->view('docalist-search:settings/reindex-choose', [
-                'types' => $types,
+                'types' => docalist('docalist-search-indexer')->indexedTypes(true),
             ]);
         }
 
@@ -339,20 +334,4 @@ class SettingsPage extends AdminPage {
      *    existe déjà). Après en routine, c'est une simple confirmation (ok,
      *    l'index que j'ai choisit existe toujours).
      */
-
-    /**
-     * Retourne la liste des types de contenus susceptibles d'être indexés.
-     *
-     * @return array Un tableau de la forme type => libellé du type, trié par
-     * libellés.
-     */
-    protected function availableTypes() {
-        // Récupère la liste de tous les types indexables
-        $types = apply_filters('docalist_search_get_types', array());
-
-        // Trie par label
-        natcasesort($types);
-
-        return $types;
-    }
 }

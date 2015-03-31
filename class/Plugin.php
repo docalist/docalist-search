@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2014 Daniel Ménard
+ * Copyright (C) 2012-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -48,21 +48,46 @@ class Plugin {
             },
 
             // Service "docalist-search-indexer"
-            'docalist-search-indexer' => function(){
-                return new Indexer($this->settings->indexer);
-            },
+            'docalist-search-indexer' => new Indexer($this->settings->indexer),
 
             // Service "docalist-search-engine"
             'docalist-search-engine' =>  new SearchEngine($this->settings)
         ]);
 
-        add_action('init', function() {
+        // Retourne les settings par défaut à utiliser quand un index est créé
+        // Remarque : priorité 1 pour être le premier
+        add_filter('docalist_search_get_index_settings', function (array $settings) {
+            return require __DIR__ . '/../index-settings/default.php';
+        }, 1);
 
-            // Enregistre les types de contenus indexables
-            new PostIndexer();
+        // Retourne les types de contenus indexables
+        add_filter('docalist_search_get_types', function ($types) {
+            $types['post'] = get_post_type_object('post')->labels->name;
+            $types['page'] = get_post_type_object('page')->labels->name;
 
-            // Enregistre la liste des facettes disponibles
-            $this->registerFacets();
+            return $types;
+        });
+
+        // Retourne l'indexeur à utiliser pour les articles
+        add_filter('docalist_search_get_post_indexer', function(TypeIndexer $indexer = null) {
+            is_null($indexer) && $indexer = new PostIndexer();
+
+            return $indexer;
+        });
+
+        // Retourne l'indexeur à utiliser pour les pages
+        add_filter('docalist_search_get_page_indexer', function(TypeIndexer $indexer = null) {
+            is_null($indexer) && $indexer = new PageIndexer();
+
+            return $indexer;
+        });
+
+        // Enregistre la liste des facettes disponibles
+        $this->registerFacets();
+
+        // Crée la page Réglages » Docalist Search
+        add_action('admin_menu', function() {
+            new SettingsPage($this->settings);
         });
 
         // Déclare notre widget "Search Facets"
@@ -70,16 +95,19 @@ class Plugin {
             register_widget( __NAMESPACE__ . '\FacetsWidget' );
         });
 
-        // Back office
-        add_action('admin_menu', function() {
-            // Page des réglages
-            new SettingsPage($this->settings);
-        });
-
         // Définit les lookups de type "index"
         add_filter('docalist_index_lookup', function($value, $source, $search) {
             return docalist('docalist-search-engine')->lookup($source, $search);
         }, 10, 3);
+    }
+
+    /**
+     * Retourne le numéro de version du plugin.
+     *
+     * @return string
+     */
+    public function version() {
+        return get_plugin_data(__DIR__ . '/../docalist-search.php', false, false)['Version'];
     }
 
     /**
@@ -103,7 +131,7 @@ class Plugin {
         });
 
         add_filter('docalist_search_get_facet_label', function($term, $facet) {
-            static $types;
+            static $types = null;
 
             if ($facet !== '_type') {
                 return  trim(str_replace('¤', ' ', $term));

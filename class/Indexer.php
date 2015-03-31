@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2014 Daniel Ménard
+ * Copyright (C) 2012-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -15,6 +15,7 @@
 namespace Docalist\Search;
 
 use Exception, InvalidArgumentException, RuntimeException;
+use Docalist\Biblio\Reference;
 
 /**
  * L'indexeur
@@ -29,15 +30,11 @@ class Indexer {
     protected $settings;
 
     /**
-     * La liste des types de contenus à indexer.
+     * Liste des indexeurs activés, sous la forme type => TypeIndexer.
      *
-     * Initialisée lors du premier appel à checkType() en appellant le filtre
-     * "docalist_search_get_types" et en croisant avec les types que
-     * l'administrateur a choisit d'indexer (settings.types).
-     *
-     * @var array Un tableau de la forme type => label
+     * @var TypeIndexer[]
      */
-    protected $types;
+    protected $indexers = [];
 
     /**
      * Un buffer qui accumulent les documents à envoyer au serveur ES.
@@ -71,7 +68,7 @@ class Indexer {
      *
      * @var string
      */
-    protected $bulk;
+    protected $bulk = '';
 
     /**
      * La taille maximale, en octets, autorisée pour le buffer
@@ -94,17 +91,17 @@ class Indexer {
      *
      * @var int
      */
-    protected $bulkCount;
+    protected $bulkCount = 0;
 
     /**
-     * Des statistiques sur la réindexation.
+     * Statistiques sur la réindexation.
      *
      * @var array Un tableau de la forme type => statistiques
      *
      * cf. updateType() pour le détail des statistiques générées pour chaque
      * type.
      */
-    protected $stats;
+    protected $stats = [];
 
     /**
      * Construit un nouvel indexeur.
@@ -112,13 +109,25 @@ class Indexer {
      * @param IndexerSettings $settings
      */
     public function __construct(IndexerSettings $settings) {
+        // Stocke les paramètres de l'indexeur
         $this->settings = $settings;
+
+        // Initialise les paramètres du buffer
         $this->bulkMaxSize = $settings->bulkMaxSize() * 1024 * 1024; // en Mo dans la config
         $this->bulkMaxCount = $settings->bulkMaxCount();
-        $this->bulk = '';
-        $this->bulkCount = 0;
-        $this->stats = array();
-        // $this->types est initialisé lors du premier appel à checkType()
+
+/*
+        // Active l'indexation en temps réel
+        if ($settings->realtime()) {
+            // On utilise l'action wp_loaded pour être sûr que tous les plugins
+            // sont chargés et ont eu le temps d'installer leurs filtres.
+            add_action('wp_loaded', function() {
+                foreach ($this->settings->types() as $type) {
+                    $this->indexer($type)->realtime();
+                }
+            });
+        }
+*/
     }
 
     /**
@@ -130,63 +139,131 @@ class Indexer {
     }
 
     /**
+     * Retourne la liste des types de contenus indexables.
+     *
+     * @param bool $sortByLabel Par défaut, les types sont retournés dans
+     * l'ordre où ils sont déclarés. Si vous passez $sortByLabel=true, le
+     * tableau retourné est trié par libellé (natcasesort).
+     *
+     * @return array Un tableau de la forme type => libellé
+     */
+    public function availableTypes($sortByLabel = false) {
+        $types = apply_filters('docalist_search_get_types', []);
+
+        $sortByLabel && natcasesort($types);
+
+        return $types;
+    }
+
+    /**
+     * Retourne la liste des types de contenus indexés.
+     *
+     * @param bool $sortByLabel Par défaut, les types sont retournés dans
+     * l'ordre où ils sont déclarés. Si vous passez $sortByLabel=true, le
+     * tableau retourné est trié par libellé (natcasesort).
+     *
+     * @return array Un tableau de la forme type => libellé
+     */
+    public function indexedTypes($sortByLabel = false) {
+        $types = $this->initLabels($this->settings->types());
+
+        $sortByLabel && natcasesort($types);
+
+        return $types;
+    }
+
+    /**
+     * Récupère le libellé des types passés en paramètre.
+     *
+     * @param array $types Un tableau contenant la liste des types.
+     *
+     * @return array Un tableau de la forme type => libellé.
+     */
+    private function initLabels(array $types) {
+        $labels = $this->availableTypes();
+
+        $types = array_flip($types);
+        foreach($types as $type => & $label) {
+            $label = isset($labels[$type]) ? $labels[$type] : $type;
+        }
+        unset($label);
+
+        return $types;
+    }
+
+    /**
+     * Retourne l'indexeur utilisé pour un type de contenu donné.
+     *
+     * Si l'indexeur à utiliser pour ce type n'a pas encore été créé, il est
+     * instancié lors du premier appel à la méthode.
+     *
+     * @param string $type Le type de contenu.
+     *
+     * @return TypeIndexer L'indexeur utilisé pour ce type de contenu.
+     *
+     * @throws InvalidArgumentException Si le type indiqué n'est pas indexé
+     * (dans les paramètres du moteur de recherche) ou si aucun indexeur n'est
+     * disponible pour ce type.
+     */
+    public function indexer($type) {
+        if (!isset($this->indexers[$type])) {
+            // Récupère l'indexeur à utiliser pour ce type
+            $indexer = apply_filters("docalist_search_get_{$type}_indexer", null);
+
+            // Génère une exception si on n'a pas d'indexeur
+            if (is_null($indexer)) {
+                throw new InvalidArgumentException("No indexer for type '$type'");
+            }
+
+            // Génère une exception si ce n'est pas un TypeIndexer
+            if (! $indexer instanceof TypeIndexer) {
+                throw new InvalidArgumentException("Invalid indexer for type '$type'");
+            }
+
+            // Ok
+            $this->indexers[$type] = $indexer;
+        }
+
+        return $this->indexers[$type];
+    }
+
+    /**
      * Vérifie que le type passé en paramètre est un type indexé.
      *
-     * Un type est indexé si :
-     * - c'est un type enregistré (qui figure dans la liste retournée par le
-     *   filtre docalist_search_get_types)
-     * - c'est un type que l'administrateur a choisit d'indexer (il est
-     *   sélectionné dans la page de paramètres de Docalist Search).
+     * @param string $type Le nom du type à vérifier.
      *
-     * @param string|string[] $type Le nom de type à vérifier ou un tableau
-     * de noms de types à vérifier.
+     * @return self
      *
-     * @throws RuntimeException Si aucun type n'est indexé.
-     * @throws InvalidArgumentException Si le type est incorrect.
+     * @throws InvalidArgumentException Si le type n'est pas indexé.
      */
     protected function checkType($type = null) {
-        // Au premier appel, construit la liste des types indexés
-        if (is_null($this->types)) {
-            // Récupère la liste de tous les types indexables
-            $all = apply_filters('docalist_search_get_types', array());
+        static $types = null;
 
-            // Récupère la liste des types indexés (choisis par l'admin)
-            $selected = array_flip($this->settings->types());
+        is_null($types) && $types = array_flip($this->settings->types());
 
-            // Croise les deux
-            $this->types = array_intersect_key($all, $selected);
-
-            // Vérifie qu'on a quelque chose...
-            if (empty($this->types)) {
-                $msg = __('Aucun contenu indexable, vérifiez les paramètres de Docalist Search.', 'docalist-search');
-                throw new RuntimeException($msg);
-            }
+        if (! isset($types[$type])) {
+            throw new InvalidArgumentException("Type '$type' is not indexed");
         }
 
-        // Vérifie que types passés en paramètre sont dans la liste
-        foreach((array) $type as $type) {
-            if (! isset($this->types[$type])) {
-                $msg =__('Type invalide : %s (non indexé)', 'docalist-search');
-                throw new InvalidArgumentException(sprintf($msg, $type));
-            }
-        }
+        return $this;
     }
 
     /**
      * Vérifie que le paramètre peut être utilisé comme identifiant pour un
      * document Elastic Search.
      *
-     * Pour le moment, on vérifie juste que c'est un scalaire.
-     *
      * @param mixed $id l'identifiant à vérifier
+     *
+     * @return self
      *
      * @throws InvalidArgumentException Si l'identifiant n'est pas un scalaire.
      */
     protected function checkId($id) {
         if (! is_scalar($id)) {
-            $msg =__('ID invalide : %s (scalaire attentdu)', 'docalist-search');
-            throw new InvalidArgumentException(sprintf($msg, $id));
+            throw new InvalidArgumentException('Invalid document ID');
         }
+
+        return $this;
     }
 
     /**
@@ -198,7 +275,7 @@ class Indexer {
      */
     protected function updateStat($type, $stat, $increment) {
         if (! isset($this->stats[$type])) {
-            $this->stats[$type] = array(
+            $this->stats[$type] = [
                 'nbindex' => 0,     // nombre de fois où la méthode index() a été appellée
                 'nbdelete' => 0,    // nombre de fois où la méthode delete() a été appellée
                 'removed' => 0,     // nombre de documents non réindexés, supprimés via deleteByQuery (purgés)
@@ -218,7 +295,7 @@ class Indexer {
                 'start' => 0,       // Timestamp de début de la réindexation
                 'end' => 0,         // Timestamp de fin de la réindexation
                 'time' => 0,        // Durée de la réindexation (en secondes) (=end-start)
-            );
+            ];
         }
 
         $this->stats[$type][$stat] += $increment;
@@ -238,42 +315,36 @@ class Indexer {
      * @param array $document Les données du document.
      */
     public function index($type, $id, $document) {
-        if (WP_DEBUG) {
-            // Vérifie le type
-            $this->checkType($type);
-
-            // Vérifie l'id
-            $this->checkId($id);
-
-            // Vérifie le document
-            if (! is_array($document)) {
-                $msg =__('Document Docalist Search invalide : %s (tableau attendu)', 'docalist-search');
-                throw new InvalidArgumentException(sprintf($msg, $type));
-            }
-        }
-
         // Format d'une commande "bulk index" pour ES
-        $format = "{\"index\":{\"_type\":%s,\"_id\":%s}}\n%s\n";
-        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+        static $format = "{\"index\":{\"_type\":%s,\"_id\":%s}}\n%s\n";
+
+        // Vérifie le type et l'id
+        $this->checkType($type)->checkId($id);
+
+        // Vérifie le document
+        if (! is_array($document)) {
+            throw new InvalidArgumentException("Invalid document");
+        }
 
         // Flushe le buffer si nécessaire
         $this->maybeFlush();
 
         // Stocke la commande dans le buffer
-        $data = sprintf($format,
+        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+        $document = json_encode($document, $options);
+        $this->bulk .= sprintf($format,
             json_encode($type, $options),
             json_encode($id, $options),
-            json_encode($document, $options)
+            $document
         );
-        $this->bulk .= $data;
         ++$this->bulkCount;
 
         // Met à jour les statistiques sur la taille des documents
-        $size = strlen($data);
+        $size = strlen($document);
         $this->updateStat($type, 'totalsize', $size);
         $this->stats[$type]['minsize'] = min($this->stats[$type]['minsize'] ?: PHP_INT_MAX, $size);
         $this->stats[$type]['maxsize'] = max($this->stats[$type]['maxsize'], $size);
-        // minsize et maxsize existent forcèment car on a appellé totalsize avant
+        // minsize et maxsize existent forcèment car on a appellé updateStat()
 
         $this->updateStat($type, 'nbindex', 1);
     }
@@ -288,20 +359,17 @@ class Indexer {
      * @param scalar $id L'identifiant du document.
      */
     public function delete($type, $id) {
-        // Vérifie le type
-        $this->checkType($type);
-
-        // Vérifie l'id
-        $this->checkId($id);
-
         // Format d'une commande "bulk delete" pour ES
-        $format = "{\"delete\":{\"_type\":%s,\"_id\":%s}}\n";
-        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+        static $format = "{\"delete\":{\"_type\":%s,\"_id\":%s}}\n";
+
+        // Vérifie le type et l'id
+        $this->checkType($type)->checkId($id);
 
         // Flushe le buffer si nécessaire
         $this->maybeFlush();
 
         // Stocke la commande dans le buffer
+        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
         $this->bulk .= sprintf($format,
             json_encode($type, $options),
             json_encode($id, $options)
@@ -338,22 +406,19 @@ class Indexer {
      * réindexation est terminée.
      */
     public function reindex($types = null) {
-        // Vérifie les types indiqués
+        // Si aucun type n'a été indiqué, on réindexe tout
         if (is_null($types)) {
-            $types = array_keys($this->types); // tout
+            $types = $this->indexedTypes(); // contient les libellés
         } else {
+            // Vérifie que les types indiqués sont indexés
             $types = (array) $types;
             foreach($types as $type) {
                 $this->checkType($type);
             }
-        }
 
-        // Récupère les libellés des types
-        $types = array_flip($types);
-        foreach($types as $type => & $label) {
-            $label = $this->types[$type];
+            // Récupère les libellés des types indiqués
+            $types = $this->initLabels($types);
         }
-        unset($label);
 
         // Informe qu'on va commencer une réindexation
         do_action('docalist_search_before_reindex', $types);
@@ -368,7 +433,8 @@ class Indexer {
         set_time_limit(3600);
         ignore_user_abort(true);
 
-        $es = docalist('elastic-search');
+        // Récupère la connexion elastic search
+        $es = docalist('elastic-search'); /* @var $es ElasticSearchClient */
 
         // Réindexe chacun des types demandé
         foreach($types as $type => $label) {
@@ -382,12 +448,8 @@ class Indexer {
             // Informe qu'on va réindexer $type
             do_action('docalist_search_before_reindex_type', $type, $label);
 
-            // Demande au plugin de réindexer sa collection
-            if (has_action("docalist_search_reindex_{$type}")) {
-                do_action("docalist_search_reindex_{$type}", $this);
-            } else {
-                throw new RuntimeException("Aucune action enregistrée pour 'docalist_search_reindex_{$type}'");
-            }
+            // Demande à l'indexeur de réindexer ses contenus
+            $this->indexer($type)->indexAll($this);
 
             // Vide le buffer
             $this->flush();
@@ -610,23 +672,14 @@ class Indexer {
     public function clear($types = null) {
         // Vérifie les types
         if (is_null($types)) {
-            $types = array_keys($this->types);
+            $types = $this->settings->types(); // tout
         }
 
         // On ne vérifie pas que les types indiqués existent pour permettre
-        // de supprimer un type qui n'est plus indexé.
+        // de supprimer des types qui ne sont plus indexés ou dispos.
 
-        // ES 0.90.3 ne supporte pas un appel de la forme suivante :
-        // $es->delete(implode(',', (array)$types));
-        // donc on supprime les types demandés un par un.
-
-        $es = docalist('elastic-search');
-
-        // Supprime tous les types indiqués
-        foreach($types as $type) {
-            // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-delete-mapping/
-            $es->delete($type);
-        }
+        // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/indices-delete-mapping.html
+        docalist('elastic-search')->delete(implode(',', $types));
     }
 
     /**
@@ -645,7 +698,8 @@ class Indexer {
      *   les paramètres existe.
      */
     public function ping() {
-        $es = docalist('elastic-search');
+        // Récupère la connexion elastic search
+        $es = docalist('elastic-search'); /* @var $es ElasticSearchClient */
 
         try {
             $status = $es->head();
@@ -657,7 +711,7 @@ class Indexer {
         switch ($status) {
             case 404: return 1; // Le serveur répond mais l'index n'existe pas
             case 200: return 2; // Le serveur répond et l'index existe
-            default: throw new RuntimeException("unknown ping status $status");
+            default: throw new RuntimeException("Unknown ping status $status");
         }
     }
 
@@ -669,20 +723,15 @@ class Indexer {
      * les mappings des types indexés.
      */
     public function setup() {
-        // Vérifie que la liste des types est chargée
-        $this->checkType();
+        // Récupère la connexion elastic search
+        $es = docalist('elastic-search'); /* @var $es ElasticSearchClient */
 
-        // Détermine les settings de l'index et permet aux types de les modifier
-        $settings = $this->defaultIndexSettings();
-        foreach($this->types as $type => $label) {
-            $settings = apply_filters("docalist_search_get_{$type}_settings", $settings);
-        }
-
-        $es = docalist('elastic-search');
+        // Détermine les settings de l'index
+        $settings = apply_filters('docalist_search_get_index_settings', []);
 
         // Cas 1. L'index n'existe pas encore, on le crée
+        // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html
         if (! $es->exists()) {
-            // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-create-index/
             $es->put('', $settings);
         }
 
@@ -691,18 +740,16 @@ class Indexer {
             // A. Supprime de l'index les types existants qui ne sont plus indexés
 
             // Récupère tous les types qui existent (les mappings)
-            // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-get-mapping/
+            // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/indices-get-mapping.html
             $types = $es->get('_mapping');
 
-            // La réponse est de la forme : { "index":{"type1":{...}, "type2":{...}}
-            // Comme on veut juste les noms des types, on supprime l'étage "index"
-            $types = $types->{key($types)};
+            // Extrait les noms des types existants. La réponse est de la forme :
+            // {"wp_prisme":{"mappings":{"post":{...}},"page":{...}}}
+            $index = key($types); // apparemment, key() est utilisable sur un tableau
+            $types = array_keys((array)$types->$index->mappings);
 
-            // On ne veut que les noms des types
-            $types = array_keys((array) $types);
-
-            // Détermine ceux qu'on n'indexe plus : diff (old, new)
-            $types = array_diff($types, array_keys($this->types));
+            // Détermine ceux qu'on n'indexe plus : diff(old, new)
+            $types = array_diff($types, $this->settings->types());
 
             // Suppression
             $types && $this->clear($types);
@@ -711,7 +758,7 @@ class Indexer {
             // stocker un "_meta" dans le type, interdire suppression si absent
 
             // B. Met à jour les settings de l'index
-            // @see http://www.elasticsearch.org/guide/reference/api/admin-indices-update-settings/
+            // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
             // Remarque : Pour mettre à jour les analyseurs, il faut fermer
             // puis réouvrir l'index
             $es->post('_close');
@@ -719,42 +766,33 @@ class Indexer {
             $es->post('_open');
         }
 
-        // Enregistre (ou met à jour) les mappings de chaque type
-        foreach($this->types as $type => $label) {
-            // Récupère les mappings de ce type
-            $mapping = apply_filters("docalist_search_get_{$type}_mappings", array());
+        // Enregistre (ou met à jour) les mappings
 
-            // Pour purger les index lors d'une réindexation, il nous faut _timestamp
-            $mapping['_timestamp'] = array(
-                'enabled' => true,
-                // 'store' => true, // utile à activer pour debug
-            );
+        // Remarque : ElasticSearch ne sait pas mettre à jours plusieurs
+        // mappings d'un coup, donc il faut les envoyer un par un.
+
+        foreach($this->settings->types() as $type) {
+            // Récupère l'indexeur pour ce type
+            $indexer = $this->indexer($type);
+
+            // Récupère les mappings de ce type
+            $mapping = $indexer->mapping();
+
+            // Pour purger l'index lors d'une réindexation, on a besoin que le
+            // champ _timestamp soit activé.
+            // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-timestamp-field.html
+            $mapping['_timestamp'] = ['enabled' => true];
 
             // Si le mapping est vide, json_encode va générer un tableau vide
-            // alors que ES attend un objet. Dans ce cas, cela génère ensuite une
-            // exception "ArrayList cannot be cast to Map" dans ES.
-            // empty($mapping) && $mapping = (object) $mapping;
-            // comme on _timestamp, ne peut plus être vide
+            // alors que ES attend un objet, ce qui génère alors une exception
+            // "ArrayList cannot be cast to Map". Mais dans notre cas, cela ne
+            // peut pas se produire, car on a au minimum _timestamp.
 
             // Stocke le mapping
-            $mapping = array($type => $mapping);
+            $mapping = [$type => $mapping];
             $es->put("$type/_mapping", $mapping);
 
             // @todo Tester si le mapping contient des erreurs.
         }
-
-        // Remarque : on pourrait facilement envoyer tous les mappings ES en une
-        // seule requête mais si un mapping contient des erreurs, c'est plus
-        // difficile d'identifier le mapping fautif.
-        // Donc on les envoie séparément.
-    }
-
-    /**
-     * Retourne les settings par défaut utilisés lorsqu'un index est créé.
-     *
-     * @return array
-     */
-    protected function defaultIndexSettings() {
-        return require_once __DIR__ . '/../mappings/default-index-settings.php';
     }
 }

@@ -61,7 +61,7 @@ class Plugin {
         }, 1);
 
         // Retourne les types de contenus indexables
-        add_filter('docalist_search_get_types', function ($types) {
+        add_filter('docalist_search_get_types', function (array $types) {
             $types['post'] = get_post_type_object('post')->labels->name;
             $types['page'] = get_post_type_object('page')->labels->name;
 
@@ -138,7 +138,7 @@ class Plugin {
             }
 
             if (is_null($types)) {
-                $types = apply_filters('docalist_search_get_types', array());
+                $types = apply_filters('docalist_search_get_types', []);
             }
 
             isset($types[$term]) && $term = $types[$term];

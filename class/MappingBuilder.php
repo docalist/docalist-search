@@ -490,10 +490,11 @@ class MappingBuilder {
         // @see https://fr.wikipedia.org/wiki/Date#Variations_par_pays
         $formats = [
             // big endian
-            'yyyy-MM-dd', 'yyyy-MM', 'yyyy',
+            'yyyy-MM-dd', 'yyyy-MM',
             'yyyy/MM/dd', 'yyyy/MM',
             'yyyy.MM.dd', 'yyyy.MM',
             'yyyyMMdd'  , 'yyyyMM' ,
+            'yyyy', // important : doit être en dernier sinon "19870101" est reconnu comme une année yyyy et non comme le 01/01/1987
 
             // little endian
             'dd-MM-yyyy', 'MM-yyyy',

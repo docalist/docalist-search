@@ -39,19 +39,22 @@ class Plugin {
         // Charge la configuration du plugin
         $this->settings = new Settings(docalist('settings-repository'));
 
-        // Enregistre nos services
+        // Services de base
         docalist('services')->add([
 
             // Service "elastic-search"
             'elastic-search' => function() {
                 return new ElasticSearchClient($this->settings->server);
             },
+        ]);
 
+        // Services qui dépendent d'autres services
+        docalist('services')->add([
             // Service "docalist-search-indexer"
-            'docalist-search-indexer' => new Indexer($this->settings->indexer),
+            'docalist-search-indexer' => new Indexer($this->settings),
 
             // Service "docalist-search-engine"
-            'docalist-search-engine' =>  new SearchEngine($this->settings)
+            'docalist-search-engine' =>  new SearchEngine($this->settings),
         ]);
 
         // Retourne les settings par défaut à utiliser quand un index est créé

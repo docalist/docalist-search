@@ -72,9 +72,12 @@ class SettingsPage extends AdminPage {
         if ($this->isPost()) {
             try {
                 $_POST = wp_unslash($_POST);
-                $settings->url = $_POST['url'];
+                $settings->url = rtrim($_POST['url'], '/');
                 $settings->index = $_POST['index'];
+                $settings->connecttimeout = $_POST['connecttimeout'];
                 $settings->timeout = $_POST['timeout'];
+                $settings->compressrequest = (bool) $_POST['compressrequest'];
+                $settings->compressresponse = (bool) $_POST['compressresponse'];
 
                 // $settings->validate();
                 $this->settings->save();
@@ -150,8 +153,7 @@ class SettingsPage extends AdminPage {
                 $this->settings->save();
 
                 // crée l'index, les mappings, etc.
-                /* @var $indexer Indexer */
-                $indexer = docalist('docalist-search-indexer');
+                $indexer = docalist('docalist-search-indexer'); /* @var $indexer Indexer */
                 $indexer->setup();
 
                 return $this->redirect($this->url('Index'), 303);
@@ -206,7 +208,7 @@ class SettingsPage extends AdminPage {
             }
 
             // 2. ES répond et l'index existe, vérifie que l'index n'est pas vide
-            $response = docalist('elastic-search')->get('_count');
+            $response = docalist('elastic-search')->get('/{index}/_count');
             if (!isset($response->count) || $response->count === 0) {
                 $msg = __('Lancez une <a href="%s">réindexation manuelle</a> de vos contenus.', 'docalist-search');
                 $msg = sprintf($msg, esc_url($this->url('Reindex')));

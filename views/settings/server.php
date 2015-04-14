@@ -2,7 +2,7 @@
 /**
  * This file is part of the 'Docalist Search' plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -60,9 +60,12 @@ use Docalist\Forms\Form;
 
     <?php
         $form = new Form();
-        $form->input('url');
-        $form->input('index');
-        $form->input('timeout');
+        $form->input('url')->addClass('regular-text');
+        $form->input('index')->addClass('regular-text');
+        $form->input('connecttimeout')->attribute('type', 'number')->addClass('small-text');
+        $form->input('timeout')->attribute('type', 'number')->addClass('small-text');
+        $form->checkbox('compressrequest');
+        $form->checkbox('compressresponse');
         $form->submit(__('Enregistrer les modifications', 'docalist-search'));
 
         $form->bind($settings)->render('wordpress');

@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013 Daniel Ménard
+ * Copyright (C) 2013-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -645,7 +645,7 @@ class SearchRequest {
     public function execute($searchType = null) {
         $es = docalist('elastic-search');
         $searchType && $searchType = "?search_type=$searchType";
-        $response = $es->get("_search$searchType", $this->elasticSearchRequest());
+        $response = $es->get("/{index}/_search$searchType", $this->elasticSearchRequest());
         if (isset($response->error)) {
             throw new Exception($response->error);
         }
@@ -660,12 +660,12 @@ class SearchRequest {
      * @return string
      */
     public function explainQuery() {
-        // $response = docalist('elastic-search')->get('_validate/query?explain', $this->elasticSearchQuery());
+        // $response = docalist('elastic-search')->get('/{index}/_validate/query?explain', $this->elasticSearchQuery());
 
         // ES-1.0 : validate-query require a top-level "query" parameter
         // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/master/_search_requests.html
         $query = ['query' => $this->elasticSearchQuery()];
-        $response = docalist('elastic-search')->get('_validate/query?explain', $query);
+        $response = docalist('elastic-search')->get('/{index}/_validate/query?explain', $query);
 
         return $response->explanations[0];
     }

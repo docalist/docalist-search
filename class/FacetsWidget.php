@@ -282,7 +282,8 @@ class FacetsWidget extends WP_Widget {
         // Pour une facette date-histogram, ES nous fournit un timestamp qui
         // représente le nombre de MILLI-secondes depuis (ou avant) EPOCH.
         // Convertit en secondes.
-        $time = $term / 1000;
+        $time = sprintf('%0.0f', $term / 1000);
+
 
         // PHP a du mal avec les timestamp négatifs : date() retourne une date
         // incorrecte, DateTime::setTimestamp() refuse, etc. Le seul moyen que

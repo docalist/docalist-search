@@ -14,7 +14,7 @@
  */
 namespace Docalist\Search;
 
-use WP_Query, WP_Post, WP_User;
+use WP_Post;
 
 /**
  * Un indexeur pour les articles de WordPress.
@@ -151,4 +151,75 @@ class PostIndexer extends TypeIndexer {
         }
     }
 */
+
+    public function realtime() {
+        add_action('transition_post_status', function($newStatus, $oldStatus, WP_Post $post) {
+            $this->onStatusChange($newStatus, $oldStatus, $post);
+        }, 10, 3);
+
+        add_action('delete_post', function($id) {
+            $this->onDelete($id);
+        });
+    }
+
+    /**
+     * Ajoute, modifie ou supprime un post de l'index lorsque son statut change.
+     *
+     * @param string $newStatus
+     * @param string $oldStatus
+     * @param WP_Post $post
+     */
+    protected function onStatusChange($newStatus, $oldStatus, WP_Post $post) {
+        static $statuses = null;
+
+        if ($post->post_type !== $this->type) {
+            return;
+        }
+
+        $this->log && $this->log->debug('Status change for {type}#{ID}: {old}->{new}', [
+            'type' => $this->type,
+            'ID' => $post->ID,
+            'old' => $oldStatus,
+            'new' => $newStatus
+        ]);
+
+        if (is_null($statuses)) {
+            $statuses = array_flip($this->statuses());
+        }
+
+        /* @var $indexer Indexer */
+        $indexer = docalist('docalist-search-indexer');
+
+        // Si le nouveau statut est indexable, on indexe le post
+        if (isset($statuses[$newStatus])) {
+            $this->index($post, $indexer);
+        }
+
+        // Le nouveau statut n'est pas indexé, si l'ancien l'était, on l'enlève
+        elseif (isset($statuses[$oldStatus])) {
+            $indexer->delete($this->type, $post->ID);
+        }
+    }
+
+    /**
+     * Enlève un document de l'index quand il est supprimé.
+     *
+     * @param int $id
+     */
+    public function onDelete($id) {
+        $post = get_post($id);
+
+        if ($post->post_type !== $this->type) {
+            return;
+        }
+
+        $this->log && $this->log->debug('Deleted {type}#{ID}', [
+            'type' => $this->type,
+            'ID' => $id
+        ]);
+
+        /* @var $indexer Indexer */
+        $indexer = docalist('docalist-search-indexer');
+        $indexer->delete($this->type, $post->ID);
+    }
 }

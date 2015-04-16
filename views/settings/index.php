@@ -2,7 +2,7 @@
 /**
  * This file is part of the 'Docalist Search' plugin.
  *
- * Copyright (C) 2012, 2013 Daniel Ménard
+ * Copyright (C) 2012-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -36,7 +36,7 @@ namespace Docalist\Search\Views;
 
     <h3>
         <a href="<?= esc_url($this->url('ServerSettings')) ?>">
-            <?= __('Paramètres du serveur', 'docalist-search') ?>
+            <?= __('Paramètres du serveur ElasticSearch', 'docalist-search') ?>
         </a>
     </h3>
     <p class="description">
@@ -55,22 +55,22 @@ namespace Docalist\Search\Views;
 
 
     <h3>
-        <a href="<?= esc_url($this->url('SearchSettings')) ?>">
-            <?= __("Paramètres de recherche", 'docalist-search') ?>
-        </a>
-    </h3>
-    <p class="description">
-        <?= __("Activer/désactiver la recherche avec Docalist Search.", 'docalist-search') ?>
-    </p>
-
-
-    <h3>
         <a href="<?= esc_url($this->url('Reindex')) ?>">
             <?= __("Réindexation manuelle", 'docalist-search') ?>
         </a>
     </h3>
     <p class="description">
-        <?= __("Permet de lancer une réindexation manuelle des contenus.", 'docalist-search') ?>
+        <?= __("Permet de lancer une réindexation complète des contenus indexés.", 'docalist-search') ?>
+    </p>
+
+
+    <h3>
+        <a href="<?= esc_url($this->url('SearchSettings')) ?>">
+            <?= __("Activer la recherche et l'indexation en temps réel", 'docalist-search') ?>
+        </a>
+    </h3>
+    <p class="description">
+        <?= __("Permet d'activer et de désactiver la recherche Docalist Search et l'indexation en temps réel des contenus créés, modifiés ou supprimés.", 'docalist-search') ?>
     </p>
 
 <?php /*

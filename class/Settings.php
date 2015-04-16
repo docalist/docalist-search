@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2014 Daniel Ménard
+ * Copyright (C) 2012-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -33,7 +33,14 @@ class Settings extends TypeSettings {
             'fields' => [
                 'enabled' => [
                     'type' => 'bool',
-                    'label' => __('Activer la recherche', 'docalist-search'),
+                    'label' => __('Recherche Docalist Search', 'docalist-search'),
+                    'description' => __("Activer la recherche Docalist Search.", 'docalist-search'),
+                    'default' => false,
+                ],
+                'realtime' => [
+                    'type' => 'bool',
+                    'label' => __("Indexation en temps réel", 'docalist-search'),
+                    'description' => __("Réindexer automatiquement les contenus créés ou modifié et enlèbe de l'index les contenus supprimés.", 'docalist-search'),
                     'default' => false,
                 ],
                 'server' => [

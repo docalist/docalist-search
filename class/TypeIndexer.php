@@ -15,6 +15,7 @@
 namespace Docalist\Search;
 
 use InvalidArgumentException;
+use Psr\Log\LoggerInterface;
 
 /**
  * Classe de base abstraite pour les indexeurs.
@@ -51,6 +52,13 @@ abstract class TypeIndexer {
     protected $type;
 
     /**
+     * Le logger à utiliser.
+     *
+     * @var LoggerInterface
+     */
+    protected $log;
+
+    /**
      * Construit un nouvel indexeur.
      *
      * @param string $type Le type de contenu géré par cet indexeur
@@ -58,8 +66,14 @@ abstract class TypeIndexer {
      */
     public function __construct($type) {
         $this->type = $type;
-        echo get_class($this), " : création d'un indexeur de type $type<br />";
+        $this->log = docalist('logs')->get('indexer');
     }
+
+    /**
+     * Installe les hooks nécessaires pour permettre l'indexation en temps réel
+     * des contenus créés, modifiés ou supprimés.
+     */
+    abstract public function realtime();
 
     /**
      * Retourne le type de contenu géré par cet indexeur.

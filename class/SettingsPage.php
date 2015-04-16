@@ -223,6 +223,7 @@ class SettingsPage extends AdminPage {
         if ($this->isPost()) {
             $_POST = wp_unslash($_POST);
             $this->settings->enabled = (bool) $_POST['enabled'];
+            $this->settings->realtime = (bool) $_POST['realtime'];
 
             // $settings->validate();
             $this->settings->save();

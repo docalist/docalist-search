@@ -14,13 +14,13 @@
  */
 namespace Docalist\Search\Views;
 
-use Docalist\Search\IndexerSettings;
+use Docalist\Search\Settings;
 use Docalist\Forms\Form;
 
 /**
- * Paramètres de a recherche.
+ * Paramètres de la recherche.
  *
- * @param IndexerSettings $settings Les paramètres de l'indexeur.
+ * @param Settings $settings Les paramètres de l'indexeur.
  * @param string $error Erreur éventuelle à afficher.
  */
 ?>
@@ -47,9 +47,26 @@ use Docalist\Forms\Form;
 
     <?php
         $form = new Form();
+        $form->select('searchpage')->options(pagesList())->firstOption(false);
         $form->checkbox('enabled');
         $form->submit(__('Enregistrer les modifications', 'docalist-search'));
 
         $form->bind($settings)->render('wordpress');
     ?>
 </div>
+
+<?php
+/**
+ * Retourne la liste hiérarchique des pages sous la forme d'un tableau
+ * utilisable dans un select.
+ *
+ * @return array Un tableau de la forme PageID => PageTitle
+ */
+function pagesList() {
+    $pages = ['…'];
+    foreach(get_pages() as $page) { /* @var $page \WP_Post */
+        $pages[$page->ID] = str_repeat('   ', count($page->ancestors)) . $page->post_title;
+    }
+
+    return $pages;
+}

@@ -223,6 +223,7 @@ class SettingsPage extends AdminPage {
 
         if ($this->isPost()) {
             $_POST = wp_unslash($_POST);
+            $this->settings->searchpage = (int) $_POST['searchpage'];
             $this->settings->enabled = (bool) $_POST['enabled'];
 
             // $settings->validate();

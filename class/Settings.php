@@ -15,11 +15,13 @@
 namespace Docalist\Search;
 
 use Docalist\Type\Settings as TypeSettings;
+use Docalist\Type\Integer;
 use Docalist\Type\Boolean;
 
 /**
  * Options de configuration du plugin.
  *
+ * @property Integer $searchpage ID de la page "liste des réponses".
  * @property Boolean $enabled Indique si la recherche est activée.
  * @property ServerSettings $server Paramètres du serveur ElasticSearch.
  * @property IndexerSettings $indexer Paramètres de l'indexeur.
@@ -31,6 +33,11 @@ class Settings extends TypeSettings {
         // @formatter:off
         return [
             'fields' => [
+                'searchpage' => [
+                    'type' => 'int',
+                    'label' =>__('Page liste des réponses', 'docalist-search'),
+                    'description' => __("Page WordPress sur laquelle sont affichées les réponses obtenues.", 'docalist-search'),
+                ],
                 'enabled' => [
                     'type' => 'bool',
                     'label' => __('Recherche Docalist Search', 'docalist-search'),

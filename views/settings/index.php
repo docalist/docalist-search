@@ -55,22 +55,22 @@ namespace Docalist\Search\Views;
 
 
     <h3>
+        <a href="<?= esc_url($this->url('SearchSettings')) ?>">
+            <?= __("Paramètres du moteur de recherche", 'docalist-search') ?>
+        </a>
+    </h3>
+    <p class="description">
+        <?= __("Choix de la page des réponses, activation de la recherche Docalist Search.", 'docalist-search') ?>
+    </p>
+
+
+    <h3>
         <a href="<?= esc_url($this->url('Reindex')) ?>">
             <?= __("Réindexation manuelle", 'docalist-search') ?>
         </a>
     </h3>
     <p class="description">
         <?= __("Permet de lancer une réindexation complète des contenus indexés.", 'docalist-search') ?>
-    </p>
-
-
-    <h3>
-        <a href="<?= esc_url($this->url('SearchSettings')) ?>">
-            <?= __("Activer la recherche et l'indexation en temps réel", 'docalist-search') ?>
-        </a>
-    </h3>
-    <p class="description">
-        <?= __("Permet d'activer et de désactiver la recherche Docalist Search et l'indexation en temps réel des contenus créés, modifiés ou supprimés.", 'docalist-search') ?>
     </p>
 
 <?php /*

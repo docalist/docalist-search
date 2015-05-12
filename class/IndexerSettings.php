@@ -44,7 +44,13 @@ class IndexerSettings extends Object {
                     'description' => __('Le buffer est vidé si le nombre de documents en attente dépasse ce nombre.', 'docalist-search'),
                     'type' => 'int',
                     'default' => 10000,
-                ]
+                ],
+                'realtime' => [
+                    'type' => 'bool',
+                    'label' => __("Indexation en temps réel", 'docalist-search'),
+                    'description' => __("Réindexer automatiquement les contenus créés ou modifié et enlève de l'index les contenus supprimés.", 'docalist-search'),
+                    'default' => false,
+                ],
             ]
         ];
         // @formatter:off

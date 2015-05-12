@@ -129,7 +129,7 @@ class Indexer {
         $this->bulkMaxCount = $this->settings->bulkMaxCount();
 
         // Active l'indexation en temps réel
-        if ($settings->realtime()) {
+        if ($this->settings->realtime()) {
             // On utilise l'action wp_loaded pour être sûr que tous les plugins
             // sont chargés et ont eu le temps d'installer leurs filtres.
             add_action('wp_loaded', function() {

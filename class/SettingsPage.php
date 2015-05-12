@@ -148,6 +148,7 @@ class SettingsPage extends AdminPage {
                 $settings->types = isset($_POST['types']) ? $_POST['types'] : [];
                 $settings->bulkMaxSize = $_POST['bulkMaxSize'];
                 $settings->bulkMaxCount = $_POST['bulkMaxCount'];
+                $settings->realtime = (bool) $_POST['realtime'];
 
                 // $settings->validate();
                 $this->settings->save();
@@ -223,7 +224,6 @@ class SettingsPage extends AdminPage {
         if ($this->isPost()) {
             $_POST = wp_unslash($_POST);
             $this->settings->enabled = (bool) $_POST['enabled'];
-            $this->settings->realtime = (bool) $_POST['realtime'];
 
             // $settings->validate();
             $this->settings->save();

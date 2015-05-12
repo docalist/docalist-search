@@ -37,12 +37,6 @@ class Settings extends TypeSettings {
                     'description' => __("Activer la recherche Docalist Search.", 'docalist-search'),
                     'default' => false,
                 ],
-                'realtime' => [
-                    'type' => 'bool',
-                    'label' => __("Indexation en temps réel", 'docalist-search'),
-                    'description' => __("Réindexer automatiquement les contenus créés ou modifié et enlèbe de l'index les contenus supprimés.", 'docalist-search'),
-                    'default' => false,
-                ],
                 'server' => [
                     'label' => __('Serveur elasticsearch', 'docalist-search'),
                     'type' => 'ServerSettings',

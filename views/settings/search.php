@@ -48,7 +48,6 @@ use Docalist\Forms\Form;
     <?php
         $form = new Form();
         $form->checkbox('enabled');
-        $form->checkbox('realtime');
         $form->submit(__('Enregistrer les modifications', 'docalist-search'));
 
         $form->bind($settings)->render('wordpress');

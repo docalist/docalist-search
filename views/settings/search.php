@@ -26,7 +26,7 @@ use Docalist\Forms\Form;
 ?>
 <div class="wrap">
     <?= screen_icon() ?>
-    <h2><?= __("Activer la recherche et l'indexation en temps réel.", 'docalist-search') ?></h2>
+    <h2><?= __("Paramètres du moteur de recherche.", 'docalist-search') ?></h2>
 
     <p class="description"><?php
         //@formatter:off

@@ -13,7 +13,6 @@
  * @version     SVN: $Id$
  */
 namespace Docalist\Search;
-use Docalist\QueryString;
 
 /* Documentation : doc/search-design.md */
 
@@ -41,7 +40,6 @@ class Plugin {
 
         // Services de base
         docalist('services')->add([
-
             // Service "elastic-search"
             'elastic-search' => function() {
                 return new ElasticSearchClient($this->settings->server);
@@ -162,7 +160,7 @@ class Plugin {
      *
      * Cette chaine recevra en paramètre :
      * - %1$s : le nom du filtre (par exemple "author.keyword")
-     * - %2$s : la valeur du filtre
+     * - %2$s : la valeur/le libellé du filtre
      * - %3$s : l'url permettant de désactiver le filtre
      * - %4$s : un nom de classe css de la forme "filter-xxx" contruit à partir du
      *   nom du filtre (par exemple "filter-author-keyword").
@@ -184,44 +182,36 @@ class Plugin {
      * filtre n'est actif.
      */
     public function theCurrentFilters($format = null, $separator = null, $wrapper = null) {
-        // $request = $this->searchengine->request();
-        $request = docalist('docalist-search-engine')->request();
+        $request = docalist('docalist-search-engine')->request(); /* @var $request SearchRequest */
 
         // Retourne une chaine vide si on n'a aucun filtre actif
         $request && $filters = $request->filters();
-        if (empty($filters)) return '';
+        if (empty($filters)) {
+            return '';
+        }
 
         // Format par défaut
-        if (is_null($format)) {
-            $format = '<a href="%3$s" class="%4$s">%2$s</a>';
-        }
-
-        // Séparateur par défaut
-        if (is_null($separator)) {
-            $separator = ', ';
-        }
+        is_null($format) && $format = '<a href="%3$s" class="%4$s">%2$s</a>';
 
         // Génère la liste des filtres
-        $currentUrl = QueryString::fromCurrent();
-        $result = '';
-        $nb = 0;
+        $currentUrl = get_pagenum_link(1, false);
+        $result = [];
         foreach($filters as $filter => $values) {
             $class = 'filter-' . strtr($filter, '.', '-');
-            foreach ($values as $value) {
-                $url = $currentUrl->copy()->clear($filter, $value)->encode();
-                $nb++ && $result .= $separator;
+            foreach (array_keys($values) as $value) {
+                $url = $request->toggleFilterUrl($filter, $value, $currentUrl);
                 $value = apply_filters('docalist_search_get_facet_label', $value, $filter);
-                $result .= sprintf($format, $filter, $value, $url, $class);
+                $result[] = sprintf($format, esc_html($filter), esc_html($value), esc_url($url), esc_attr($class));
             }
         }
 
         // Wrapper par défaut
         if (is_null($wrapper)) {
-            $label = _n('Filtre : %s', 'Filtres : %s', $nb, 'docalist-biblio');
+            $label = _n('Filtre : %s', 'Filtres : %s', count($result), 'docalist-biblio');
             $wrapper = sprintf('<p class="current-search-filters">%s.</p>', $label);
         }
 
+        $result = implode(is_null($separator) ? ', ' : $separator, $result);
         return sprintf($wrapper, $result);
     }
-
 }

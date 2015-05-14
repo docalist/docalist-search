@@ -1,10 +1,22 @@
 <?php
+/**
+ * This file is part of the "Docalist Search" plugin.
+ *
+ * Copyright (C) 2012-2015 Daniel Ménard
+ *
+ * For copyright and license information, please view the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * @package     Docalist
+ * @subpackage  Search
+ * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * @version     SVN: $Id$
+ */
 namespace Docalist\Search;
-use StdClass;
+
+use stdClass as StdClass;
 use DateTime;
 use WP_Widget;
-use Docalist;
-use Docalist\Uri;
 use Docalist\Forms\Fragment;
 use Docalist\Forms\Themes;
 use Docalist\Utils;
@@ -18,7 +30,7 @@ class FacetsWidget extends WP_Widget {
     protected $settingsForm;
 
     /**
-     *
+     * Initialise le widget.
      */
     public function __construct() {
         $id = 'docalist-search-facets';
@@ -31,16 +43,16 @@ class FacetsWidget extends WP_Widget {
             __('Facettes docalist-search', 'docalist-search'), // Name
 
             // Args
-            array(
+            [
                 'description' => __('Affiche les facettes de la recherche en cours', 'docalist-search'),
                 'classname' => $id, // par défaut, WordPress met 'widget_'.$id
-            ),
+            ],
 
             // control_options
-            array(
+            [
                 'width' => 800, // Largeur requise pour le formulaire de saisie des paramètres
                 'height' => 800,
-            )
+            ]
         );
     }
 
@@ -79,16 +91,16 @@ class FacetsWidget extends WP_Widget {
         }
 
         // Récupère la liste des facettes qui existent (qui sont définies)
-        $definedFacets = apply_filters('docalist_search_get_facets', array());
+        $definedFacets = apply_filters('docalist_search_get_facets', []);
 
         // Liste des facettes déjà calculées (qui figurent dans results)
         $availableFacets = $results->facets();
 
         // Liste des facettes qui nous manquent (pas encore calculées)
-        $missing = array();
+        $missing = [];
 
         // Détermine la liste des facettes à afficher
-        $facets = array();
+        $facets = [];
 
         // Phase 1 - Détermine les facettes à afficher et stocke celles qui existent déjà
         foreach($settings['facets'] as $setting) {
@@ -158,7 +170,7 @@ class FacetsWidget extends WP_Widget {
         // Phase 3 - Affiche les facettes
 //        $html = $settings['html'];
         $html = $this->defaultSettings()['html']; // cf. commentaire dans createEditForm().
-        $currentUrl = Uri::fromCurrent()->clear('page');
+        $currentUrl = get_pagenum_link(1, false);
         $first = true;
         foreach ($facets as $name => $facet) {
             // Détermine le type de facette et initialise les assesseurs
@@ -166,13 +178,13 @@ class FacetsWidget extends WP_Widget {
                 case 'terms':
                     $list = 'terms';
                     $entry = 'term';
-                    $formatter = array($this, 'termsFormatter');
+                    $formatter = [$this, 'termsFormatter'];
                     break;
 
                 case 'date_histogram':
                     $list = 'entries';
                     $entry = 'time';
-                    $formatter = array($this, 'dateHistogramFormatter');
+                    $formatter = [$this, 'dateHistogramFormatter'];
                     break;
 
                 default:
@@ -197,7 +209,7 @@ class FacetsWidget extends WP_Widget {
                 $title = isset($settings['title']) ? $settings['title'] : '';
                 $title = apply_filters('widget_title', $title, $settings, $this->id_base);
                 if ($title) {
-                    echo $context['before_title'], $settings['title'], $context['after_title'];
+                    echo $context['before_title'], $title, $context['after_title'];
                 }
 
                 // Début de la liste des facettes
@@ -223,24 +235,17 @@ class FacetsWidget extends WP_Widget {
 
                 // Formatte l'entrée
                 $value = $term->$entry;
-                $label = $term->$entry;
+                $label = apply_filters('docalist_search_get_facet_label', $term->$entry, $name);
                 $formatter($label, $value, $definedFacets[$name]);
-                $label = apply_filters('docalist_search_get_facet_label', $label, $name);
 
-                // Terme actif
-                if ($request->hasFilter($field, $value)) {
-                    $url = $currentUrl->copy()->clear($field, $value)->encode();
-                    $format = $html['term-active'];
-                }
+                // Détermine le format selon que le terme est actif ou non
+                $format = $html[$request->hasFilter($field, $value) ? 'term-active' : 'term'];
 
-                // Terme normal (inactif)
-                else {
-                    $url = $currentUrl->copy()->add($field, $value)->encode();
-                    $format = $html['term'];
-                }
+                // Génère l'url
+                $url = $request->toggleFilterUrl($field, $value, $currentUrl);
 
                 // Génère l'entrée
-                printf($format, htmlspecialchars($url), htmlspecialchars($label), $count);
+                printf($format, esc_url($url), esc_html($label), $count);
             }
 
             // Fin de la liste des termes
@@ -284,7 +289,6 @@ class FacetsWidget extends WP_Widget {
         // Convertit en secondes.
         $time = sprintf('%0.0f', $term / 1000);
 
-
         // PHP a du mal avec les timestamp négatifs : date() retourne une date
         // incorrecte, DateTime::setTimestamp() refuse, etc. Le seul moyen que
         // j'ai trouvé est le suivant :
@@ -324,8 +328,8 @@ class FacetsWidget extends WP_Widget {
         // Récupère la liste de tous les rôles existants
         $roles = $wp_roles->get_names();
 
-        // Traduit le "nom" de chaque rôel dans la langue en cours
-        foreach ($roles as $key => &$name) {
+        // Traduit le "nom" de chaque rôle dans la langue en cours
+        foreach ($roles as &$name) {
             $name = translate_user_role($name);
         }
 
@@ -357,7 +361,7 @@ class FacetsWidget extends WP_Widget {
         ->description(__('Choisissez les facettes à afficher.', 'docalist-search'));
         */
 
-        $facets = apply_filters('docalist_search_get_facets', array());
+        $facets = apply_filters('docalist_search_get_facets', []);
         foreach($facets as $name => & $facet) {
             $facet = isset($facet['label']) ? $facet['label'] : $name;
         }

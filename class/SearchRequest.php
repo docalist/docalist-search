@@ -134,12 +134,17 @@ class SearchRequest {
             // Autres arguments : filtres et facettes
             foreach($args as $key => $value) {
                 //$value = trim($value);
+                if ($key && $key[0] === '_') {
+                    continue;
+                }
+
                 if (empty($value)) {
                     continue;
                 }
 
                 // Filtre de la forme filter.field=value
-                if (substr($key, -7) === '.filter') {
+                if (substr($key, -7) === '_filter') { // .filter mais php transforme les "." en"_"
+                    $key = substr($key, 0, -7) . '.filter';
                     $this->filter($key, $value);
                 }
 
@@ -246,7 +251,7 @@ class SearchRequest {
      * @param string $name Nom du filtre
      * @param string $value Valeur
      *
-     * @return null|string|self
+     * @return null|array|self
      */
     public function filter($name, $value = null) {
         if (is_null($value)) {
@@ -664,10 +669,6 @@ class SearchRequest {
      * @return string
      */
     public function explainQuery() {
-        // $response = docalist('elastic-search')->get('/{index}/_validate/query?explain', $this->elasticSearchQuery());
-
-        // ES-1.0 : validate-query require a top-level "query" parameter
-        // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/master/_search_requests.html
         $query = ['query' => $this->elasticSearchQuery()];
         $response = docalist('elastic-search')->get('/{index}/_validate/query?explain', $query);
 

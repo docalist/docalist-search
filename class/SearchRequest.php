@@ -266,7 +266,7 @@ class SearchRequest {
             ! isset($this->filters[$name]) && $this->filters[$name] = [];
 
             foreach(explode(',', $value) as $item) {
-                $this->filters[$name][] = $item;
+                $this->filters[$name][$item] = true;
             }
         }
 
@@ -282,15 +282,20 @@ class SearchRequest {
      * @return boolean
      */
     public function hasFilter($name, $value = null) {
-        if (! isset($this->filters[$name])) {
-            return false;
-        }
+        return is_null($value) ? isset($this->filters[$name]) : isset($this->filters[$name][$value]);
+    }
 
+    public function clearFilter($name, $value = null) {
         if (is_null($value)) {
-            return true;
+            unset($this->filters[$name]);
+        } elseif (isset($this->filters[$name])) {
+            unset($this->filters[$name][$value]);
+            if (empty($this->filters[$name])) {
+                unset($this->filters[$name]);
+            }
         }
 
-        return in_array($value, $this->filters[$name], true);
+        return $this;
     }
 
     /**

@@ -850,4 +850,30 @@ class SearchRequest {
             && empty($this->filters)
             && empty($this->hiddenFilters);
     }
+
+    /*
+     * Fonctions utilitaires statiques pour manipuler le Query DSL de ES.
+     */
+
+    public static function typeFilter($type) {
+        return ['type' => ['value' => $type]];
+    }
+
+    public static function termFilter($field, $value) {
+        is_array($value) && count($value) === 1 && $value = reset($value);
+
+        return [is_scalar($value) ? 'term' : 'terms' => [$field => $value]];
+    }
+
+    public static function mustFilter($clause1, $clause2 /* ... */) {
+        return ['bool' => ['must' => func_get_args()]];
+    }
+
+    public static function shouldFilter($clause1, $clause2 /* ... */) {
+        return ['bool' => ['should' => func_get_args()]];
+    }
+
+    public static function notFilter($clause1, $clause2 /* ... */) {
+        return ['bool' => ['must_not' => func_get_args()]];
+    }
 }

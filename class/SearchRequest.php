@@ -44,8 +44,8 @@ class SearchRequest {
     /**
      * Liste des filtres utilisateur à appliquer à la requête.
      *
-     * @var array Un tableau de la forme filterName => value ou
-     * filterName => array(value, value)
+     * @var array Un tableau de la forme filters[$name][$value] = true
+     * (i.e. les filtres sont indexés par nom, puis par valeur).
      */
     protected $filters = [];
 
@@ -311,6 +311,14 @@ class SearchRequest {
         return is_null($value) ? isset($this->filters[$name]) : isset($this->filters[$name][$value]);
     }
 
+    /**
+     * Supprime un filtre ou une valeur d'un filtre.
+     *
+     * @param string $name Nom du filtre.
+     * @param string $value Optionnel, valeur à supprimer.
+     *
+     * @return SearchRequest
+     */
     public function clearFilter($name, $value = null) {
         if (is_null($value)) {
             unset($this->filters[$name]);
@@ -324,6 +332,14 @@ class SearchRequest {
         return $this;
     }
 
+    /**
+     * Inverse un filtre : si le filtre existe déjà dans la requête, il est
+     * supprimé, sinon, il est ajouté.
+     *
+     * @param string $name
+     * @param value $value
+     * @return SearchRequest
+     */
     public function toggleFilter($name, $value) {
         if (isset($this->filters[$name][$value])) {
             unset($this->filters[$name][$value]);
@@ -337,10 +353,23 @@ class SearchRequest {
         return $this;
     }
 
+    /**
+     * Retourne la liste des filtres cachés.
+     *
+     * @return array
+     */
     public function hiddenFilters() {
         return $this->hiddenFilters;
     }
 
+    /**
+     * Ajoute un filtre caché.
+     *
+     * @param array $filter Un tableau contenant un filtre elastic-search au
+     * format Query DSL.
+     *
+     * @return SearchRequest
+     */
     public function addHiddenFilter($filter) {
         $this->hiddenFilters[] = $filter;
 

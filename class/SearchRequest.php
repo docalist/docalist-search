@@ -39,22 +39,22 @@ class SearchRequest {
      *
      * @var array un tableau de la forme "nom de champ" => array(equations)
      */
-    protected $search = array();
+    protected $search = [];
 
     /**
-     * Liste des filtres à appliquer à la requête
+     * Liste des filtres utilisateur à appliquer à la requête.
      *
      * @var array Un tableau de la forme filterName => value ou
      * filterName => array(value, value)
      */
-    protected $filters = array();
+    protected $filters = [];
 
     /**
      * Liste des facettes à calculer
      *
      * @var array Un tableau de la forme facetName => size
      */
-    protected $facets = array();
+    protected $facets = [];
 
     /**
      * Ordre de tri des résultats
@@ -75,7 +75,7 @@ class SearchRequest {
      *
      * Exemple :
      * <code>
-     * $request = new SearchRequest(array(
+     * $request = new SearchRequest([
      *     'page' => 2,
      *     'size' => 10,
      *     'search' => 'author:picasso AND title:"demoiselles avignon"',
@@ -86,7 +86,7 @@ class SearchRequest {
      *     'facet._type',
      *     'explain-hits' => true,
      *     'sort' => 'date- _score',
-     * ));
+     * ]);
      * </code>
      *
      * @param array $args un tableau contenant les paramètres de la recherche à
@@ -95,7 +95,7 @@ class SearchRequest {
     public function __construct($args = null) {
         if ($args) {
             // Arguments dont le nom correspond à un setter de notre classe
-            foreach (array('page', 'size', 'sort') as $arg) {
+            foreach (['page', 'size', 'sort'] as $arg) {
                 if (isset($args[$arg])) {
                     $this->$arg($args[$arg]);
                     unset($args[$arg]);
@@ -122,7 +122,7 @@ class SearchRequest {
             }
 
             // Filtres connus
-            foreach (array('_type') as $arg) {
+            foreach (['_type'] as $arg) {
                 if (isset($args[$arg]) && !empty($args[$arg])) {
                     if ($args[$arg] !== 'any') {
                         $this->filter($arg, $args[$arg]);
@@ -186,7 +186,9 @@ class SearchRequest {
      * @return int|self
      */
     public function size($size = null) {
-        if (is_null($size)) return $this->size;
+        if (is_null($size)) {
+            return $this->size;
+        }
 
         $size = (int) $size;
         if ($size < 1) {
@@ -200,15 +202,15 @@ class SearchRequest {
     /**
      * Ajoute une clause de recherche ou retourne toutes les clauses.
      *
-     *
-     *
      * @param string|string[] $search Une ou plusieurs équations de recherche.
      * @param string $field Le nom du champ de recherche.
      *
      * @return array|self
      */
     public function search($field = null, $search = null) {
-        if (is_null($search)) return $this->search;
+        if (is_null($search)) {
+            return $this->search;
+        }
 
         ! isset($this->search[$field]) && $this->search[$field] = [];
 
@@ -230,7 +232,7 @@ class SearchRequest {
             return $this->filters;
         }
 
-        $this->filters = array();
+        $this->filters = [];
         foreach($filters as $name => $value) {
             $this->filter($name, $value);
         }
@@ -256,9 +258,7 @@ class SearchRequest {
                 continue;
             }
 
-            if (! isset($this->filters[$name])) {
-                $this->filters[$name] = array();
-            }
+            ! isset($this->filters[$name]) && $this->filters[$name] = [];
 
             foreach(explode(',', $value) as $item) {
                 $this->filters[$name][] = $item;
@@ -299,7 +299,7 @@ class SearchRequest {
             return $this->facets;
         }
 
-        $this->facets = array();
+        $this->facets = [];
         foreach($facets as $name => $size) {
             $this->facet($name, $size);
         }
@@ -352,7 +352,9 @@ class SearchRequest {
      * @return string|self
      */
     public function sort($sort = null) {
-        if (is_null($sort)) return $this->sort;
+        if (is_null($sort)) {
+            return $this->sort;
+        }
 
         $this->sort = $sort;
 
@@ -366,7 +368,9 @@ class SearchRequest {
      * @return bool|self
      */
     public function explainHits($explainHits = null) {
-        if (is_null($explainHits)) return $this->explainHits;
+        if (is_null($explainHits)) {
+            return $this->explainHits;
+        }
 
         $this->explainHits = (bool) $explainHits;
 
@@ -381,10 +385,10 @@ class SearchRequest {
      */
     protected function elasticSearchRequest() {
         // Paramètres de base de la requête
-        $request = array(
+        $request = [
             'query' => $this->elasticSearchQuery(),
-            'fields' => array() // on ne veut que ID
-        );
+            'fields' => [] // on ne veut que ID
+        ];
 
         // Tri des réponses
         // TODO
@@ -422,7 +426,7 @@ class SearchRequest {
      */
     protected function elasticSearchQuery() {
         // @see http://www.elasticsearch.org/guide/reference/api/search/query/
-        $query = array();
+        $query = [];
         foreach($this->search as $field => $search) {
             $clauses = []; // les clauses de recherche pour ce champ
 
@@ -459,7 +463,7 @@ class SearchRequest {
                         'default_operator' => 'AND',
                         // 'minimum_should_match' => '75%',
 
-                        // Force les troncatures à passer par l'analyzer du champ
+                        // Force les troncatures à passer par l'analyzeur du champ
                         'analyze_wildcard' => true,
 
                         //'use_dis_max' => false,
@@ -487,7 +491,7 @@ class SearchRequest {
                 $clauses[] = $clause;
             }
             if (count($clauses) > 1) {
-                $clauses = array('bool' => array('should' => $clauses));
+                $clauses = ['bool' => ['should' => $clauses]];
             } else {
                 $clauses = $clauses[0];
             }
@@ -505,7 +509,7 @@ class SearchRequest {
                 break;
 
             default:
-                $query = array('bool' => array('must' => $query));
+                $query = ['bool' => ['must' => $query]];
                 break;
         }
 
@@ -513,23 +517,23 @@ class SearchRequest {
         // http://www.elasticsearch.org/guide/reference/query-dsl/filtered-query/
         if ($filter = $this->elasticSearchFilter()) {
             if ($query) {
-                $query = array(
-                    'filtered' => array(
+                $query = [
+                    'filtered' => [
                         'query' => $query,
                         'filter' => $filter
-                    )
-                );
+                    ]
+                ];
             } else {
-                $query = array(
-                    'filtered' => array(
+                $query = [
+                    'filtered' => [
                         'filter' => $filter
-                    )
-                );
+                    ]
+                ];
             }
         }
 
-        if(is_null($query)) {
-            $query=array('match_all' => array());
+        if (is_null($query)) {
+            $query = ['match_all' => []];
         }
 
         return $query;
@@ -576,16 +580,16 @@ class SearchRequest {
      * @return array
      */
     protected function elasticSearchFacets() {
-        $definedFacets = apply_filters('docalist_search_get_facets', array());
+        $definedFacets = apply_filters('docalist_search_get_facets', []);
 
-        $facets = array();
+        $facets = [];
         foreach ($this->facets as $name => $size) {
             if (! isset($definedFacets[$name])) {
                 throw new Exception("La facette $name n'existe pas");
             }
             $facet = $definedFacets[$name];
             $type = isset($facet['type']) ? $facet['type'] : 'terms';
-            $facets[$name] = array($type => $facet['facet']);
+            $facets[$name] = [$type => $facet['facet']];
         }
 //        echo 'elasticSearchFacets=<pre>', var_export($facets, true), '</pre>';
         return $facets;
@@ -693,11 +697,11 @@ class SearchRequest {
             return '*';
         }
 
-        $equation = array();
+        $equation = [];
         foreach($this->search as $field => $search) {
             $clause = implode(' OR ', (array) $search);
             if ($field) {
-                $clauses = array();
+                $clauses = [];
                 $this->addBrackets($clause);
                 foreach(explode(',', $field) as $field) {
                     $clauses[] = "$field:$clause";

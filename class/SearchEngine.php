@@ -14,9 +14,7 @@
  */
 namespace Docalist\Search;
 
-use Docalist\QueryString;
 use WP_Query;
-use Docalist\Http\JsonResponse;
 use Exception;
 
 /**
@@ -33,7 +31,7 @@ class SearchEngine {
     protected $settings;
 
     /**
-     * @var SearchRequest la requête adressée à ElasticSearch
+     * @var SearchRequest la requête adressée à ElasticSearch.
      */
     protected $request;
 
@@ -50,56 +48,152 @@ class SearchEngine {
      * @param Settings $settings
      */
     public function __construct(Settings $settings) {
+        // Stocke nos paramètres
         $this->settings = $settings;
 
-        add_filter('query_vars', function($vars) {
-            $vars[] = 'docalist-search';
-            $vars[] = 'q';
+        // Intègre le moteur dans WordPress quand parseQuery() est exécutée
+        add_filter('parse_query', [$this, 'onParseQuery']);
 
-            return $vars;
-        });
+        // Crée la requête quand on est sur la page "liste des réponses"
+        add_filter('docalist_search_create_request', function(SearchRequest $request = null, WP_Query $query) {
+            if (is_null($request) && $query->is_page && $query->get_queried_object_id() === $this->searchPage()) {
+                $request = $this->defaultRequest()->isSearch(true);
+            }
 
-        // Supprime les "search rewrite rules" par défaut de wordpress
-        add_filter('search_rewrite_rules', function(array $rules) {
+            return $request;
+        }, 10, 2);
 
-            return [];
+        // Crée le filtre par défaut pour les articles
+        add_filter('docalist_search_get_post_filter', function($filter, $type) {
+            return $this->defaultFilter($type);
+        }, 10, 2);
 
-            // remarque : on ne peut pas créer les nouvelles règles içi car les
-            // "search rules" ne sont pas prioritaires (par exemple la rule
-            // "/prisme/search" ne lancera pas une recherche, elle esaaiera
-            // d'afficher la notice qui a le permalien "search" (et donc 404)
-            // Du coup, on supprime les règles ici, et on crée les nouvelles
-            // dans le filtre ci-dessous, en les insérant au tout début des
-            // rewrite rules.
+        // Crée le filtre par défaut pour les pages
+        add_filter('docalist_search_get_page_filter', function($filter, $type) {
+            return $this->defaultFilter($type);
+        }, 10, 2);
 
-        });
-
-        // Crée nos propres "search rewrite rules" et permet aux plugins d'en
-        // créer de nouvelles. Les routes créées sont prioritaires sur toutes
-        // les autres (on les insère en tout début du tableau des routes wp)
-        add_filter( 'rewrite_rules_array', function(array $rules) {
-            $new = [ 'search' => 'index.php?docalist-search=1' ];
-            $new = apply_filters('docalist_search_get_rewrite_rules', $new);
-
-            return $new + $rules;
-        });
-
-        // @todo : revoir quelle est la priorité la plus adaptée pour les filtres
-        add_filter('parse_query', array($this, 'onParseQuery'), 10, 1);
-
-        // Permet aux autres de récupérer l'objet SearchRequest en cours
+        // TODO : filtres à virer, utiliser docalist('docalist-search-engine')->xxx()
         add_filter('docalist_search_get_request', array($this, 'request'), 10, 0);
-
-        // Permet aux autres de récupérer l'objet SearchResults en cours
         add_filter('docalist_search_get_results', array($this, 'results'), 10, 0);
-
         add_filter('docalist_search_get_rank', array($this, 'rank'), 10, 1);
-
         add_filter('docalist_search_get_hit_link', array($this, 'hitLink'), 10, 1);
+    }
 
-        add_filter('get_search_query', function($s) {
-            return $this->request ? $this->request->asEquation() : $s;
-        } );
+    /**
+     * Construit une requête standard en tenant compte du statut des documents
+     * et des droits de l'utilisateur en cours.
+     *
+     * @param string $types Liste des types interrogés, par défaut tous les
+     * types indexés.
+     * @param boolean $ignoreQueryString Par défaut la requête tient compte des
+     * arguments passés en query string. Passez false pour obtenir une requête
+     * vide (match all) ne contenant que les filtres.
+     *
+     * @return SearchRequest
+     */
+    public function defaultRequest($types = null, $ignoreQueryString = false) {
+        // Crée la requête
+        $request = new SearchRequest($ignoreQueryString ? null : $_REQUEST);
+
+        // Détermine les types à prendre en compte
+        if (is_null($types)) {
+            // Si la requête a déjà un filtre sur _type, on filtre uniquement ce type
+            if ($request->hasFilter('_type')) {
+                $types = array_keys($request->filter('_type'));
+            }
+
+            // Sinon on prend tous les types indexés
+            else {
+                $types = $this->settings->indexer->types();
+            }
+        } else {
+            $types = (array) $types;
+        }
+
+        // Pour chaque type, construit le filtre de visibilité
+        $filters = [];
+        foreach($types as $type) {
+            $filter = apply_filters("docalist_search_get_{$type}_filter", null, $type);
+            $filter && $filters[] = $filter;
+            // Remarque : si personne n'a créé de filtre, le type n'est pas
+            // interrogeable, c'est mieux que de rendre tout visible.
+        }
+
+        // Combine tous les filtres ensmeble et ajoute à la requête
+        $request->addHiddenFilter(['bool' => ['should' => $filters]]);
+
+        // Ok
+        return $request;
+    }
+
+    /**
+     * Construit un filtre par défaut pour le type passé en paramètre en tenant
+     * compte du statut des documents et des droits de l'utilisateur en cours.
+     *
+     * @param string $type
+     */
+    public function defaultFilter($type) {
+        global $wp_post_statuses;
+
+        // Définit des filtres sur le statut des notices en fonction
+        // des droits de l'utilisateur :
+        // - Tout le monde peut lire les statuts publics
+        // - Si l'utilisateur est connecté, il peut voir les status
+        //   privés s'il a le droit "read_private_posts" du type ou
+        //   s'il est l'auteur de la notice ou du post.
+        // Le code est inspiré de ce que fait WordPress quand on appelle
+        // WP_Query::get_posts (cf. wp_includes/query.php:3027)
+
+        $postType = get_post_type_object($type);
+        $readPrivate = $postType->cap->read_private_posts;
+        $canReadPrivate = current_user_can($readPrivate);
+
+        // Détermine la liste des statuts publics et privés/protégés
+        $public = $private = [];
+        foreach($wp_post_statuses as $status) {
+            if ($status->public) {
+                $public[] = $status->label;
+            } elseif($status->protected || $status->private) {
+                $private[] = $status->label;
+            }
+        }
+
+        // Si l'utilisateur a le droit "read_private_posts" : tout
+        if ($canReadPrivate) {
+            $filter = SearchRequest::termFilter('status.filter', $public + $private);
+        }
+
+        // Sinon, que le statut "publish"
+        else {
+            $filter = SearchRequest::termFilter('status.filter', $public);
+
+            //  Et les statuts privés pour les posts dont il est auteur
+            if ($private && is_user_logged_in()) {
+                $user = wp_get_current_user()->user_login;
+
+                $filter = SearchRequest::shouldFilter(
+                    $filter,
+                    SearchRequest::mustFilter(
+                        SearchRequest::termFilter('createdby', $user),
+                        SearchRequest::termFilter('status.filter', $private)
+                    )
+                );
+            }
+        }
+
+        // Combine en "et" avec le type
+        return SearchRequest::mustFilter(SearchRequest::typeFilter($type), $filter);
+    }
+
+    /**
+     * Retourne l'ID de la page "liste des réponses" indiquée dans les
+     * paramètres de docalist-search.
+     *
+     * @return int
+     */
+    public function searchPage() {
+        return $this->settings->searchpage();
     }
 
     /**
@@ -114,8 +208,7 @@ class SearchEngine {
     /**
      * Retourne les résultats de la requête en cours.
      *
-     * @return SearchResults|null l'objet Results ou null si on n'a pas de
-     * requête en cours.
+     * @return SearchResults
      */
     public function results() {
         return $this->results;
@@ -150,12 +243,10 @@ class SearchEngine {
      * @param int $id
      */
     public function hitLink($id) {
-        // @formatter:off
-        return QueryString::fromCurrent()
-            ->set('page', $this->rank($id))
-            ->set('size', 1)
-            ->encode();
-        // @formatter:on
+        $url = get_pagenum_link($this->rank($id), false);
+        $url = add_query_arg(['size' => 1], $url);
+
+        return $url;
     }
 
     /**
@@ -173,181 +264,124 @@ class SearchEngine {
      * @return WP_Query La requête, éventuellement modifiée.
      */
     public function onParseQuery(WP_Query & $query) {
-        // Si c'est une sous-requête (query_posts, etc.) on ne fait rien
+        $debug = false;
+
+        // Si ce n'est pas la requête principale de WordPress on ne fait rien
         if (! $query->is_main_query()) {
             return $query;
         }
 
-        // Si ce n'est pas une recherche, on ne fait rien
-        if (! $this->isSearchQuery($query)) {
+        // Demande aux plugins s'il faut créer une requête
+        $this->request = apply_filters('docalist_search_create_request', null, $query);
+
+        // Si on n'a pas de requête à exécuter, on ne fait rien
+        if (is_null($this->request)) {
+            $debug && print("docalist_search_create_request a retourné null, rien à faire<br />");
+
             return $query;
         }
 
-        // Fournit à WordPress la requête SQL à exécuter (les ID retournés par ES)
-        add_filter('posts_request', array($this, 'onPostsRequest'), 10, 2);
-
-        // Indique à WordPress le nombre de réponses obtenues
-        add_filter('posts_results', array($this, 'onPostsResults'), 10, 2);
-
-        return $query;
-    }
-
-    /**
-     * Détermine si la requête WordPress en cours est une recherche.
-     *
-     * WordPress considère que la requête en cours est une recherche dès lors
-     * qu'on a un paramètre "s" non vide en query string.
-     *
-     * C'est génant car, la requête est exécutée avant même qu'on ait décidé
-     * de ce qu'on voulait en faire. Dans notre cas, on peut avoir une
-     * recherche en paramètre et vouloir :
-     *
-     * - afficher un formulaire de recherche avancée qui reprend les paramètres
-     * - expliquer comment a été interprétée la recherche
-     * - faire un export des réponses correspondant à cette recherche
-     * - ajouter dans un panier
-     * - faire un traitement en batch sur l'ensemble des réponses
-     * - etc.
-     *
-     * La seule solution est de désactiver complètement la recherche wordpress
-     * et de ne lancer une recherche que si on nous le demande explicitement.
-     *
-     * Pour cela, on introduit une nouvelle query_var : "docalist-search".
-     * Cette query var doit être fournie en query string (peu courant) ou
-     * initialisée via une rewrite rule (cas général).
-     *
-     * C'est ce que fait la rewrite rule que l'on crée (/search) : elle se
-     * contente d'initialiser "docalist_search" à true.
-     *
-     * Au final, on considère que la requête en cours est une recherche si et
-     * seulement si on docalist-search=true dans les query vars de WordPress.
-     */
-    protected function isSearchQuery(WP_Query $query) {
-        $query->is_search = isset($query->query_vars['docalist-search']);
-
-        return $query->is_search;
-    }
-
-    /**
-     * Filtre "post_request" exécuté lorsque WordPress construit la requête
-     * SQL à exécuter pour établir la liste des posts à afficher.
-     *
-     * Ce filtre n'est exécuté que si onParseQuery() a déterminé qu'il
-     * s'agissait d'une recherche.
-     *
-     * On intercepte la recherche standard de WordPress, on lance une requête
-     * Elastic Search et on récupère les IDs des hits obtenus.
-     *
-     * On retourne ensuite à WordPress une requête SQL qui permet de charger
-     * les posts correspondants aux hits tout en maintenant le tri (par
-     * pertinence, par exemple) établi par le moteur de recherche :
-     *
-     * <code>
-     * SELECT * FROM wp_posts WHERE ID in (<IDs>) ORDER BY FIELD(id, <IDs>)
-     * <code>
-     *
-     * Si la recherche ElasticSearch est infructueuse (aucune réponse, équation
-     * erronnée, serveur qui ne répond pas, etc.) la méthode retourne null.
-     * Dans ce cas, WordPress ne va exécuter aucune requête sql (cf. le code
-     * source de WPDB::get_results()) et va afficher la page "aucune réponse".
-     *
-     * @param string $sql La requête SQL initiale construite par WordPress.
-     *
-     * @param WP_Query $query L'objet Query construit par WordPress.
-     *
-     * @return string|null Retourne la requête sql à exécuter : soit la requête
-     * d'origine, soit la requête permettant de charger les réponses retournées
-     * par ElasticSearch.
-     */
-    public function onPostsRequest($sql, WP_Query & $query) {
-        /* @var $wpdb Wpdb */
-        global $wpdb;
-
-        // Empêche WordPress de faire ensuite une requête "SELECT FOUND_ROWS()"
-        // C'est inutile car onPostResults va retourner directement le nombre de réponses
-        $query->query_vars['no_found_rows'] = true;
-
-        // Construit la requête qu'on va envoyer à ElasticSearch
-        $args = QueryString::fromCurrent();
-        //$args->set('q', $query->query_vars['q']); // cas où q est en qv mais pas en query string (e.g. init par une rewrite rule)
-        if (! empty($query->query_vars['post_type']) && $query->query_vars['post_type'] !== 'any') {
-            $args->add('_type', $query->query_vars['post_type']);
+        // Sanity check
+        if (! $this->request instanceof SearchRequest) {
+            throw new Exception('Filter docalist_search_create_request did not return a SearchRequest');
         }
 
-        $this->request = new SearchRequest($args);
+        $debug && print("docalist_search_create_request a retourné une requête, exécution<br />");
 
-        // Synchronize size et posts_per_page pour que le pager fonctionne
-        $size = $this->request->size();
-        if ($size !== $query->get('posts_per_page')) {
-            $query->set('posts_per_page', $size);
+        // Si la requête est une recherche WordPress, on tient compte de "paged"
+        if ($this->request->isSearch()) {
+            if ($page = $query->get('paged')) {
+                $this->request->page($page);
+            } elseif ($page = $query->get('page')) {
+                $this->request->page($page);
+            }
         }
 
-        // Synchronize page et paged pour que le pager fonctionne
-        $page = $this->request->page();
-        if ($page !== $query->get('paged')) {
-            $query->set('paged', $page);
-        }
+        $debug && var_dump($this->request);
 
         // Exécute la recherche
         try {
             $this->results = $this->request->execute();
         } catch (Exception $e) {
-            return null;
+            echo "<p>WARNING : Une erreur s'est produite pendant l'exécution de la requête.</p>";
+            echo '<p>', $e->getMessage(), '</p>';
+            // TODO : à améliorer (cf. plugin "simple notices")
         }
 
-        // Récupère les hits obtenus
-        $hits = $this->results->hits();
+        $debug && print($this->results->total() . " réponses obtenues<br />");
 
-        // Aucune réponse : retourne sql=null pour que wpdb::query() ne fasse aucune requête
-        if (empty($hits)) {
-            return null;
+        // Si la requête n'est pas une recherche WordPress, on a finit
+        if (! $this->request->isSearch()) {
+            $debug && print("Le flag isSearch de la requête SearchRequest est à false, terminé<br />");
+
+            return $query;
         }
+
+        $debug && print("Le flag isSearch est à true, force WP à exécuter comme une recherche<br />");
+
+        // Force WordPress à traiter la requête comme une recherche
+        $query->is_search = true;
+        $query->is_singular = $query->is_page = false;
+
+        // Indique à WordPress les paramètres de la recherche en cours
+        $query->set('posts_per_page', $this->request->size());
+        $query->set('paged', $this->request->page());
+
+        // Empêche WordPress de faire une 2nde requête "SELECT FOUND_ROWS()"
+        // (inutile car on a directement le nombre de réponses obtenues)
+        $query->set('no_found_rows', true);
+
+        // Permet à get_search_query() de récupérer l'équation de recherche
+        $query->set('s', $this->request->asEquation());
 
         // Construit la liste des ID des réponses obtenues
-        $id = array();
-        foreach($hits as $hit) {
-            $id[] = $hit->_id;
+        $id = [];
+        if ($this->results) {
+            foreach($this->results->hits() as $hit) {
+                $id[] = $hit->_id;
+            }
         }
 
-        // Construit une requête sql qui récupére les posts dans l'ordre
-        // indiqué par ElasticSearch (http://stackoverflow.com/a/3799966)
-        $sql = 'SELECT * FROM %s WHERE ID in (%s) ORDER BY FIELD(id,%2$s)';
-        $sql = sprintf($sql, $wpdb->posts, implode(',', $id));
+        // Indique à WordPress la requête SQL à exécuter pour récupérer les posts
+        add_filter('posts_request', function ($sql) use ($id) { // !!! pas appellé si supress_filters=true
+            global $wpdb; /* @var $wpdb Wpdb */
 
-        return $sql;
-    }
+            // Aucun hit : retourne sql=null pour que wpdb::query() ne fasse aucune requête
+            if (empty($id)) {
+                return null;
+            }
 
+            // Construit une requête sql qui récupére les posts dans l'ordre
+            // indiqué par ElasticSearch (http://stackoverflow.com/a/3799966)
+            $sql = 'SELECT * FROM %s WHERE ID in (%s) ORDER BY FIELD(id,%2$s)';
+            $sql = sprintf($sql, $wpdb->posts, implode(',', $id));
 
-    /**
-     * Filtre "post_results" appelé lorsque la requête SQL générée a été
-     * exécutée.
-     *
-     * Ce filtre n'est exécuté que si onParseQuery() a déterminé qu'il
-     * s'agissait d'une recherche.
-     *
-     * On indique à WordPress le nombre exact de réponses obtenues (tel que
-     * retourné par Elastic Search) et on calcule le nombre total de pages de
-     * réponses possibles en intialisant les propriétés "found_posts" et
-     * "max_num_pages" de l'objet Query passé en paramètre.
-     *
-     * @param array $posts La liste des posts obtenus lors de la recherche.
-     *
-     * @param WP_Query $query Les paramètres de la requête WordPress en cours.
-     *
-     * @return array $posts Retourne inchangé le tableau passé en paramètre
-     * (seul $query nous intéresse).
-     */
-    public function onPostsResults(array $posts = null, WP_Query & $query) {
-        if (count($this->results->hits()) !== count($posts)) {
-            echo "<p>WARNING : L'index docalist-search est désynchronisé.</p>";
-        }
-        $total = $this->results ? $this->results->total() : 0;
-        $size = $this->request->size();
+            // TODO : telle que la requête est construite, c'est forcément des
+            // posts (pas des commentaires, ou des users, etc.)
 
-        $query->found_posts = $total;
-        $query->max_num_pages = (int) ceil($total / $size);
+            // TODO : supprimer le filtre une fois qu'il a été exécuté
+            return $sql;
+        });
 
-        return $posts;
+        // Une fois que WordPress a chargé les posts, vérifie qu'on a tout les
+        // documents et indique à WordPress le nombre total de réponses trouvées.
+        add_filter('posts_results', function(array $posts = null, WP_Query & $query) use ($id) { //!!! pas appellé si supress_filters=true
+            if (count($id) !== count($posts)) {
+                echo "<p>WARNING : L'index docalist-search est désynchronisé.</p>";
+                // TODO : à améliorer (cf. plugin "simple notices")
+            }
+            $total = $this->results ? $this->results->total() : 0;
+            $size = $this->request->size();
+
+            $query->found_posts = $total;
+            $query->max_num_pages = (int) ceil($total / $size);
+
+            // TODO : supprimer le filtre une fois qu'il a été exécuté
+
+            return $posts;
+        }, 10, 2);
+
+        return $query;
     }
 
     /**

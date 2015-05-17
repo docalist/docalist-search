@@ -298,6 +298,19 @@ class SearchRequest {
         return $this;
     }
 
+    public function toggleFilter($name, $value) {
+        if (isset($this->filters[$name][$value])) {
+            unset($this->filters[$name][$value]);
+            if (empty($this->filters[$name])) {
+                unset($this->filters[$name]);
+            }
+        } else {
+            $this->filters[$name][$value] = true;
+        }
+
+        return $this;
+    }
+
     /**
      * Retourne ou modifie la liste des facettes de la requête.
      *

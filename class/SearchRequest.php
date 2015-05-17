@@ -737,4 +737,35 @@ class SearchRequest {
 
         return $equation;
     }
+
+    /**
+     * Retourne l'url à utiliser pour activer ou désactiver un filtre.
+     *
+     * Si la requête en cours contient déjà le filtre indiqué (couple
+     * $name/$value) celui-ci est supprimé de l'url. Dans le cas contraire, le
+     * filtre est ajouté dans les paramères de l'url.
+     *
+     * supprime le filtre et retourne l'url obtenue.
+     * Si le filtre ne figure pas dans la requête, on l'ajoute
+     *
+     * @param string $name Nom du filtre à activer ou à désactiver.
+     * @param string $value Valeur à activer ou à désactiver.
+     * @param string $url Url à modifier (par défaut la méthode utilise l'url
+     * en cours retournée par get_pagenum_link(1, false)).
+     *
+     * @return string L'url obtenue.
+     */
+    public function toggleFilterUrl($name, $value, $url = null) {
+        is_null($url) && $url = get_pagenum_link(1, false);
+        if (isset($this->filters[$name][$value])) {
+            $filter = $this->filters[$name];
+            unset($filter[$value]);
+        } else {
+            $filter = isset($this->filters[$name]) ? $this->filters[$name] : [];
+            $filter[$value] = true;
+        }
+        $filter = $filter ? urlencode(implode(',', array_keys($filter))) : false;
+
+        return add_query_arg(strtr($name, '.', '_'), $filter, $url);
+    }
 }

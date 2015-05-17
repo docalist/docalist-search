@@ -85,6 +85,18 @@ class SearchRequest {
     protected $explainHits = false;
 
     /**
+     * Indique si la requête doit être traitée comme s'il s'agissait d'une
+     * recherche WordPress.
+     *
+     * Lorsque ce flag est à true, docalist-search force WordPress à traiter la
+     * requête en cours comme s'il s'agissait d'une recherche (le flag is_search
+     * de wp_query est positionné à true, le template search.php sera utilisé, etc.)
+     *
+     * @var bool
+     */
+    protected $isSearch = false;
+
+    /**
      * Construit une recherche à partir des arguments passés en paramètre.
      *
      * Exemple :
@@ -802,5 +814,29 @@ class SearchRequest {
         $filter = $filter ? urlencode(implode(',', array_keys($filter))) : false;
 
         return add_query_arg(strtr($name, '.', '_'), $filter, $url);
+    }
+
+    /**
+     * Indique si la requête doit être traitée comme s'il s'agissait d'une
+     * recherche WordPress.
+     *
+     * Lorsque ce flag est à true, docalist-search force WordPress à traiter la
+     * requête en cours comme s'il s'agissait d'une recherche (le flag is_search
+     * de wp_query est positionné à true, le template search.php sera utilisé,
+     * etc.)
+     *
+     * Ce flag n'a de sens que pour la SearchRequest principale.
+     *
+     * @param boolean $isSearch
+     * @return boolean|self
+     */
+    public function isSearch($isSearch = null) {
+        if (is_null($isSearch)) {
+            return $this->isSearch;
+        }
+
+        $this->isSearch = (bool) $isSearch;
+
+        return $this;
     }
 }

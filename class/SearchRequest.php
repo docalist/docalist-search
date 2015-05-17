@@ -839,4 +839,15 @@ class SearchRequest {
 
         return $this;
     }
+
+    /**
+     * Indique si la requête est vide (ni clauses de recherche ni filtres);
+     *
+     * @return boolean
+     */
+    public function isEmpty() {
+        return empty($this->search)
+            && empty($this->filters)
+            && empty($this->hiddenFilters);
+    }
 }

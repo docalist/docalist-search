@@ -50,6 +50,20 @@ class SearchRequest {
     protected $filters = [];
 
     /**
+     * Liste des filtres "cachés" (non affichés à l'utilisateur).
+     *
+     * Typiquement, il s'agit de filtres par défaut portant sur le statut des
+     * posts (par exemple status.filter:Publié).
+     *
+     * Contrairement à $filters qui contient des filtres sous la forme
+     * d'équations de recherche qui sont ensuite parsées, $hiddenFilters
+     * contient directement les filtres au format elastic search (query DSL).
+     *
+     * @var array
+     */
+    protected $hiddenFilters = [];
+
+    /**
      * Liste des facettes à calculer
      *
      * @var array Un tableau de la forme facetName => size
@@ -307,6 +321,16 @@ class SearchRequest {
         } else {
             $this->filters[$name][$value] = true;
         }
+
+        return $this;
+    }
+
+    public function hiddenFilters() {
+        return $this->hiddenFilters;
+    }
+
+    public function addHiddenFilter($filter) {
+        $this->hiddenFilters[] = $filter;
 
         return $this;
     }
@@ -574,25 +598,36 @@ class SearchRequest {
      * @return array
      */
     protected function elasticSearchFilter() {
-        // Chaque filtre est un "terms filter"
-        // http://www.elasticsearch.org/guide/reference/query-dsl/terms-filter/
-        $filters = array();
-        foreach ($this->filters as $name => $filter) {
-            $op = $name==='_type' ? 'or' : 'and';  // TODO: options
-            $filters[] = array(
-                'terms' => array(
-                    $name => $filter,
-                    'execution' => $op,
-                ),
-            );
+        // Ajoute tous les filtres cachés
+        $filters = $this->hiddenFilters;
+
+        // AJouite les filtres utilisateurs
+        foreach ($this->filters as $name => $value) {
+            if (count($value) === 1) {
+                $filter = ['term' => [$name => key($value)]];
+            } else {
+                $value = array_keys($value);
+                if ($name === '_type') {
+                    $filter = ['terms' => [$name => $value]]; // execution: or par défaut
+                } else {
+                    $filter = ['terms' => [$name => $value, 'execution' => 'and']];
+                }
+            }
+            $filters[] = $filter;
+
+//             $op = $name==='_type' ? 'or' : 'and';  // TODO: options
+//             $filters[] = [
+//                 'terms' => [
+//                     $name => $value,
+//                     'execution' => $op,
+//                 ],
+//             ];
         }
 
-        // Si on a plusieurs filtres, on les combine en "ET"
-        // http://www.elasticsearch.org/guide/reference/query-dsl/and-filter/
-        count($filters) > 1 && $filters = array('and' => $filters);
-
-        // TODO : est-ce qu'un "bool filter" serait mieux ou plus efficace ?
-        // TODO : gérer la mise en cache des filtres
+        // Si on a plusieurs filtres, on les combine en "ET". On utilise un
+        // "bool filter" plutôt qu'un "and filter" car c'est plus efficace.
+        // cf. https://www.elastic.co/blog/all-about-elasticsearch-filter-bitsets
+        count($filters) > 1 && $filters = ['bool' => ['must' => $filters]];
 
         return $filters;
     }

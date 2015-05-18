@@ -536,7 +536,7 @@ class SearchRequest {
                 // $field .= ',title,content'; // champs déjà présents pour "notices"
             }
 
-            foreach((array) $search as $search) {
+            foreach($search as $search) {
 
                 // QueryString Query
                 $clause = [
@@ -878,6 +878,40 @@ class SearchRequest {
         return empty($this->search)
             && empty($this->filters)
             && empty($this->hiddenFilters);
+    }
+
+    /**
+     * Retourne les paramètres qui composent la requête.
+     *
+     * Utile par exemple, pour binder un formulaire avec les paramètres de
+     * recherche en cours.
+     *
+     * @return array
+     */
+    public function parameters() {
+        $data = [];
+
+        foreach($this->search as $name => $value) {
+            empty($name) && $name = 'q';
+            if (count($value) === 1) {
+                $data[$name] = current($value);
+            } else {
+                $data[$name] = $value;
+            }
+        }
+
+        foreach ($this->filters as $name => $value) {
+           // $name=strtr($name, ['.' => '_']);
+            if (count($value) === 1) {
+                $data[$name] = key($value);
+            } else {
+                $data[$name] = array_keys($value);
+            }
+        }
+
+        // faut-il ajouter size, page, etc ?
+
+        return $data;
     }
 
     /*

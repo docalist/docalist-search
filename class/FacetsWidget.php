@@ -170,7 +170,6 @@ class FacetsWidget extends WP_Widget {
         // Phase 3 - Affiche les facettes
 //        $html = $settings['html'];
         $html = $this->defaultSettings()['html']; // cf. commentaire dans createEditForm().
-        $currentUrl = get_pagenum_link(1, false);
         $first = true;
         foreach ($facets as $name => $facet) {
             // Détermine le type de facette et initialise les assesseurs
@@ -242,7 +241,7 @@ class FacetsWidget extends WP_Widget {
                 $format = $html[$request->hasFilter($field, $value) ? 'term-active' : 'term'];
 
                 // Génère l'url
-                $url = $request->toggleFilterUrl($field, $value, $currentUrl);
+                $url = $request->toggleFilterUrl($field, $value);
 
                 // Génère l'entrée
                 printf($format, esc_url($url), esc_html($label), $count);

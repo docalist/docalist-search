@@ -57,7 +57,9 @@ class SearchEngine {
         // Crée la requête quand on est sur la page "liste des réponses"
         add_filter('docalist_search_create_request', function(SearchRequest $request = null, WP_Query $query) {
             if (is_null($request) && $query->is_page && $query->get_queried_object_id() === $this->searchPage()) {
-                $request = $this->defaultRequest()->isSearch(true);
+                $request = $this->defaultRequest()
+                    ->isSearch(true)
+                    ->searchPageUrl($this->searchPageUrl());
             }
 
             return $request;
@@ -194,6 +196,16 @@ class SearchEngine {
      */
     public function searchPage() {
         return $this->settings->searchpage();
+    }
+
+    /**
+     * Retourne l'URL de la page "liste des réponses" indiquée dans les
+     * paramètres de docalist-search.
+     *
+     * @return string
+     */
+    public function searchPageUrl() {
+        return get_permalink($this->settings->searchpage());
     }
 
     /**

@@ -211,7 +211,7 @@ class ElasticSearchClient {
 
         // Si la réponse est en JSON, on la décode
         if (curl_getinfo($curl, CURLINFO_CONTENT_TYPE) === 'application/json; charset=UTF-8') {
-            if (is_null($response = json_decode($response, false, 512, JSON_BIGINT_AS_STRING))) {
+            if (is_null($response = json_decode($response, false, 512))) {
                 throw new Exception('Error while decoding JSON response');
             }
         }

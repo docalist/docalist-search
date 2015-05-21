@@ -834,13 +834,22 @@ class SearchRequest {
      *
      * @param string $name Nom du filtre à activer ou à désactiver.
      * @param string $value Valeur à activer ou à désactiver.
-     * @param string $url Url à modifier (par défaut la méthode utilise l'url
-     * en cours retournée par get_pagenum_link(1, false)).
+     * @param string $url Url à modifier. Par défaut la méthode utilise l'url
+     * indiquée dans la requête (searchPageUrl).
      *
      * @return string L'url obtenue.
      */
     public function toggleFilterUrl($name, $value, $url = null) {
-        is_null($url) && $url = get_pagenum_link(1, false);
+        // Détermine l'url de la page de recherche destination
+        if (is_null($url)) {
+            $url = $this->searchPageUrl();
+            empty($url) && $url = get_pagenum_link(1, false);
+        }
+
+        // Récupère les paramètres actuels
+        !empty($_SERVER['QUERY_STRING']) && $url .= '?' . $_SERVER['QUERY_STRING'];
+
+        // Inverse le filtre
         if (isset($this->filters[$name][$value])) {
             $filter = $this->filters[$name];
             unset($filter[$value]);

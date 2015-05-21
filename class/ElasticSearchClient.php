@@ -94,7 +94,7 @@ class ElasticSearchClient {
      * elle retourne la chaine originale.
      */
     protected function prettify($data) {
-        $decoded = json_decode($data, false, 512, JSON_BIGINT_AS_STRING);
+        $decoded = json_decode($data, false, 512);
         if (json_last_error()) {
             return $data;
         }

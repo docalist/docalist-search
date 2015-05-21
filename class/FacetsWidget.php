@@ -20,6 +20,7 @@ use WP_Widget;
 use Docalist\Forms\Fragment;
 use Docalist\Forms\Themes;
 use Docalist\Utils;
+use Docalist\Biblio\Database;
 
 class FacetsWidget extends WP_Widget {
     /**
@@ -240,8 +241,19 @@ class FacetsWidget extends WP_Widget {
                 // Détermine le format selon que le terme est actif ou non
                 $format = $html[$request->hasFilter($field, $value) ? 'term-active' : 'term'];
 
+                // Bascule automatique de la recherche générale à la recherche sur une base
+                $url = null;
+                if ($field === '_type') {
+                    $database = docalist('docalist-biblio')->database($value); /* @var $database Database */
+
+                    if ($database) {
+                        $url = $database->searchPageUrl();
+                        $value = null;
+                    }
+                }
+
                 // Génère l'url
-                $url = $request->toggleFilterUrl($field, $value);
+                $url = $request->toggleFilterUrl($field, $value, $url);
 
                 // Génère l'entrée
                 printf($format, esc_url($url), esc_html($label), $count);

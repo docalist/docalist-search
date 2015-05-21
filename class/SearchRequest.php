@@ -850,7 +850,9 @@ class SearchRequest {
         !empty($_SERVER['QUERY_STRING']) && $url .= '?' . $_SERVER['QUERY_STRING'];
 
         // Inverse le filtre
-        if (isset($this->filters[$name][$value])) {
+        if (is_null($value)) {
+            $filter = false;
+        } elseif (isset($this->filters[$name][$value])) {
             $filter = $this->filters[$name];
             unset($filter[$value]);
         } else {

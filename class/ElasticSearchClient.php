@@ -272,7 +272,8 @@ class ElasticSearchClient {
      * @return string|object
      */
     public function head($path = null, $data = null, $timeout = null) {
-        return $this->request('HEAD', $path, $data, $timeout);
+        $this->request('HEAD', $path, $data, $timeout);
+        return curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
     }
 
     /**
@@ -341,8 +342,7 @@ class ElasticSearchClient {
      * @return string|object
      */
     public function exists($path = null, $data = null, $timeout = null) {
-        $this->request('HEAD', $path, $data, $timeout);
-        return curl_getinfo($this->curl, CURLINFO_HTTP_CODE) === 200;
+        return 200 === $this->head($path, $data, $timeout);
     }
 
     /**

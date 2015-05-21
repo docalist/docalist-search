@@ -194,12 +194,11 @@ class Plugin {
         is_null($format) && $format = '<a href="%3$s" class="%4$s">%2$s</a>';
 
         // Génère la liste des filtres
-        $currentUrl = get_pagenum_link(1, false);
         $result = [];
         foreach($filters as $filter => $values) {
             $class = 'filter-' . strtr($filter, '.', '-');
             foreach (array_keys($values) as $value) {
-                $url = $request->toggleFilterUrl($filter, $value, $currentUrl);
+                $url = $request->toggleFilterUrl($filter, $value);
                 $value = apply_filters('docalist_search_get_facet_label', $value, $filter);
                 $result[] = sprintf($format, esc_html($filter), esc_html($value), esc_url($url), esc_attr($class));
             }

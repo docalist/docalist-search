@@ -97,6 +97,14 @@ class SearchRequest {
     protected $isSearch = false;
 
     /**
+     * Permet d'indiquer l'url de la page sur laquelle les facettes doivent
+     * s'afficher.
+     *
+     * @var string
+     */
+    protected $searchPageUrl = null;
+
+    /**
      * Construit une recherche à partir des arguments passés en paramètre.
      *
      * Exemple :
@@ -938,5 +946,21 @@ class SearchRequest {
 
     public static function notFilter($clause1, $clause2 /* ... */) {
         return ['bool' => ['must_not' => func_get_args()]];
+    }
+
+    /**
+     * Retourne ou modifie l'url de la page sur laquelle afficher les facettes.
+     *
+     * @param string $url
+     * @return string|self
+     */
+    public function searchPageUrl($url = null) {
+        if (is_null($url)) {
+            return $this->searchPageUrl;
+        }
+
+        $this->searchPageUrl = $url;
+
+        return $this;
     }
 }

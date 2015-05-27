@@ -553,7 +553,7 @@ class SearchRequest {
                         'query' => $this->escapeQuery($search),
 
                         // Champ(s) par défaut
-                        'fields' => explode(',', $field),
+                        //'fields' => explode(',', $field),
 
                         // Opérateur (cf. #246)
                         'default_operator' => 'AND',
@@ -584,7 +584,10 @@ class SearchRequest {
                     ]
                 ];
 */
-                $clauses[] = $clause;
+                foreach(explode(',', $field) as $field) {
+                    $clause['query_string']['default_field'] = $field;
+                    $clauses[] = $clause;
+                }
             }
             if (count($clauses) > 1) {
                 $clauses = ['bool' => ['should' => $clauses]];

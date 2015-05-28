@@ -48,7 +48,7 @@ class IndexerSettings extends Object {
                 'realtime' => [
                     'type' => 'bool',
                     'label' => __("Indexation en temps réel", 'docalist-search'),
-                    'description' => __("Réindexer automatiquement les contenus créés ou modifié et enlève de l'index les contenus supprimés.", 'docalist-search'),
+                    'description' => __("Réindexer automatiquement les contenus créés ou modifiés et retirer les contenus supprimés.", 'docalist-search'),
                     'default' => false,
                 ],
             ]

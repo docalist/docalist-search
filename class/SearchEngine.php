@@ -96,7 +96,7 @@ class SearchEngine {
      */
     public function defaultRequest($types = null, $ignoreQueryString = false) {
         // Crée la requête
-        $request = new SearchRequest($ignoreQueryString ? null : $_REQUEST);
+        $request = new SearchRequest($ignoreQueryString ? null : wp_unslash($_REQUEST));
 
         // Détermine les types à prendre en compte
         if (is_null($types)) {

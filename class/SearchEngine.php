@@ -177,7 +177,7 @@ class SearchEngine {
                 $filter = SearchRequest::shouldFilter(
                     $filter,
                     SearchRequest::mustFilter(
-                        SearchRequest::termFilter('createdby', $user),
+                        SearchRequest::termFilter('createdby.filter', $user),
                         SearchRequest::termFilter('status.filter', $private)
                     )
                 );

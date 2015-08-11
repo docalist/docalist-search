@@ -10,7 +10,6 @@
  * @package     Docalist
  * @subpackage  Search
  * @author      Daniel Ménard <daniel.menard@laposte.net>
- * @version     $Id$
  */
 namespace Docalist\Search\Views;
 

@@ -311,13 +311,7 @@ class SearchEngine {
         $debug && var_dump($this->request);
 
         // Exécute la recherche
-        try {
-            $this->results = $this->request->execute();
-        } catch (Exception $e) {
-            echo "<p>WARNING : Une erreur s'est produite pendant l'exécution de la requête.</p>";
-            echo '<p>', $e->getMessage(), '</p>';
-            // TODO : à améliorer (cf. plugin "simple notices")
-        }
+        $this->results = $this->request->execute();
 
         $debug && print($this->results->total() . " réponses obtenues<br />");
 

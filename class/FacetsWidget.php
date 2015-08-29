@@ -79,14 +79,14 @@ class FacetsWidget extends WP_Widget {
         /* @var $request SearchRequest */
         $request = apply_filters('docalist_search_get_request', null);
         if (! $request) {
-            echo "<p>Aucune facette n'est disponible (no request)</p>";
+            // echo "<p>Aucune facette n'est disponible (no request)</p>";
             return;
         }
 
         /* @var $results SearchResults */
         $results = apply_filters('docalist_search_get_results', null);
         if (! $results) {
-            echo "<p>Aucune facette n'est disponible (no results)</p>";
+            // echo "<p>Aucune facette n'est disponible (no results)</p>";
             return;
         }
 

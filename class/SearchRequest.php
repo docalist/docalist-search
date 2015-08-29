@@ -104,6 +104,15 @@ class SearchRequest {
     protected $searchPageUrl = null;
 
     /**
+     * Indique si la requête exécutée a des erreurs.
+     *
+     * Initialisé lorsque execute() est appelée.
+     *
+     * @var bool
+     */
+    protected $hasErrors = null;
+
+    /**
      * Construit une recherche à partir des arguments passés en paramètre.
      *
      * Exemple :
@@ -760,9 +769,11 @@ class SearchRequest {
         $searchType && $searchType = "?search_type=$searchType";
         $response = $es->get("/{index}/_search$searchType", $this->elasticSearchRequest());
         if (isset($response->error)) {
-            throw new Exception($response->error);
+            $this->hasErrors = true;
+            return null;
         }
 
+        $this->hasErrors = false;
         return new SearchResults($response, $es->time());
     }
 
@@ -975,5 +986,16 @@ class SearchRequest {
         $this->searchPageUrl = $url;
 
         return $this;
+    }
+
+    /**
+     * Indique si la requête contient des erreurs.
+     *
+     * N'a de sens que si execute() a déjà été appelé.
+     *
+     * @return boolean
+     */
+    public function hasErrors() {
+        return $this->hasErrors;
     }
 }

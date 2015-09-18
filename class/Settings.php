@@ -33,23 +33,23 @@ class Settings extends TypeSettings {
         return [
             'fields' => [
                 'searchpage' => [
-                    'type' => 'int',
+                    'type' => 'Docalist\Type\Integer',
                     'label' =>__('Page liste des réponses', 'docalist-search'),
                     'description' => __("Page WordPress sur laquelle sont affichées les réponses obtenues.", 'docalist-search'),
                 ],
                 'enabled' => [
-                    'type' => 'bool',
+                    'type' => 'Docalist\Type\Boolean',
                     'label' => __('Recherche Docalist Search', 'docalist-search'),
                     'description' => __("Activer la recherche Docalist Search.", 'docalist-search'),
                     'default' => false,
                 ],
                 'server' => [
                     'label' => __('Serveur elasticsearch', 'docalist-search'),
-                    'type' => 'ServerSettings',
+                    'type' => 'Docalist\Search\ServerSettings',
                 ],
                 'indexer' => [
                     'label' => __("Paramètres de l'indexeur", 'docalist-search'),
-                    'type' => 'IndexerSettings',
+                    'type' => 'Docalist\Search\IndexerSettings',
                 ]
             ]
         ];

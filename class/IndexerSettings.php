@@ -13,39 +13,42 @@
  */
 namespace Docalist\Search;
 
-use Docalist\Type\Object;
+use Docalist\Type\Composite;
+use Docalist\Type\Text;
 use Docalist\Type\Integer;
+use Docalist\Type\Boolean;
 
 /**
  * Paramètres de l'indexeur.
  *
- * @property String[] $types Contenus à indexer.
+ * @property Text[] $types Contenus à indexer.
  * @property Integer $bulkMaxSize Taille maximale du buffer (Mo).
  * @property Integer $bulkMaxCount Nombre maximum de documents dans le buffer.
+ * @property Boolean $realtime Indexation en temps réel activée.
  */
-class IndexerSettings extends Object {
+class IndexerSettings extends Composite {
     static protected function loadSchema() {
         // @formatter:off
         return [
             'fields' => [
                 'types' => [
                     'label' => __('Contenus à indexer', 'docalist-search'),
-                    'type' => 'string*',
+                    'type' => 'Docalist\Type\Text*',
                 ],
                 'bulkMaxSize' => [
                     'label' =>__('Taille maximale du buffer', 'docalist-search'),
                     'description' => __('En méga-octets. Le buffer est vidé si la taille totale des documents en attente dépasse cette limite.', 'docalist-search'),
-                    'type' => 'int',
+                    'type' => 'Docalist\Type\Integer',
                     'default' => 10,
                 ],
                 'bulkMaxCount' => [
                     'label' =>__('Nombre maximum de documents', 'docalist-search'),
                     'description' => __('Le buffer est vidé si le nombre de documents en attente dépasse ce nombre.', 'docalist-search'),
-                    'type' => 'int',
+                    'type' => 'Docalist\Type\Integer',
                     'default' => 10000,
                 ],
                 'realtime' => [
-                    'type' => 'bool',
+                    'type' => 'Docalist\Type\Boolean',
                     'label' => __("Indexation en temps réel", 'docalist-search'),
                     'description' => __("Réindexer automatiquement les contenus créés ou modifiés et retirer les contenus supprimés.", 'docalist-search'),
                     'default' => false,

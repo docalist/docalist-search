@@ -30,11 +30,20 @@ use InvalidArgumentException;
  *     $mapping->template('taxonomy.*')->idem('taxonomy')->copyTo('topic');
  * </code>
  *
- * Le mapping généré peut être obtenu avec <code>$mapping->mapping()</code> qui
- * retourne un tableau contenant le mapping elasticSearch (pour l'exemple
- * ci-dessus, le tableau généré fait plus de 50 lignes en JSON).
+ * Le mapping généré peut être obtenu avec <code>$mapping->mapping()</code> qui retourne un tableau
+ * contenant le mapping elasticSearch (pour l'exemple ci-dessus, le tableau généré fait plus de 50 lignes en JSON).
  */
-class MappingBuilder {
+class MappingBuilder
+{
+    /**
+     * Liste des analyseurs disponibles.
+     *
+     * Initialisé lors du premier appel à getAvailableAnalyzers().
+     *
+     * @var string[]
+     */
+    private static $availableAnalyzers;
+
     /**
      * L'analyseur par défaut à utiliser pour les champs de type texte.
      *
@@ -62,65 +71,119 @@ class MappingBuilder {
      *
      * @param string $defaultAnalyzer Le nom de l'analyseur par défaut à
      * utiliser pour les champs de type texte ('text', 'fr-text', 'en-text'...)
-     *
-     * L'analyseur indiqué doit exister dans les settings de l'index sinon une
-     * exception sera générée lors du premier appel à la méthode text().
      */
-    public function __construct($defaultAnalyzer = 'text') {
+    public function __construct($defaultAnalyzer = 'text')
+    {
         // Stocke l'analyseur par défaut
-        $this->defaultAnalyzer = $defaultAnalyzer;
+        $this->setDefaultAnalyzer($defaultAnalyzer);
 
         // Initialise les options générales du mapping
         $this->mapping = [
             // Stocke la version de docalist-search qui a créé ce type
-            // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-meta.html
+            // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-meta-field.html
             '_meta' => [
-                'docalist-search' =>  docalist('docalist-search')->version(),
+                'docalist-search' => docalist('docalist-search')->version(),
             ],
 
             // Par défaut le mapping est dynamique
-            // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-object-type.html#_dynamic
+            // https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic.html
             'dynamic' => true,
 
             // Le champ _all n'est pas utilisé
-            // http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-all-field.html#mapping-all-field
+            // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-all-field.html
             '_all' => ['enabled' => false],
             'include_in_all' => false,
 
             // La détection de dates et de nombres est désactivée
-            // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-root-object-type.html#_date_detection
+            // https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-field-mapping.html#date-detection
             'date_detection' => false,
+
+            // La détection des nombres est désactivée
+            // https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-field-mapping.html#numeric-detection
             'numeric_detection' => false,
 
-            // Liste des templates de champs
-            // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-root-object-type.html#_dynamic_templates
+            // Liste des templates de champs dynamiques
+            // https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-templates.html
             'dynamic_templates' => [],
 
             // Liste des champs
-            // @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-object-type.html
-            'properties' => []
+            // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-types.html
+            'properties' => [],
         ];
     }
 
     /**
-     * Retourne le nom de l'analyseur par défaut à utiliser pour les champs de
-     * type texte.
+     * Retourne la liste des analyseurs disponibles.
      *
-     * @return string Le nom de l'analyseur passé au constructeur ('text',
-     * 'fr-text', 'en-text'...)
+     *  @return string[]
      */
-    public function defaultAnalyzer() {
+    public function getAvailableAnalyzers()
+    {
+        // Initialisation au premier appel, charge la liste des analyseurs disponibles dans les settings de l'index
+        if (is_null(self::$availableAnalyzers)) {
+            $settings = apply_filters('docalist_search_get_index_settings', []);
+            if (isset($settings['settings']['analysis']['analyzer'])) {
+                $analyzers = array_flip(array_keys($settings['settings']['analysis']['analyzer']));
+            } else {
+                $analyzers = [];
+            }
+            self::$availableAnalyzers = $analyzers;
+        }
+    }
+
+    /**
+     * Génère une exception si l'analyseur indiqué n'existe pas.
+     *
+     * @param string $analyzer
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function checkAnalyzer($analyzer)
+    {
+        $analyzers = $this->getAvailableAnalyzers();
+
+        if (! isset($analyzers[$analyzer])) {
+            throw new InvalidArgumentException("Analyzer '$analyzer' not found");
+        }
+    }
+
+    /**
+     * Définit l'analyseur par défaut à utiliser pour les champs de type texte.
+     *
+     * L'analyseur par défaut est utilisé lorsque la méthode {@link text()} est appellée sans paramètres.
+     *
+     * @param string $defaultAnalyzer Le nom de l'analyseur par défaut à utiliser ('text', 'fr-text', 'en-text'...)
+     *
+     * L'analyseur indiqué doit exister dans les settings de l'index sinon une exception sera générée.
+     *
+     * @return self
+     *
+     * @throws InvalidArgumentException
+     */
+    public function setDefaultAnalyzer($defaultAnalyzer)
+    {
+        $this->checkAnalyzer($defaultAnalyzer);
+        $this->defaultAnalyzer = $defaultAnalyzer;
+
+        return $this;
+    }
+
+    /**
+     * Retourne le nom de l'analyseur par défaut à utiliser pour les champs de type texte.
+     *
+     * @return string Le nom de l'analyseur passé au constructeur ('text', 'fr-text', 'en-text'...)
+     */
+    public function getDefaultAnalyzer()
+    {
         return $this->defaultAnalyzer;
     }
 
     /**
      * Retourne le mapping en cours.
      *
-     * @param string $field Par défaut (sans paramètres), la méthode retourne
-     * la totalité du mapping en cours.
+     * @param string $field Par défaut (sans paramètres), la méthode retourne la totalité du mapping en cours.
      *
-     * Il est possible d'obtenir le mapping d'un champ ou d'un template en
-     * indiquant son nom en paramètre.
+     * Il est possible d'obtenir le mapping d'un champ ou d'un template en indiquant son nom en paramètre.
      *
      * Exemple :
      * <code>
@@ -130,10 +193,11 @@ class MappingBuilder {
      *
      * @return array Un tableau contenant le mapping ElasticSearch généré.
      *
-     * @throws InvalidArgumentException Si le nom indiqué en paramètre n'est
-     * ni un nom de champ existant, ni un nom de template existant.
+     * @throws InvalidArgumentException Si le nom indiqué en paramètre n'est ni un nom de champ existant,
+     * ni un nom de template existant.
      */
-    public function mapping($field = null) {
+    public function mapping($field = null)
+    {
         // Retourne la totalité du mapping
         if (is_null($field)) {
             return $this->mapping;
@@ -150,7 +214,7 @@ class MappingBuilder {
         }
 
         // Erreur
-        throw new InvalidArgumentException("'$field' is not a field or a template");
+        throw new InvalidArgumentException("'$field' is not an existant field or dynamic template");
     }
 
     // -------------------------------------------------------------------------
@@ -166,9 +230,10 @@ class MappingBuilder {
      *
      * @return self
      */
-    public function field($name) {
+    public function field($name)
+    {
         if (isset($this->mapping['properties'][$name])) {
-            throw new InvalidArgumentException("Field '$name' already defined");
+            throw new InvalidArgumentException("Field '$name' is already defined");
         }
 
         $this->mapping['properties'][$name] = [];
@@ -184,27 +249,28 @@ class MappingBuilder {
      * @param string $match Le masque indiquant le nom des champs auxquels le
      * nouveau template ser appliqué.
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-root-object-type.html#_dynamic_templates
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-templates.html
      *
-     * @throws InvalidArgumentException Si le champ existe déjà.
+     * @throws InvalidArgumentException Si le tempkate existe déjà.
      *
      * @return self
      */
-    public function template($match) {
+    public function template($match)
+    {
         if (isset($this->mapping['dynamic_templates'][$match])) {
-            throw new InvalidArgumentException("Dynamic template '$match' already defined");
+            throw new InvalidArgumentException("Dynamic template '$match' is already defined");
         }
 
-        $i = count($this->mapping['dynamic_templates']);
+        $pos = count($this->mapping['dynamic_templates']);
 
-        $this->mapping['dynamic_templates'][$i] = [
+        $this->mapping['dynamic_templates'][$pos] = [
             $match => [
                 'path_match' => $match,
-                'mapping' => []
-            ]
+                'mapping' => [],
+            ],
         ];
 
-        $this->last = & $this->mapping['dynamic_templates'][$i][$match]['mapping'];
+        $this->last = & $this->mapping['dynamic_templates'][$pos][$match]['mapping'];
 
         return $this;
     }
@@ -214,17 +280,16 @@ class MappingBuilder {
     // -------------------------------------------------------------------------
 
     /**
-     * Crée un champ de type string (contient des caractères, mais ce n'est pas
-     * du texte dans une langue donnée).
+     * Crée un champ de type string (contient des caractères, mais ce n'est pas du texte dans une langue donnée).
      *
-     * Aucun stemming n'est appliqué au champ, c'est l'analyseur 'text' qui est
-     * utilisé.
+     * Aucun stemming n'est appliqué au champ, c'est l'analyseur 'text' qui est utilisé.
      *
      * @return self
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-core-types.html#string
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
      */
-    public function string() {
+    public function string()
+    {
         $this->last['type'] = 'string';
         $this->last['analyzer'] = 'text';
 
@@ -232,63 +297,67 @@ class MappingBuilder {
     }
 
     /**
-     * Crée un champ de type texte (contenant des phrases dans une langue
-     * donnée).
+     * Crée un champ de type texte (contenant des phrases dans une langue donnée).
      *
-     * Par défaut (sans paramètres), c'est l'analyseur par défaut indiqué lors
-     * de la création de l'objet MappingBuilder qui est utilisé pour le champ
+     * Si la méthode est appelée sans paramètres, c'est l'analyseur par défaut qui est utilisé pour le champ
      * mais vous pouvez passer en paramètre un analyseur de texte spécifique.
      *
-     * @param string $analyzer Optionnele, l'analyseur à utiliser.
+     * @param string $analyzer Optionnel, l'analyseur à utiliser.
      *
      * @return self
      *
-     * @throws InvalidArgumentException La méthode vérifie que l'analyseur
-     * existe dans les settings de l'index et que son nom contient le mot
-     * "text" (pour être sûr qu'il s'agit d'un analyseur de type texte et non
-     * d'un analyseur comme "filter", "suggest" ou "url"). Une exception est
-     * générée si l'un de ces deux tests échoue.
+     * @throws InvalidArgumentException La méthode vérifie que l'analyseur existe (getAvailableAnalyzers) et génère
+     * une exception est générée si ce n'est pas le cas.
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-core-types.html#string
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
      */
-    public function text($analyzer = null) {
-        static $analyzers = null;
-
-        // Utilise l'analyseur par défaut si aucun n'a été indiqué
-        is_null($analyzer) && $analyzer = $this->defaultAnalyzer;
-
-        // Charge la liste des analyseurs disponibles dans les settings de l'index
-        if (is_null($analyzers)) {
-            $settings = apply_filters('docalist_search_get_index_settings', []);
-            $analyzers = $settings['settings']['analysis']['analyzer'];
-            $analyzers = array_flip(array_keys($analyzers));
-        }
-
-        // Vérifie que l'analyseur indiqué existe
-
-        if (! isset($analyzers[$analyzer])) {
-            throw new InvalidArgumentException("Analyzer '$analyzer' not found");
-        }
-
-        // Construit le mapping
+    public function text($analyzer = null)
+    {
+        $this->checkAnalyzer($analyzer);
         $this->last['type'] = 'string';
         $this->last['analyzer'] = $analyzer;
 
         return $this;
     }
 
-
     /**
-     * Crée un champ nombre de type "entier long".
+     * Crée un champ de type "entier".
+     *
+     * @param string $type Type interne utilisé par ElasticSearch (long, integer, short ou byte).
      *
      * @return self
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-core-types.html#number
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/number.html
      */
-    public function long() {
-        // Construit le mapping
-        $this->last['type'] = 'long';
-        $this->last['ignore_malformed'] = true;
+    public function integer($type = 'long')
+    {
+        if (! in_array($type, ['long', 'integer', 'short', 'byte'])) {
+            throw new InvalidArgumentException("Invalid integer type '$type'");
+        }
+        $this->last['type'] = $type;
+        $this->last['ignore_malformed'] = false;
+        $this->last['coerce'] = false;
+
+        return $this;
+    }
+
+    /**
+     * Crée un champ de type "décimal".
+     *
+     * @param string $type Type interne utilisé par ElasticSearch (double ou float).
+     *
+     * @return self
+     *
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/number.html
+     */
+    public function decimal($type = 'double')
+    {
+        if (! in_array($type, ['double', 'float'])) {
+            throw new InvalidArgumentException("Invalid decimal type '$type'");
+        }
+        $this->last['type'] = $type;
+        $this->last['ignore_malformed'] = false;
+        $this->last['coerce'] = false;
 
         return $this;
     }
@@ -298,13 +367,13 @@ class MappingBuilder {
      *
      * @return self
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-core-types.html#date
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/date.html
      */
-    public function date() {
-        // Construit le mapping
+    public function date()
+    {
         $this->last['type'] = 'date';
-        $this->last['format'] = $this->dateFormats();
-        $this->last['ignore_malformed'] = true;
+        $this->last['format'] = $this->getDateFormats();
+        $this->last['ignore_malformed'] = false;
 
         return $this;
     }
@@ -314,13 +383,13 @@ class MappingBuilder {
      *
      * @return self
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-core-types.html#date
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/date.html
      */
-    public function dateTime() {
-        // Construit le mapping
+    public function dateTime()
+    {
         $this->last['type'] = 'date';
-        $this->last['format'] = $this->dateTimeFormats();
-        $this->last['ignore_malformed'] = true;
+        $this->last['format'] = $this->getDateTimeFormats();
+        $this->last['ignore_malformed'] = false;
 
         return $this;
     }
@@ -330,10 +399,10 @@ class MappingBuilder {
      *
      * @return self
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-core-types.html#boolean
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/boolean.html
      */
-    public function bool() {
-        // Construit le mapping
+    public function boolean()
+    {
         $this->last['type'] = 'boolean';
 
         return $this;
@@ -344,10 +413,10 @@ class MappingBuilder {
      *
      * @return self
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-core-types.html#binary
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/binary.html
      */
-    public function binary() {
-        // Construit le mapping
+    public function binary()
+    {
         $this->last['type'] = 'binary';
 
         return $this;
@@ -358,11 +427,27 @@ class MappingBuilder {
      *
      * @return self
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-ip-type.html
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/ip.html
      */
-    public function ip() {
-        // Construit le mapping
+    public function ip()
+    {
         $this->last['type'] = 'ip';
+
+        return $this;
+    }
+
+    /**
+     * Crée un champ de type "point de géo-localisation".
+     *
+     * @return self
+     *
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-point.html
+     */
+    public function geoPoint()
+    {
+        $this->last['type'] = 'geo_point';
+        $this->last['ignore_malformed'] = false;
+        $this->last['coerce'] = false;
 
         return $this;
     }
@@ -370,14 +455,13 @@ class MappingBuilder {
     /**
      * Crée un champ de type "url".
      *
-     * Remarque : ce type de champ n'existe pas dans ElasticSearch. La méthode
-     * crée simplement un champ de type "string" et lui applique l'analyseur
-     * "url".
+     * Remarque : ce type de champ n'existe pas dans ElasticSearch. La méthode crée simplement un champ de
+     * type "string" et lui applique l'analyseur "url".
      *
      * @return self
      */
-    public function url() {
-        // Construit le mapping
+    public function url()
+    {
         $this->last['type'] = 'string';
         $this->last['analyzer'] = 'url';
 
@@ -388,7 +472,15 @@ class MappingBuilder {
     // Multi-fields : filter et suggest
     // -------------------------------------------------------------------------
 
-    public function filter() {
+    /**
+     * Permet d'utiliser le champ en cours comme filtre.
+     *
+     * Ajoute un sous-champ 'filter' de type 'keyword'.
+     *
+     * @return self
+     */
+    public function filter()
+    {
         $this->last['fields']['filter'] = [
             'type' => 'string',
             'index' => 'not_analyzed',
@@ -397,7 +489,17 @@ class MappingBuilder {
         return $this;
     }
 
-    public function suggest() {
+    /**
+     * Permet d'utiliser le champ en cours pour de l'autocomplétion.
+     *
+     * Ajoute un sous-champ 'suggest' de type 'completion'.
+     *
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters-completion.html
+     *
+     * @return self
+     */
+    public function suggest()
+    {
         $this->last['fields']['suggest'] = [
             'type' => 'completion',
             'index_analyzer' => 'suggest',
@@ -418,25 +520,11 @@ class MappingBuilder {
      *
      * @return self
      *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-core-types.html#copy-to
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/copy-to.html
      */
-    public function copyTo($field) {
+    public function copyTo($field)
+    {
         $this->last['copy_to'] = $field;
-
-        return $this;
-    }
-
-    /**
-     * Ajoute ou modifie la propriété "index_name" du champ en cours.
-     *
-     * @param string $indexName
-     *
-     * @return \Docalist\Search\MappingBuilder
-     *
-     * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-core-types.html#string
-     */
-    public function alias($indexName) {
-        $this->last['index_name'] = $indexName;
 
         return $this;
     }
@@ -454,23 +542,21 @@ class MappingBuilder {
      *
      * @throws InvalidArgumentException Si le champ indiqué n'existe pas.
      */
-    public function idem($field) {
+    public function idem($field)
+    {
         if (! isset($this->mapping['properties'][$field])) {
             throw new InvalidArgumentException("Field '$field' not found");
         }
 
         $this->last = $this->mapping['properties'][$field];
 
-        // La ligne ci-dessus est difficile à comprendre car on voit mal comment
-        // ça peut faire une copie du mapping. Cela fonctionne car :
-        // - $this->last est une référence vers le mapping actuel du dernier
-        //   champ ou template créé.
-        // - la ligne ci-dessus ne modifie pas cette référence, elle affecte le
-        //   mapping de $field à l'endroit ou "pointe" cette référence.
-        // - On écrase donc le mapping existant du champ en cours, et on le
-        //   remplace complètement par le mapping de $field.
-        // - On fait donc bien une copie et la référence elle-même n'a pas été
-        //   modifiée (on n'a pas écrit $this->last = & xxx).
+        // La ligne ci-dessus est difficile à comprendre car on voit mal comment ça peut faire une copie du mapping.
+        // Cela fonctionne car :
+        // - $this->last est une référence vers le mapping actuel du dernier champ ou template créé.
+        // - la ligne ci-dessus ne modifie pas cette référence, elle affecte le mapping de $field à l'endroit
+        //   où "pointe" cette référence.
+        // - On écrase donc le mapping existant du champ en cours, et on le remplace par le mapping de $field.
+        // - On fait donc bien une copie et la référence elle-même n'a pas été modifiée (on n'a pas $this->last = &xxx).
 
         return $this;
     }
@@ -480,12 +566,12 @@ class MappingBuilder {
     // -------------------------------------------------------------------------
 
     /**
-     *
      * @return string
      *
      * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-date-format.html
      */
-    protected function dateFormats() {
+    protected function getDateFormats()
+    {
         // @see https://fr.wikipedia.org/wiki/Date#Variations_par_pays
         $formats = [
             // big endian
@@ -506,13 +592,13 @@ class MappingBuilder {
     }
 
     /**
-     *
      * @return string
      *
      * @see http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-date-format.html
      */
-    protected function dateTimeFormats() {
-        // tous les formats de dateFormats() qui sont précis au jour près
+    protected function getDateTimeFormats()
+    {
+        // Tous les formats de getDateFormats() qui sont précis au jour près
         $dates = [
             // big endian
             'yyyy-MM-dd',
@@ -535,13 +621,13 @@ class MappingBuilder {
 //          " HH'H'mm", // inutile, pour les littéraux, joda est insensible à la casse (source : http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormatterBuilder.html#appendLiteral(char)).
 //          " HH'h'",
 //          " HH'H'",
-            ''
+            '',
         ];
 
         $formats = [];
 
-        foreach($dates as $date) {
-            foreach($times as $time) {
+        foreach ($dates as $date) {
+            foreach ($times as $time) {
                 $formats[] = $date . $time;
             }
         }

@@ -12,17 +12,19 @@
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
 namespace Docalist\Search;
+
 use Docalist;
-use StdClass, Exception;
+use stdClass;
 
 /**
  * Le résultat d'une requête de recherche adressée à ElasticSearch.
  */
-class SearchResults {
+class SearchResults
+{
     /**
      * La réponse brute retournée par ElasticSearch.
      *
-     * @var StdClass
+     * @var stdClass
      */
     protected $response;
 
@@ -36,9 +38,10 @@ class SearchResults {
     /**
      * Initialise l'objet à partir de la réponse retournée par Elastic Search.
      *
-     * @param StdClass $response
+     * @param stdClass $response
      */
-    public function __construct(StdClass $response, $time = null) {
+    public function __construct(stdClass $response, $time = null)
+    {
         $this->response = $response;
         $this->time = $time;
     }
@@ -59,7 +62,8 @@ class SearchResults {
      *
      * @return int durée en millisecondes
      */
-    public function took() {
+    public function took()
+    {
         // @see http://elasticsearch-users.115913.n3.nabble.com/query-timing-took-value-and-what-I-m-measuring-tp4026185p4026226.html
         return $this->response->took;
     }
@@ -69,7 +73,8 @@ class SearchResults {
      *
      * @return int durée en milli-secondes
      */
-    public function time() {
+    public function time()
+    {
         return $this->time;
     }
 
@@ -78,19 +83,21 @@ class SearchResults {
      *
      * @return bool
      */
-    public function timedOut() {
+    public function timedOut()
+    {
         return $this->response->timed_out;
     }
 
     /**
      * Informations sur les shards qui ont exécuté la requête.
      *
-     * @return StdClass un objet contenant les propriétés :
+     * @return stdClass un objet contenant les propriétés :
      * - total
      * - successful
      * - failed
      */
-    public function shards() {
+    public function shards()
+    {
         return $this->response->shards();
     }
 
@@ -99,7 +106,8 @@ class SearchResults {
      *
      * @return int
      */
-    public function total() {
+    public function total()
+    {
         return $this->response->hits->total;
     }
 
@@ -108,7 +116,8 @@ class SearchResults {
      *
      * @return float
      */
-    public function maxScore() {
+    public function maxScore()
+    {
         return $this->response->hits->max_score;
     }
 
@@ -123,7 +132,8 @@ class SearchResults {
      * _index : nom de l'index ElasticSearch d'où provient le hit
      * _type : type du hit
      */
-    public function hits() {
+    public function hits()
+    {
         return $this->response->hits->hits;
     }
 
@@ -138,8 +148,9 @@ class SearchResults {
      * _index : nom de l'index ElasticSearch d'où provient le hit
      * _type : type du hit
      */
-    public function facets() {
-        return isset($this->response->facets) ? $this->response->facets : array();
+    public function facets()
+    {
+        return isset($this->response->facets) ? $this->response->facets : [];
     }
 
     /**
@@ -147,7 +158,8 @@ class SearchResults {
      *
      * @param string $name
      */
-    public function hasFacet($name) {
+    public function hasFacet($name)
+    {
         return isset($this->response->facets->$name);
     }
 
@@ -156,14 +168,15 @@ class SearchResults {
      *
      * @param string $name
      *
-     * @return StdClass un objet contenant les clés :
+     * @return stdClass un objet contenant les clés :
      * _type
      * missing
      * total
      * other
      * terms : un tableau d'objets contenant term et count
      */
-    public function facet($name) {
+    public function facet($name)
+    {
         return isset($this->response->facets->$name) ? $this->response->facets->$name : null;
     }
 
@@ -173,15 +186,16 @@ class SearchResults {
      *
      * @param SearchResults $results
      */
-    public function mergeFacets(SearchResults $results) {
+    public function mergeFacets(SearchResults $results)
+    {
         $facets = $results->facets();
         if (empty($facets)) {
             return;
         }
         if (! isset($this->response->facets)) {
-            $this->response->facets = new StdClass;
+            $this->response->facets = new stdClass();
         }
-        foreach($results->facets() as $name => $facet) {
+        foreach ($results->facets() as $name => $facet) {
             $this->response->facets->$name = $facet;
         }
     }
@@ -205,7 +219,8 @@ class SearchResults {
      *
      * @see http://www.elasticsearch.org/guide/reference/api/search/explain/
      */
-    public function explainHit($id) {
+    public function explainHit($id)
+    {
         // Remarque : l'ID retourné par wordpress (get_the_id) est un entier
         // alors que pour ES les ID sont des chaines. Pour cette raison, on
         // utilise "==" plutôt qu'une égalité stricte dans le test ci-dessous.
@@ -227,7 +242,8 @@ class SearchResults {
      *
      * @eturn int|null
      */
-    public function position($id) {
+    public function position($id)
+    {
         foreach ($this->response->hits->hits as $i => $hit) {
             if ($hit->_id == $id) {
                 return $i;

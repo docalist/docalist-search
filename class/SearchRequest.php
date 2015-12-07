@@ -12,22 +12,24 @@
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
 namespace Docalist\Search;
+
 use Docalist;
 use Exception;
 
 /**
  * Une requête de recherche adressée à ElasticSearch.
  */
-class SearchRequest {
+class SearchRequest
+{
     /**
-     * Numéro de la page de résultats à retourner (1-based)
+     * Numéro de la page de résultats à retourner (1-based).
      *
      * @var int
      */
     protected $page = 1;
 
     /**
-     * Nombre de réponses par page
+     * Nombre de réponses par page.
      *
      * @var int
      */
@@ -63,14 +65,14 @@ class SearchRequest {
     protected $hiddenFilters = [];
 
     /**
-     * Liste des facettes à calculer
+     * Liste des facettes à calculer.
      *
      * @var array Un tableau de la forme facetName => size
      */
     protected $facets = [];
 
     /**
-     * Ordre de tri des résultats
+     * Ordre de tri des résultats.
      *
      * @var array
      */
@@ -134,7 +136,8 @@ class SearchRequest {
      * @param array $args un tableau contenant les paramètres de la recherche à
      * exécuter.
      */
-    public function __construct($args = null) {
+    public function __construct($args = null)
+    {
         if ($args) {
             // Arguments dont le nom correspond à un setter de notre classe
             foreach (['page', 'size', 'sort'] as $arg) {
@@ -174,7 +177,7 @@ class SearchRequest {
             }
 
             // Autres arguments : filtres et facettes
-            foreach($args as $key => $value) {
+            foreach ($args as $key => $value) {
                 //$value = trim($value);
                 if ($key && $key[0] === '_') {
                     continue;
@@ -209,13 +212,16 @@ class SearchRequest {
     }
 
     /**
-     * Retourne ou modifie le numéro de la page de résultats à retourner (1-based)
+     * Retourne ou modifie le numéro de la page de résultats à retourner (1-based).
      *
      * @param int $page
      * @return int|self
      */
-    public function page($page = null) {
-        if (is_null($page)) return $this->page;
+    public function page($page = null)
+    {
+        if (is_null($page)) {
+            return $this->page;
+        }
 
         $page = (int) $page;
         if ($page < 1) {
@@ -227,12 +233,13 @@ class SearchRequest {
     }
 
     /**
-     * Retourne ou modifie le nombre de résultats par page (10 par défaut)
+     * Retourne ou modifie le nombre de résultats par page (10 par défaut).
      *
      * @param int $page
      * @return int|self
      */
-    public function size($size = null) {
+    public function size($size = null)
+    {
         if (is_null($size)) {
             return $this->size;
         }
@@ -254,14 +261,15 @@ class SearchRequest {
      *
      * @return array|self
      */
-    public function search($field = null, $search = null) {
+    public function search($field = null, $search = null)
+    {
         if (is_null($search)) {
             return $this->search;
         }
 
         ! isset($this->search[$field]) && $this->search[$field] = [];
 
-        foreach((array) $search as $search) {
+        foreach ((array) $search as $search) {
             $this->search[$field][] = $search;
         }
 
@@ -274,13 +282,14 @@ class SearchRequest {
      * @param null|array $filters
      * @return array|self
      */
-    public function filters($filters = null) {
+    public function filters($filters = null)
+    {
         if (is_null($filters)) {
             return $this->filters;
         }
 
         $this->filters = [];
-        foreach($filters as $name => $value) {
+        foreach ($filters as $name => $value) {
             $this->filter($name, $value);
         }
 
@@ -295,19 +304,20 @@ class SearchRequest {
      *
      * @return null|array|self
      */
-    public function filter($name, $value = null) {
+    public function filter($name, $value = null)
+    {
         if (is_null($value)) {
             return isset($this->filters[$name]) ? $this->filters[$name] : null;
         }
 
-        foreach((array) $value as $value) {
+        foreach ((array) $value as $value) {
             if (empty($value)) {
                 continue;
             }
 
             ! isset($this->filters[$name]) && $this->filters[$name] = [];
 
-            foreach(explode(',', $value) as $item) {
+            foreach (explode(',', $value) as $item) {
                 $this->filters[$name][$item] = true;
             }
         }
@@ -321,9 +331,10 @@ class SearchRequest {
      * @param string $name
      * @param string $value
      *
-     * @return boolean
+     * @return bool
      */
-    public function hasFilter($name, $value = null) {
+    public function hasFilter($name, $value = null)
+    {
         return is_null($value) ? isset($this->filters[$name]) : isset($this->filters[$name][$value]);
     }
 
@@ -335,7 +346,8 @@ class SearchRequest {
      *
      * @return SearchRequest
      */
-    public function clearFilter($name, $value = null) {
+    public function clearFilter($name, $value = null)
+    {
         if (is_null($value)) {
             unset($this->filters[$name]);
         } elseif (isset($this->filters[$name])) {
@@ -356,7 +368,8 @@ class SearchRequest {
      * @param value $value
      * @return SearchRequest
      */
-    public function toggleFilter($name, $value) {
+    public function toggleFilter($name, $value)
+    {
         if (isset($this->filters[$name][$value])) {
             unset($this->filters[$name][$value]);
             if (empty($this->filters[$name])) {
@@ -374,7 +387,8 @@ class SearchRequest {
      *
      * @return array
      */
-    public function hiddenFilters() {
+    public function hiddenFilters()
+    {
         return $this->hiddenFilters;
     }
 
@@ -386,7 +400,8 @@ class SearchRequest {
      *
      * @return SearchRequest
      */
-    public function addHiddenFilter($filter) {
+    public function addHiddenFilter($filter)
+    {
         $this->hiddenFilters[] = $filter;
 
         return $this;
@@ -398,13 +413,14 @@ class SearchRequest {
      * @param null|array $facets
      * @return array|self
      */
-    public function facets($facets = null) {
+    public function facets($facets = null)
+    {
         if (is_null($facets)) {
             return $this->facets;
         }
 
         $this->facets = [];
-        foreach($facets as $name => $size) {
+        foreach ($facets as $name => $size) {
             $this->facet($name, $size);
         }
 
@@ -419,7 +435,8 @@ class SearchRequest {
      *
      * @return null|int
      */
-    public function facet($name, $size = null) {
+    public function facet($name, $size = null)
+    {
         if (is_null($size)) {
             return isset($this->facets[$name]) ? $this->facets[$name] : null;
         }
@@ -435,9 +452,10 @@ class SearchRequest {
      * @param string $name
      * @param string $value
      *
-     * @return boolean
+     * @return bool
      */
-    public function hasFacet($name) {
+    public function hasFacet($name)
+    {
         if (! isset($this->facets[$name])) {
             return false;
         }
@@ -450,12 +468,13 @@ class SearchRequest {
     }
 
     /**
-     * Retourne ou modifie l'ordre de tri
+     * Retourne ou modifie l'ordre de tri.
      *
      * @param string $sort
      * @return string|self
      */
-    public function sort($sort = null) {
+    public function sort($sort = null)
+    {
         if (is_null($sort)) {
             return $this->sort;
         }
@@ -471,7 +490,8 @@ class SearchRequest {
      * @param bool $explainHits
      * @return bool|self
      */
-    public function explainHits($explainHits = null) {
+    public function explainHits($explainHits = null)
+    {
         if (is_null($explainHits)) {
             return $this->explainHits;
         }
@@ -487,18 +507,19 @@ class SearchRequest {
      *
      * @return array
      */
-    protected function elasticSearchRequest() {
+    protected function elasticSearchRequest()
+    {
         // Paramètres de base de la requête
         $request = [
             'query' => $this->elasticSearchQuery(),
-            'fields' => [] // on ne veut que ID
+            'fields' => [], // on ne veut que ID
         ];
 
         // Tri des réponses
         // TODO
 
         // Nombre de réponses par page
-        if( $this->size !== 10) {
+        if ($this->size !== 10) {
             $request['size'] = $this->size;
         }
 
@@ -528,10 +549,11 @@ class SearchRequest {
      *
      * @return array
      */
-    protected function elasticSearchQuery() {
+    protected function elasticSearchQuery()
+    {
         // @see http://www.elasticsearch.org/guide/reference/api/search/query/
         $query = [];
-        foreach($this->search as $field => $search) {
+        foreach ($this->search as $field => $search) {
             $clauses = []; // les clauses de recherche pour ce champ
 
             // $field peut être :
@@ -552,7 +574,7 @@ class SearchRequest {
                 // $field .= ',title,content'; // champs déjà présents pour "notices"
             }
 
-            foreach($search as $search) {
+            foreach ($search as $search) {
 
                 // QueryString Query
                 $clause = [
@@ -576,7 +598,7 @@ class SearchRequest {
 
                         // Evite certaines erreurs
                         'lenient' => true,
-                    ]
+                    ],
                 ];
 
                 // Field Query
@@ -592,7 +614,7 @@ class SearchRequest {
                     ]
                 ];
 */
-                foreach(explode(',', $field) as $field) {
+                foreach (explode(',', $field) as $field) {
                     $clause['query_string']['default_field'] = $field;
                     $clauses[] = $clause;
                 }
@@ -627,14 +649,14 @@ class SearchRequest {
                 $query = [
                     'filtered' => [
                         'query' => $query,
-                        'filter' => $filter
-                    ]
+                        'filter' => $filter,
+                    ],
                 ];
             } else {
                 $query = [
                     'filtered' => [
-                        'filter' => $filter
-                    ]
+                        'filter' => $filter,
+                    ],
                 ];
             }
         }
@@ -646,7 +668,8 @@ class SearchRequest {
         return $query;
     }
 
-    protected function escapeQuery($query) {
+    protected function escapeQuery($query)
+    {
         return strtr($query, [
             '/' => '\/',
         ]);
@@ -657,7 +680,8 @@ class SearchRequest {
      *
      * @return array
      */
-    protected function elasticSearchFilter() {
+    protected function elasticSearchFilter()
+    {
         // Ajoute tous les filtres cachés
         $filters = $this->hiddenFilters;
 
@@ -697,11 +721,13 @@ class SearchRequest {
      *
      * @return array
      */
-    protected function elasticSearchFacets() {
+    protected function elasticSearchFacets()
+    {
         $definedFacets = apply_filters('docalist_search_get_facets', []);
 
         $facets = [];
         foreach ($this->facets as $name => $size) {
+            $size; // évite warning. todo : revoir facettes
             if (! isset($definedFacets[$name])) {
                 throw new Exception("La facette $name n'existe pas");
             }
@@ -764,16 +790,19 @@ class SearchRequest {
      * @return SearchResults les résultats de la recherche (peuvent également
      * être obtenus ultérieurement en appellant results()).
      */
-    public function execute($searchType = null) {
+    public function execute($searchType = null)
+    {
         $es = docalist('elastic-search');
         $searchType && $searchType = "?search_type=$searchType";
         $response = $es->get("/{index}/_search$searchType", $this->elasticSearchRequest());
         if (isset($response->error)) {
             $this->hasErrors = true;
-            return null;
+
+            return;
         }
 
         $this->hasErrors = false;
+
         return new SearchResults($response, $es->time());
     }
 
@@ -783,14 +812,16 @@ class SearchRequest {
      *
      * @return string
      */
-    public function explainQuery() {
+    public function explainQuery()
+    {
         $query = ['query' => $this->elasticSearchQuery()];
         $response = docalist('elastic-search')->get('/{index}/_validate/query?explain', $query);
 
         return $response->explanations[0];
     }
 
-    protected function addBrackets(& $term, $c = null) {
+    protected function addBrackets(& $term, $c = null)
+    {
         if (false === strpos($term, ' ')) {
             return;
         }
@@ -808,18 +839,19 @@ class SearchRequest {
         $term = $c ? "($c $term $c)" : '(' . $term . ')';
     }
 
-    public function asEquation() {
+    public function asEquation()
+    {
         if (empty($this->search)) {
             return '*';
         }
 
         $equation = [];
-        foreach($this->search as $field => $search) {
+        foreach ($this->search as $field => $search) {
             $clause = implode(' OR ', (array) $search);
             if ($field) {
                 $clauses = [];
                 $this->addBrackets($clause);
-                foreach(explode(',', $field) as $field) {
+                foreach (explode(',', $field) as $field) {
                     $clauses[] = "$field:$clause";
                 }
                 if (count($clauses) > 1) {
@@ -852,7 +884,8 @@ class SearchRequest {
      *
      * @return string L'url obtenue.
      */
-    public function toggleFilterUrl($name, $value, $url = null) {
+    public function toggleFilterUrl($name, $value, $url = null)
+    {
         // Détermine l'url de la page de recherche destination
         if (is_null($url)) {
             $url = $this->searchPageUrl();
@@ -888,10 +921,11 @@ class SearchRequest {
      *
      * Ce flag n'a de sens que pour la SearchRequest principale.
      *
-     * @param boolean $isSearch
-     * @return boolean|self
+     * @param bool $isSearch
+     * @return bool|self
      */
-    public function isSearch($isSearch = null) {
+    public function isSearch($isSearch = null)
+    {
         if (is_null($isSearch)) {
             return $this->isSearch;
         }
@@ -902,11 +936,12 @@ class SearchRequest {
     }
 
     /**
-     * Indique si la requête est vide (ni clauses de recherche ni filtres);
+     * Indique si la requête est vide (ni clauses de recherche ni filtres);.
      *
-     * @return boolean
+     * @return bool
      */
-    public function isEmpty() {
+    public function isEmpty()
+    {
         return empty($this->search)
             && empty($this->filters)
             && empty($this->hiddenFilters);
@@ -920,10 +955,11 @@ class SearchRequest {
      *
      * @return array
      */
-    public function parameters() {
+    public function parameters()
+    {
         $data = [];
 
-        foreach($this->search as $name => $value) {
+        foreach ($this->search as $name => $value) {
             empty($name) && $name = 'q';
             if (count($value) === 1) {
                 $data[$name] = current($value);
@@ -933,7 +969,7 @@ class SearchRequest {
         }
 
         foreach ($this->filters as $name => $value) {
-           // $name=strtr($name, ['.' => '_']);
+            // $name=strtr($name, ['.' => '_']);
             if (count($value) === 1) {
                 $data[$name] = key($value);
             } else {
@@ -950,25 +986,30 @@ class SearchRequest {
      * Fonctions utilitaires statiques pour manipuler le Query DSL de ES.
      */
 
-    public static function typeFilter($type) {
+    public static function typeFilter($type)
+    {
         return ['type' => ['value' => $type]];
     }
 
-    public static function termFilter($field, $value) {
+    public static function termFilter($field, $value)
+    {
         is_array($value) && count($value) === 1 && $value = reset($value);
 
         return [is_scalar($value) ? 'term' : 'terms' => [$field => $value]];
     }
 
-    public static function mustFilter($clause1, $clause2 /* ... */) {
+    public static function mustFilter($clause1, $clause2 /* ... */)
+    {
         return ['bool' => ['must' => func_get_args()]];
     }
 
-    public static function shouldFilter($clause1, $clause2 /* ... */) {
+    public static function shouldFilter($clause1, $clause2 /* ... */)
+    {
         return ['bool' => ['should' => func_get_args()]];
     }
 
-    public static function notFilter($clause1, $clause2 /* ... */) {
+    public static function notFilter($clause1, $clause2 /* ... */)
+    {
         return ['bool' => ['must_not' => func_get_args()]];
     }
 
@@ -978,7 +1019,8 @@ class SearchRequest {
      * @param string $url
      * @return string|self
      */
-    public function searchPageUrl($url = null) {
+    public function searchPageUrl($url = null)
+    {
         if (is_null($url)) {
             return $this->searchPageUrl;
         }
@@ -993,9 +1035,10 @@ class SearchRequest {
      *
      * N'a de sens que si execute() a déjà été appelé.
      *
-     * @return boolean
+     * @return bool
      */
-    public function hasErrors() {
+    public function hasErrors()
+    {
         return $this->hasErrors;
     }
 }

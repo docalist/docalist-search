@@ -15,6 +15,7 @@ namespace Docalist\Search;
 
 use Docalist\AdminPage;
 use Docalist\Http\CallbackResponse;
+use Exception;
 
 /**
  * Options de configuration du plugin.

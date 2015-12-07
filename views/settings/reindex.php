@@ -44,9 +44,8 @@ use Docalist\Search\SettingsPage;
  * - docalist_search_after_reindex : la réindexation est terminée. Affiche une
  *   synthèse générale avec les stats fournies par l'indexeur.
  *
- * @var SettingsPage $this
- * @var array $types Un tableau contenant la liste des types qui vont être
- * réindexés.
+ * @var SettingsPage    $this
+ * @var array           $types Un tableau contenant la liste des types qui vont être réindexés.
  */
 
 // Initialise les varaibles dont on a besoin

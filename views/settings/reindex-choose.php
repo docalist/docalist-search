@@ -19,9 +19,9 @@ use Docalist\Forms\Form;
 /**
  * Permet à l'utilisateur de choisir les types à réindexer.
  *
- * @var SettingsPage $this
- * @var array $types Un tableau contenant la liste des types actuellement
- * indexés, sous la forme nom du type => libellé.
+ * @var SettingsPage    $this
+ * @var array           $types  Un tableau contenant la liste des types actuellement
+ *                              indexés, sous la forme nom du type => libellé.
  */
 ?>
 <div class="wrap">

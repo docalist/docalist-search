@@ -20,9 +20,9 @@ use Docalist\Forms\Form;
 /**
  * Edite les paramètres du serveur Elastic Search.
  *
- * @var SettingsPage $this
- * @var ServerSettings $settings Les paramètres du serveur.
- * @var string $error Erreur éventuelle à afficher.
+ * @var SettingsPage    $this
+ * @var ServerSettings  $settings   Les paramètres du serveur.
+ * @var string          $error      Erreur éventuelle à afficher.
  */
 ?>
 <div class="wrap">

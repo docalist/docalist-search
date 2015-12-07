@@ -20,10 +20,10 @@ use Docalist\Forms\Form;
 /**
  * Paramètres de l'indexeur.
  *
- * @var SettingsPage $this
- * @var IndexerSettings $settings Les paramètres de l'indexeur.
- * @var string $error Erreur éventuelle à afficher.
- * @var string[] $types Liste des types disponibles.
+ * @var SettingsPage    $this
+ * @var IndexerSettings $settings   Les paramètres de l'indexeur.
+ * @var string          $error      Erreur éventuelle à afficher.
+ * @var string[]        $types      Liste des types disponibles.
  */
 ?>
 <div class="wrap">

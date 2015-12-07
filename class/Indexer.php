@@ -13,15 +13,16 @@
  */
 namespace Docalist\Search;
 
-use Exception, InvalidArgumentException, RuntimeException;
-use Docalist\Biblio\Reference;
-use Docalist\Search\NullIndexer;
+use Exception;
+use InvalidArgumentException;
+use RuntimeException;
 use Psr\Log\LoggerInterface;
 
 /**
- * L'indexeur
+ * L'indexeur.
  */
-class Indexer {
+class Indexer
+{
     /**
      * La configuration du moteur de recherche
      * (passée en paramètre au constructeur).
@@ -116,7 +117,8 @@ class Indexer {
      *
      * @param IndexerSettings $settings
      */
-    public function __construct(Settings $settings) {
+    public function __construct(Settings $settings)
+    {
         // Stocke les paramètres de l'indexeur
         $this->settings = $settings->indexer;
 
@@ -131,7 +133,7 @@ class Indexer {
         if ($this->settings->realtime()) {
             // On utilise l'action wp_loaded pour être sûr que tous les plugins
             // sont chargés et ont eu le temps d'installer leurs filtres.
-            add_action('wp_loaded', function() {
+            add_action('wp_loaded', function () {
                 foreach ($this->settings->types() as $type) {
                     $this->log && $this->log->debug('Activate realtime indexing for type {type}', ['type' => $type]);
                     $this->indexer($type)->realtime();
@@ -143,7 +145,8 @@ class Indexer {
     /**
      * Destructeur. Flushe le buffer s'il y a des documents en attente.
      */
-    public function __destruct() {
+    public function __destruct()
+    {
         $this->log && $this->log->debug('Indexer::__destruct() : calling flush()');
         $this->flush();
         // @todo: un destructeur ne doit pas générer d'exception (cf php).
@@ -158,7 +161,8 @@ class Indexer {
      *
      * @return array Un tableau de la forme type => libellé
      */
-    public function availableTypes($sortByLabel = false) {
+    public function availableTypes($sortByLabel = false)
+    {
         $types = apply_filters('docalist_search_get_types', []);
 
         $this->log && $this->log->debug('availableTypes()', $types);
@@ -177,7 +181,8 @@ class Indexer {
      *
      * @return array Un tableau de la forme type => libellé
      */
-    public function indexedTypes($sortByLabel = false) {
+    public function indexedTypes($sortByLabel = false)
+    {
         $types = $this->initLabels($this->settings->types());
 
         $this->log && $this->log->debug('indexedTypes()', $types);
@@ -194,11 +199,12 @@ class Indexer {
      *
      * @return array Un tableau de la forme type => libellé.
      */
-    private function initLabels(array $types) {
+    private function initLabels(array $types)
+    {
         $labels = $this->availableTypes();
 
         $types = array_flip($types);
-        foreach($types as $type => & $label) {
+        foreach ($types as $type => & $label) {
             $label = isset($labels[$type]) ? $labels[$type] : $type;
         }
         unset($label);
@@ -220,7 +226,8 @@ class Indexer {
      * (dans les paramètres du moteur de recherche) ou si aucun indexeur n'est
      * disponible pour ce type.
      */
-    public function indexer($type) {
+    public function indexer($type)
+    {
         if (!isset($this->indexers[$type])) {
             // Récupère l'indexeur à utiliser pour ce type
             $indexer = apply_filters("docalist_search_get_{$type}_indexer", null);
@@ -255,7 +262,8 @@ class Indexer {
      *
      * @throws InvalidArgumentException Si le type n'est pas indexé.
      */
-    protected function checkType($type = null) {
+    protected function checkType($type = null)
+    {
         static $types = null;
 
         is_null($types) && $types = array_flip($this->settings->types());
@@ -277,7 +285,8 @@ class Indexer {
      *
      * @throws InvalidArgumentException Si l'identifiant n'est pas un scalaire.
      */
-    protected function checkId($id) {
+    protected function checkId($id)
+    {
         if (! is_scalar($id)) {
             throw new InvalidArgumentException('Invalid document ID');
         }
@@ -292,7 +301,8 @@ class Indexer {
      * @param string $stat La statistique à mettre à jour.
      * @param int $increment L'incrément qui sera ajouté à la statistique.
      */
-    protected function updateStat($type, $stat, $increment) {
+    protected function updateStat($type, $stat, $increment)
+    {
         if (! isset($this->stats[$type])) {
             $this->stats[$type] = [
                 'nbindex' => 0,     // nombre de fois où la méthode index() a été appellée
@@ -333,7 +343,8 @@ class Indexer {
      * @param scalar $id L'identifiant du document.
      * @param array $document Les données du document.
      */
-    public function index($type, $id, $document) {
+    public function index($type, $id, $document)
+    {
         // Format d'une commande "bulk index" pour ES
         static $format = "{\"index\":{\"_type\":%s,\"_id\":%s}}\n%s\n";
 
@@ -342,7 +353,7 @@ class Indexer {
 
         // Vérifie le document
         if (! is_array($document)) {
-            throw new InvalidArgumentException("Invalid document");
+            throw new InvalidArgumentException('Invalid document');
         }
 
         $this->log && $this->log->info('index({type},{id})', ['type' => $type, 'id' => $id, 'document' => $document]);
@@ -379,7 +390,8 @@ class Indexer {
      * @param string $type Le type du document.
      * @param scalar $id L'identifiant du document.
      */
-    public function delete($type, $id) {
+    public function delete($type, $id)
+    {
         // Format d'une commande "bulk delete" pour ES
         static $format = "{\"delete\":{\"_type\":%s,\"_id\":%s}}\n";
 
@@ -428,14 +440,15 @@ class Indexer {
      * @action "docalist_search_after_reindex(types,stats)" : déclenchée quand la
      * réindexation est terminée.
      */
-    public function reindex($types = null) {
+    public function reindex($types = null)
+    {
         // Si aucun type n'a été indiqué, on réindexe tout
         if (is_null($types)) {
             $types = $this->indexedTypes(); // contient les libellés
         } else {
             // Vérifie que les types indiqués sont indexés
             $types = (array) $types;
-            foreach($types as $type) {
+            foreach ($types as $type) {
                 $this->checkType($type);
             }
 
@@ -462,7 +475,7 @@ class Indexer {
         $es = docalist('elastic-search'); /* @var $es ElasticSearchClient */
 
         // Réindexe chacun des types demandé
-        foreach($types as $type => $label) {
+        foreach ($types as $type => $label) {
             // Démarre le chronomètre et stocke l'heure de début dans les stats
             $startTime = microtime(true);
             $this->updateStat($type, 'start', $startTime);
@@ -578,12 +591,13 @@ class Indexer {
      * Remarque : le temps retourné est en millisecondes (contrairement à la
      * fonction php microtime qui retourne des secondes).
      */
-    protected function lastUpdate(ElasticSearchClient $es) {
+    protected function lastUpdate(ElasticSearchClient $es)
+    {
         try {
             $data = $es->get('/{index}/_search?sort=_timestamp:desc&size=1&fields');
         } catch (Exception $e) {
             // l'index n'existe pas
-            return null; // on ne sait pas
+            return; // on ne sait pas
         }
 
         $time = isset($data->hits->hits[0]->sort[0]) ? $data->hits->hits[0]->sort[0] : null;
@@ -600,7 +614,8 @@ class Indexer {
      * @action "docalist_search_after_flush(count,size)" déclenchée une fois le
      * flush terminé.
      */
-    public function flush() {
+    public function flush()
+    {
         // Regarde si on a des commandes en attente
         if (! $this->bulkCount) {
             return 0;
@@ -634,7 +649,7 @@ class Indexer {
 
 //        $this->updateStat($item->_type, 'nbflush', 1);
         if (is_object($result) && isset($result->items)) {
-            foreach($result->items as $item) {
+            foreach ($result->items as $item) {
                 if (isset($item->index)) {
                     $item = $item->index;
 
@@ -650,13 +665,10 @@ class Indexer {
                             $this->updateStat($item->_type, 'updated', 1);
                         }
                     }
-                }
-
-                elseif (isset($item->delete)) {
+                } elseif (isset($item->delete)) {
                     $item = $item->delete;
                     $this->updateStat($item->_type, 'deleted', 1);
-                }
-                else {
+                } else {
                     echo "bulk reponse, type d'item non géré : ", var_dump($item);
                 }
             }
@@ -680,7 +692,8 @@ class Indexer {
      * @return int Le nombre de commandes envoyées à ES ou zéro si le buffer
      * n'avait pas besoin d'être flushé.
      */
-    protected function maybeFlush() {
+    protected function maybeFlush()
+    {
         if ($this->bulkCount < $this->bulkMaxCount && strlen($this->bulk) < $this->bulkMaxSize) {
             return;
         }
@@ -691,7 +704,7 @@ class Indexer {
     /**
      * Supprime un ou plusieurs types de l'index :
      * - supprime tous les documents de ce type dans l'index Elastic Search
-     * - supprime les mappings du type
+     * - supprime les mappings du type.
      *
      * Permet par exemple à un plugin de désindexer ses contenus avant d'être
      * désinstallé.
@@ -709,7 +722,8 @@ class Indexer {
      * @param string|array|null $types un type, une liste de type ou null pour
      * supprimer tous les types indexés.
      */
-    public function clear($types = null) {
+    public function clear($types = null)
+    {
         // Vérifie les types
         if (is_null($types)) {
             $types = $this->settings->types(); // tout
@@ -739,14 +753,14 @@ class Indexer {
      * - 2 : le serveur répond (l'url est valide), et l'index indiqué dans
      *   les paramètres existe.
      */
-    public function ping() {
+    public function ping()
+    {
         // Récupère la connexion elastic search
         $es = docalist('elastic-search'); /* @var $es ElasticSearchClient */
 
         try {
             $status = $es->head('/{index}');
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return 0;   // Le serveur ne répond pas
         }
 
@@ -764,7 +778,8 @@ class Indexer {
      * supprime les types qui ne sont plus indexés et initialise ou met à jour
      * les mappings des types indexés.
      */
-    public function setup() {
+    public function setup()
+    {
         $this->log && $this->log->debug('start setup');
 
         // Récupère la connexion elastic search
@@ -794,7 +809,7 @@ class Indexer {
             // Extrait les noms des types existants. La réponse est de la forme :
             // {"wp_prisme":{"mappings":{"post":{...}},"page":{...}}}
             $index = key($types); // apparemment, key() est utilisable sur un tableau
-            $types = array_keys((array)$types->$index->mappings);
+            $types = array_keys((array) $types->$index->mappings);
 
             // Détermine ceux qu'on n'indexe plus : diff(old, new)
             $types = array_diff($types, $this->settings->types());
@@ -810,7 +825,7 @@ class Indexer {
             // Remarque : Pour mettre à jour les analyseurs, il faut fermer
             // puis réouvrir l'index
             $es->post('/{index}/_close');
-            $es->put ('/{index}/_settings', $settings);
+            $es->put('/{index}/_settings', $settings);
             $es->post('/{index}/_open');
 
             // Depuis ES 1.5, il faut attendre après avoir modifié les settings,
@@ -824,12 +839,12 @@ class Indexer {
         // Remarque : ElasticSearch ne sait pas mettre à jours plusieurs
         // mappings d'un coup, donc il faut les envoyer un par un.
 
-        foreach($this->settings->types() as $type) {
+        foreach ($this->settings->types() as $type) {
             // Récupère l'indexeur pour ce type
             $indexer = $this->indexer($type);
 
             // Récupère les mappings de ce type
-            $mapping = $indexer->mapping();
+            $mapping = $indexer->getMapping();
 
             // Pour purger l'index lors d'une réindexation, on a besoin que le
             // champ _timestamp soit activé.

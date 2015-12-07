@@ -31,7 +31,7 @@ return [
          */
         'en-possessives' => [
             'type' => 'stemmer',
-            'language' => 'possessive_english'
+            'language' => 'possessive_english',
         ],
 
         /*
@@ -41,7 +41,7 @@ return [
          */
         'en-stop' => [
             'type' => 'stop',
-            'stopwords' => ['_english_']
+            'stopwords' => ['_english_'],
         ],
 
         /*
@@ -53,7 +53,7 @@ return [
          */
         'en-stem' => [
             'type' => 'stemmer',
-            'name' => 'english'
+            'name' => 'english',
         ],
 
         /*
@@ -65,7 +65,7 @@ return [
          */
         'en-stem-light' => [
             'type' => 'stemmer',
-            'name' => 'light_english'
+            'name' => 'light_english',
         ],
 
         /*
@@ -77,7 +77,7 @@ return [
          */
         'en-stem-minimal' => [
             'type' => 'stemmer',
-            'name' => 'minimal_english'
+            'name' => 'minimal_english',
         ],
     ],
 
@@ -94,7 +94,7 @@ return [
             'type' => 'custom',
 
             'char_filter' => [
-                'html_strip'        // Supprime les tags html
+                'html_strip',        // Supprime les tags html
             ],
 
             'filter' => [
@@ -102,7 +102,7 @@ return [
                 'en-possessives',   // Supprime les "'s" à la fin des mots
                 'en-stop',          // Supprime les mots-vides
                 'asciifolding',     // Supprime les accents
-                'en-stem'           // Stemming standard
+                'en-stem',           // Stemming standard
             ],
 
             'tokenizer' => 'standard',

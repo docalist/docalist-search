@@ -35,8 +35,8 @@ return [
             'type' => 'elision',
             'articles' => [
                 'c', 'l', 'all', 'dall', 'dell', 'nell', 'sull', 'coll', 'pell',
-                'gl', 'agl', 'dagl', 'degl', 'negl', 'sugl', 'un', 'm', 't', 's', 'v', 'd'
-            ]
+                'gl', 'agl', 'dagl', 'degl', 'negl', 'sugl', 'un', 'm', 't', 's', 'v', 'd',
+            ],
         ],
 
         /*
@@ -46,7 +46,7 @@ return [
          */
         'it-stop' => [
             'type' => 'stop',
-            'stopwords' => ['_italian_']
+            'stopwords' => ['_italian_'],
         ],
 
         /*
@@ -58,7 +58,7 @@ return [
          */
         'it-stem' => [
             'type' => 'stemmer',
-            'name' => 'italian'
+            'name' => 'italian',
         ],
 
         /*
@@ -70,7 +70,7 @@ return [
          */
         'it-stem-light' => [
             'type' => 'stemmer',
-            'name' => 'light_italian'
+            'name' => 'light_italian',
         ],
 
         // Remarque : le stemmer "minimal_italian" n'existe pas dans ES.
@@ -89,7 +89,7 @@ return [
             'type' => 'custom',
 
             'char_filter' => [
-                'html_strip'    // Supprime les tags html
+                'html_strip',    // Supprime les tags html
             ],
 
             'filter' => [
@@ -97,7 +97,7 @@ return [
                 'it-elision',   // Supprime les élisions (c', d', l'...)
                 'it-stop',      // Supprime les mots-vides
                 'asciifolding', // Supprime les accents
-                'it-stem-light' // Stemming léger
+                'it-stem-light', // Stemming léger
             ],
 
             'tokenizer' => 'standard',

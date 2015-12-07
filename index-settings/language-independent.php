@@ -29,8 +29,8 @@ return [
          */
         'url-stopwords' => [
             'type' => 'stop',
-            'stopwords' => ['http', 'https', 'ftp', 'www']
-        ]
+            'stopwords' => ['http', 'https', 'ftp', 'www'],
+        ],
     ],
 
     /* --------------------------------------------------------------
@@ -47,7 +47,7 @@ return [
             'type' => 'custom',
 
             'char_filter' => [
-                'html_strip'    // Supprime les tags html
+                'html_strip',   // Supprime les tags html
             ],
             'filter' => [
                 'lowercase',    // Convertit le texte en minuscules

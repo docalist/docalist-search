@@ -33,7 +33,7 @@ return [
          */
         'es-stop' => [
             'type' => 'stop',
-            'stopwords' => ['_spanish_']
+            'stopwords' => ['_spanish_'],
         ],
 
         /*
@@ -45,7 +45,7 @@ return [
          */
         'es-stem' => [
             'type' => 'stemmer',
-            'name' => 'spanish'
+            'name' => 'spanish',
         ],
 
         /*
@@ -57,7 +57,7 @@ return [
          */
         'es-stem-light' => [
             'type' => 'stemmer',
-            'name' => 'light_spanish'
+            'name' => 'light_spanish',
         ],
 
         // Remarque : le stemmer "minimal_spanish" n'existe pas dans ES.
@@ -76,14 +76,14 @@ return [
             'type' => 'custom',
 
             'char_filter' => [
-                'html_strip'    // Supprime les tags html
+                'html_strip',    // Supprime les tags html
             ],
 
             'filter' => [
                 'lowercase',    // Convertit le texte en minuscules
                 'es-stop',      // Supprime les mots-vides
                 'asciifolding', // Supprime les accents
-                'es-stem-light' // Stemming léger
+                'es-stem-light', // Stemming léger
             ],
 
             'tokenizer' => 'standard',

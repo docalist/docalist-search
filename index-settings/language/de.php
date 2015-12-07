@@ -33,7 +33,7 @@ return [
          */
         'de-stop' => [
             'type' => 'stop',
-            'stopwords' => ['_german_']
+            'stopwords' => ['_german_'],
         ],
 
         /*
@@ -45,7 +45,7 @@ return [
          */
         'de-stem' => [
             'type' => 'stemmer',
-            'name' => 'german'
+            'name' => 'german',
         ],
 
         /*
@@ -58,7 +58,7 @@ return [
          */
         'de-stem2' => [
             'type' => 'stemmer',
-            'name' => 'german'
+            'name' => 'german',
         ],
 
         /*
@@ -70,7 +70,7 @@ return [
          */
         'de-stem-light' => [
             'type' => 'stemmer',
-            'name' => 'light_german'
+            'name' => 'light_german',
         ],
 
         /*
@@ -82,7 +82,7 @@ return [
          */
         'de-stem-minimal' => [
             'type' => 'stemmer',
-            'name' => 'minimal_german'
+            'name' => 'minimal_german',
         ],
     ],
 
@@ -99,7 +99,7 @@ return [
             'type' => 'custom',
 
             'char_filter' => [
-                'html_strip'            // Supprime les tags html
+                'html_strip',            // Supprime les tags html
             ],
 
             'filter' => [
@@ -107,7 +107,7 @@ return [
                 'de-stop',              // Supprime les mots-vides
              // 'german_normalization', // Convertit ß, ä, ö, ü, etc.
                 'asciifolding',         // Supprime les accents
-                'de-stem-light'         // Stemming léger
+                'de-stem-light',         // Stemming léger
             ],
 
             'tokenizer' => 'standard',

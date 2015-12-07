@@ -16,11 +16,13 @@ namespace Docalist\Search;
 /**
  * Un indexeur pour les pages WordPress.
  */
-class PageIndexer extends PostIndexer {
+class PageIndexer extends PostIndexer
+{
     /**
      * Construit l'indexeur.
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct('page');
     }
 }

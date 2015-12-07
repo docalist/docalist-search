@@ -16,6 +16,7 @@ function curl($url) {
 }
 
 function sockets($host) {
+    $errno = $errstr = null;
     $fp = fsockopen($host, 9200, $errno, $errstr, 30);
     $out = "GET / HTTP/1.1\r\n";
     $out .= "Host: " . $host . "\r\n";

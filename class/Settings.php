@@ -20,39 +20,41 @@ use Docalist\Type\Boolean;
 /**
  * Options de configuration du plugin.
  *
- * @property Integer $searchpage ID de la page "liste des réponses".
- * @property Boolean $enabled Indique si la recherche est activée.
- * @property ServerSettings $server Paramètres du serveur ElasticSearch.
- * @property IndexerSettings $indexer Paramètres de l'indexeur.
+ * @property Integer            $searchpage ID de la page "liste des réponses".
+ * @property Boolean            $enabled    Indique si la recherche est activée.
+ * @property ServerSettings     $server     Paramètres du serveur ElasticSearch.
+ * @property IndexerSettings    $indexer    Paramètres de l'indexeur.
  */
-class Settings extends TypeSettings {
+class Settings extends TypeSettings
+{
     protected $id = 'docalist-search-settings';
 
-    static protected function loadSchema() {
-        // @formatter:off
+    protected static function loadSchema()
+    {
         return [
+            'label' => 'Settings docalist-search',
+            'description' => "Contient les paramètres du serveur et de l'indexeur.",
             'fields' => [
                 'searchpage' => [
                     'type' => 'Docalist\Type\Integer',
-                    'label' =>__('Page liste des réponses', 'docalist-search'),
-                    'description' => __("Page WordPress sur laquelle sont affichées les réponses obtenues.", 'docalist-search'),
+                    'label' => __('Page liste des réponses', 'docalist-search'),
+                    'description' => __('Page WordPress sur laquelle sont affichées les réponses obtenues.', 'docalist-search'),
                 ],
                 'enabled' => [
                     'type' => 'Docalist\Type\Boolean',
                     'label' => __('Recherche Docalist Search', 'docalist-search'),
-                    'description' => __("Activer la recherche Docalist Search.", 'docalist-search'),
+                    'description' => __('Activer la recherche Docalist Search.', 'docalist-search'),
                     'default' => false,
                 ],
                 'server' => [
-                    'label' => __('Serveur elasticsearch', 'docalist-search'),
                     'type' => 'Docalist\Search\ServerSettings',
+                    'label' => __('Serveur elasticsearch', 'docalist-search'),
                 ],
                 'indexer' => [
-                    'label' => __("Paramètres de l'indexeur", 'docalist-search'),
                     'type' => 'Docalist\Search\IndexerSettings',
-                ]
-            ]
+                    'label' => __("Paramètres de l'indexeur", 'docalist-search'),
+                ],
+            ],
         ];
-        // @formatter:on
     }
 }

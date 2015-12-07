@@ -654,8 +654,10 @@ class Indexer
                     $item = $item->index;
 
                     if (! isset($item->_version)) {
-                        echo "ERREUR LORS DE L'INDEXATION D'UN ITEM : ";
-                        var_dump($item);
+                        printf(
+                            "<p style='color:red'>ElasticSearch error while indexing:<pre>%s</pre></p>",
+                            json_encode($item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+                        );
                         $this->log && $this->log->error('Indexing error', ['item' => $item]);
                     } else {
                         $this->updateStat($item->_type, 'indexed', 1);
@@ -669,7 +671,12 @@ class Indexer
                     $item = $item->delete;
                     $this->updateStat($item->_type, 'deleted', 1);
                 } else {
-                    echo "bulk reponse, type d'item non géré : ", var_dump($item);
+                    printf(
+                        "<p style='color:red'>Unknown bulk response type:<pre>%s</pre></p>",
+                        json_encode($item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+                    );
+                    $this->log && $this->log->error('Unknown bulk response type', ['item' => $item]);
+
                 }
             }
         } else {

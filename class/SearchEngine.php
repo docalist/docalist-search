@@ -318,7 +318,12 @@ class SearchEngine
             }
         }
 
-        $debug && var_dump($this->request);
+        if ($debug) {
+            printf(
+                "<pre>%s</pre>",
+                strtr(json_encode((array)($this->request), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), ['\u0000*' => '', '\u0000' => ''])
+            );
+        }
 
         // Exécute la recherche
         $this->results = $this->request->execute();

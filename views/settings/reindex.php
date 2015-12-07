@@ -2,7 +2,7 @@
 /**
  * This file is part of the 'Docalist Search' plugin.
  *
- * Copyright (C) 2012-2014 Daniel Ménard
+ * Copyright (C) 2012-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -12,6 +12,8 @@
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
 namespace Docalist\Search\Views;
+
+use Docalist\Search\SettingsPage;
 
 /**
  * Cette vue est affichée lorsque une réindexation manuelle est lancée.
@@ -42,23 +44,22 @@ namespace Docalist\Search\Views;
  * - docalist_search_after_reindex : la réindexation est terminée. Affiche une
  *   synthèse générale avec les stats fournies par l'indexeur.
  *
- * @param array $types Un tableau contenant la liste des types qui vont être
+ * @var SettingsPage $this
+ * @var array $types Un tableau contenant la liste des types qui vont être
  * réindexés.
  */
-?>
 
-<?php
-    // Nombre de documents indexés pour un type donné.
-    // Initialisé à zéro dans before_reindex_type, incrémenté et utilisé
-    // dans before_flush.
-    $total;
+// Initialise les varaibles dont on a besoin
 
-    // Timestamp contenant l'heure de début d'un flush
-    // Initialisé par before_flush, utilisé dans after_flush
-    $flushTime;
-?>
+// Nombre de documents indexés pour un type donné.
+// Initialisé à zéro dans before_reindex_type, incrémenté et utilisé
+// dans before_flush.
+$total = 0;
 
-<?php
+// Timestamp contenant l'heure de début d'un flush
+// Initialisé par before_flush, utilisé dans after_flush
+$flushTime = 0;
+
 /**
  * before_reindex : début de la réindexation.
  *
@@ -70,7 +71,6 @@ add_action('docalist_search_before_reindex', function(array $types) { ?>
         <h2><?= __("Réindexation manuelle", 'docalist-search') ?></h2>
 
         <p class="description"><?php
-            //@formatter:off
             printf(
                 __(
                     'Vous avez lancé la réindexation des documents de type
@@ -81,16 +81,14 @@ add_action('docalist_search_before_reindex', function(array $types) { ?>
                 ),
                 implode(', ', $types)
             );
-            // @formatter:on
             ?>
         </p>
 
         <h3><?= __('Création / mise à jour des paramètres de l\'index', 'docalist-search') ?></h3>
         <?php
         flush();
-}, 1, 1); ?>
+}, 1, 1);
 
-<?php
 /**
  * before_reindex_type : début de la réindexation d'un type donné.
  *
@@ -105,9 +103,7 @@ add_action('docalist_search_before_reindex_type', function($type, $label) use(&$
     $total = 0;
     flush();
 }, 1, 2);
-?>
 
-<?php
 /**
  * before_flush : juste avant que le buffer ne soit envoyé à elastic search.
  *
@@ -121,9 +117,7 @@ add_action('docalist_search_before_flush', function($count, $size) use(& $total,
     printf($msg, $total, size_format($size));
     flush();
 }, 1, 2);
-?>
 
-<?php
 /**
  * after_flush : fin du flush.
  *
@@ -134,9 +128,7 @@ add_action('docalist_search_after_flush', function($count, $size) use(& $flushTi
     printf($msg, round(microtime(true) - $flushTime, 2));
     flush();
 }, 1, 2);
-?>
 
-<?php
 /**
  * after_reindex_type : fin de la réindexation du type en cours.
  *
@@ -151,10 +143,9 @@ add_action('docalist_search_after_reindex_type', function($type, $label, $stats)
     printf('<p>%s</p>', $msg);
     flush();
 }, 1, 3);
-?>
 
-<?php
 /* Fin de la réindexation */
+
 /**
  *  after_reindex : la réindexation est terminée.
  *
@@ -213,4 +204,3 @@ add_action('docalist_search_after_reindex', function(array $types, array $stats)
     </div>
     <?php flush();
 }, 10, 2);
-?>

@@ -13,33 +13,31 @@
  */
 namespace Docalist\Search\Views;
 
+use Docalist\Search\SettingsPage;
 use Docalist\Search\IndexerSettings;
 use Docalist\Forms\Form;
 
 /**
  * Paramètres de l'indexeur.
  *
- * @param IndexerSettings $settings Les paramètres de l'indexeur.
- * @param string $error Erreur éventuelle à afficher.
- * @param string[] $types Liste des types disponibles.
+ * @var SettingsPage $this
+ * @var IndexerSettings $settings Les paramètres de l'indexeur.
+ * @var string $error Erreur éventuelle à afficher.
+ * @var string[] $types Liste des types disponibles.
  */
 ?>
 <div class="wrap">
-    <?= screen_icon() ?>
-    <h2><?= __("Paramètres de l'indexeur", 'docalist-search') ?></h2>
+    <h1><?= __("Paramètres de l'indexeur", 'docalist-search') ?></h1>
 
     <p class="description"><?php
-        //@formatter:off
         echo __(
             "Cette page vous permet de choisir les contenus de votre site
             qui serons disponibles dans votre moteur de recherche et de
             paramétrer le fonctionnement de l'indexeur.",
             'docalist-search'
         );
-        // @formatter:on
     ?></p>
     <p class="description"><?php
-        //@formatter:off
         printf(
             __(
                 'Lorsque vous créez ou que vous modifiez des documents en série
@@ -63,7 +61,6 @@ use Docalist\Forms\Form;
             ),
             'http://www.elasticsearch.org/guide/reference/api/bulk/'    // %1
         );
-        // @formatter:on
     ?></p>
 
     <?php if ($error) :?>
@@ -74,12 +71,12 @@ use Docalist\Forms\Form;
 
     <?php
         $form = new Form();
-        $form->checklist('types')->options($types);
-        $form->input('bulkMaxSize');
-        $form->input('bulkMaxCount');
+        $form->checklist('types')->setOptions($types);
+        $form->input('bulkMaxSize')->setAttribute('type', 'number')->addClass('small-text');
+        $form->input('bulkMaxCount')->setAttribute('type', 'number');//->addClass('regular-text');
         $form->checkbox('realtime');
-        $form->submit(__('Enregistrer les modifications', 'docalist-search'));
+        $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
 
-        $form->bind($settings)->render('wordpress');
+        $form->bind($settings)->display();
     ?>
 </div>

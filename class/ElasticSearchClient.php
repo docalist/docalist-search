@@ -18,11 +18,12 @@ use Exception;
 /**
  * Classe client pour se connecter à un serveur ElasticSearch.
  */
-class ElasticSearchClient {
+class ElasticSearchClient
+{
     /**
      * Les paramètres du serveur.
      *
-     * @var ServerSettings $settings
+     * @var ServerSettings
      */
     protected $settings;
 
@@ -39,23 +40,24 @@ class ElasticSearchClient {
      *
      * @param ServerSettings $settings Les paramètres du serveur.
      */
-    public function __construct(ServerSettings $settings) {
+    public function __construct(ServerSettings $settings)
+    {
         $debug = false;
 
         $this->settings = $settings;
 
         if ($debug) {
-            add_action('elastic-search-request', function($request, $curl) {
+            add_action('elastic-search-request', function ($request, $curl) {
                 $headers = curl_getinfo($curl, CURLINFO_HEADER_OUT);
                 echo '<pre style="background-color:#DDF2FF">';
                 echo rtrim($headers, "\r\n");
                 if ($request) {
-                    echo "\n", $this->prettify($request);
+                    echo "\n", htmlspecialchars($this->prettify($request));
                 }
                 echo '</pre>';
             }, 10, 2);
 
-            add_action('elastic-search-response', function($response, $curl) {
+            add_action('elastic-search-response', function ($response, $curl) {
                 $headerSize = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
                 $header = substr($response, 0, $headerSize);
                 $response = substr($response, $headerSize);
@@ -79,7 +81,8 @@ class ElasticSearchClient {
     /**
      * Destructeur. Ferme les ressources curl utilisées.
      */
-    public function __destruct() {
+    public function __destruct()
+    {
         ! is_null($this->curl) && curl_close($this->curl);
     }
 
@@ -92,7 +95,8 @@ class ElasticSearchClient {
      * méthode la décode puis la recode avec l'option JSON_PRETTY_PRINT, sinon
      * elle retourne la chaine originale.
      */
-    protected function prettify($data) {
+    protected function prettify($data)
+    {
         $decoded = json_decode($data, false, 512);
         if (json_last_error()) {
             return $data;
@@ -116,7 +120,8 @@ class ElasticSearchClient {
      *
      * @throws Exception
      */
-    protected function prepareRequest($method, $path = null, & $data = null, $timeout = null) {
+    protected function prepareRequest($method, $path = null, & $data = null, $timeout = null)
+    {
         // Sanity check
         if ($path === '' || $path[0] != '/') {
             throw new Exception('Invalid url path, do not start with "/" ' . $path);
@@ -160,22 +165,22 @@ class ElasticSearchClient {
 
         // Détermine les options de la requête CURL
         $options = [
-            CURLOPT_HTTP_VERSION    => CURL_HTTP_VERSION_1_1,   // Version http
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,   // Version http
 
-            CURLOPT_SSL_VERIFYPEER  => false,    // Ne pas vérifier le certificat SSL
+            CURLOPT_SSL_VERIFYPEER => false,    // Ne pas vérifier le certificat SSL
 
-            CURLOPT_CUSTOMREQUEST   => $method,  // Méthode HTTP à utiliser
-            CURLOPT_URL             => $url,     // URL de la requête
-            CURLOPT_HTTPHEADER      => $headers, // Entêtes HTTP de la requête
-            CURLOPT_POSTFIELDS      => $body,    // Corps de la requête
+            CURLOPT_CUSTOMREQUEST => $method,  // Méthode HTTP à utiliser
+            CURLOPT_URL => $url,     // URL de la requête
+            CURLOPT_HTTPHEADER => $headers, // Entêtes HTTP de la requête
+            CURLOPT_POSTFIELDS => $body,    // Corps de la requête
 
-            CURLOPT_CONNECTTIMEOUT  => $connect, // Timeout pour la connexion (ms)
-            CURLOPT_TIMEOUT         => $timeout, // Timeout pour la requête (ms)
+            CURLOPT_CONNECTTIMEOUT => $connect, // Timeout pour la connexion (ms)
+            CURLOPT_TIMEOUT => $timeout, // Timeout pour la requête (ms)
 
-            CURLOPT_HEADER          => true,     // Inclure les entêtes http dans la réponse
-            CURLOPT_RETURNTRANSFER  => true,     // Retourner la réponse, ne pas l'afficher
+            CURLOPT_HEADER => true,     // Inclure les entêtes http dans la réponse
+            CURLOPT_RETURNTRANSFER => true,     // Retourner la réponse, ne pas l'afficher
 
-            CURLINFO_HEADER_OUT     => true,     // Pour les logs : récupérer les entêtes de la requête
+            CURLINFO_HEADER_OUT => true,     // Pour les logs : récupérer les entêtes de la requête
         ];
 
         // Propose au serveur de compresser sa réponse si l'option est activée
@@ -199,7 +204,8 @@ class ElasticSearchClient {
      *
      * @throws Exception Si response vaut false.
      */
-    protected function parseResponse($curl, $response) {
+    protected function parseResponse($curl, $response)
+    {
         // Teste si une erreur s'est produite
         if ($response === false) {
             throw new Exception('ElasticSearch error: ' . curl_error($curl));
@@ -233,7 +239,8 @@ class ElasticSearchClient {
      * @return string|object Retourne un objet si la réponse du serveur est au
      * format JSON, une chaine contenant la réponse obtenue sinon.
      */
-    protected function request($method, $path = null, $data = null, $timeout = null) {
+    protected function request($method, $path = null, $data = null, $timeout = null)
+    {
         // Prépare la requête
         $options = $this->prepareRequest($method, $path, $data, $timeout);
         is_null($this->curl) && $this->curl = curl_init();
@@ -257,7 +264,8 @@ class ElasticSearchClient {
      * @return int Durée en secondes de la dernière transaction ou -1 si aucune
      * requête n'a encore été exécutée.
      */
-    public function time() {
+    public function time()
+    {
         return $this->curl ? curl_getinfo($this->curl, CURLINFO_TOTAL_TIME) : -1;
     }
 
@@ -270,8 +278,10 @@ class ElasticSearchClient {
      *
      * @return string|object
      */
-    public function head($path = null, $data = null, $timeout = null) {
+    public function head($path = null, $data = null, $timeout = null)
+    {
         $this->request('HEAD', $path, $data, $timeout);
+
         return curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
     }
 
@@ -284,7 +294,8 @@ class ElasticSearchClient {
      *
      * @return string|object
      */
-    public function get($path = null, $data = null, $timeout = null) {
+    public function get($path = null, $data = null, $timeout = null)
+    {
         return $this->request('GET', $path, $data, $timeout);
     }
 
@@ -297,7 +308,8 @@ class ElasticSearchClient {
      *
      * @return string|object
      */
-    public function post($path = null, $data = null, $timeout = null) {
+    public function post($path = null, $data = null, $timeout = null)
+    {
         return $this->request('POST', $path, $data, $timeout);
     }
 
@@ -310,7 +322,8 @@ class ElasticSearchClient {
      *
      * @return string|object
      */
-    public function put($path = null, $data = null, $timeout = null) {
+    public function put($path = null, $data = null, $timeout = null)
+    {
         return $this->request('PUT', $path, $data, $timeout);
     }
 
@@ -323,7 +336,8 @@ class ElasticSearchClient {
      *
      * @return string|object
      */
-    public function delete($path = null, $data = null, $timeout = null) {
+    public function delete($path = null, $data = null, $timeout = null)
+    {
         return $this->request('DELETE', $path, $data, $timeout);
     }
 
@@ -340,7 +354,8 @@ class ElasticSearchClient {
      *
      * @return string|object
      */
-    public function exists($path = null, $data = null, $timeout = null) {
+    public function exists($path = null, $data = null, $timeout = null)
+    {
         return 200 === $this->head($path, $data, $timeout);
     }
 
@@ -356,7 +371,8 @@ class ElasticSearchClient {
      *
      * @return string|object
      */
-    public function bulk($path = null, $data = null, $timeout = null) {
+    public function bulk($path = null, $data = null, $timeout = null)
+    {
         return $this->request('PUT', $path, $data, $timeout);
     }
 }

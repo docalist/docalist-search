@@ -17,6 +17,7 @@ use stdClass as StdClass;
 use DateTime;
 use WP_Widget;
 use Docalist\Forms\Container;
+use Exception;
 
 class FacetsWidget extends WP_Widget
 {
@@ -187,7 +188,7 @@ class FacetsWidget extends WP_Widget
                     break;
 
                 default:
-                    die('Type de facette non géré : ' . $facet->facet->_type);
+                    throw new Exception('Type de facette non géré : ' . $facet->facet->_type);
             }
 
             // Si la facette est vide, on n'affiche rien. Autrement dit : on

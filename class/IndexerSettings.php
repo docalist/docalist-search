@@ -28,7 +28,7 @@ use Docalist\Type\Boolean;
  */
 class IndexerSettings extends Composite
 {
-    protected static function loadSchema()
+    static public function loadSchema()
     {
         return [
             'fields' => [

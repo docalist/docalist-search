@@ -29,7 +29,7 @@ class Settings extends TypeSettings
 {
     protected $id = 'docalist-search-settings';
 
-    protected static function loadSchema()
+    static public function loadSchema()
     {
         return [
             'label' => 'Settings docalist-search',

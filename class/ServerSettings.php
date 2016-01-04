@@ -30,7 +30,7 @@ use Docalist\Type\Boolean;
  */
 class ServerSettings extends Composite
 {
-    protected static function loadSchema()
+    static public function loadSchema()
     {
         global $wpdb;
 

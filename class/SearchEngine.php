@@ -51,6 +51,12 @@ class SearchEngine
         // Stocke nos paramètres
         $this->settings = $settings;
 
+        // Ne fait rien tant que la recherche n'a pas été activée dans les settings
+        // (https://github.com/docalist/docalist/issues/367)
+        if (!$this->settings->enabled()) {
+            return;
+        }
+
         // Intègre le moteur dans WordPress quand parseQuery() est exécutée
         add_filter('parse_query', [$this, 'onParseQuery']);
 

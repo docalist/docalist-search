@@ -2,7 +2,7 @@
 /**
  * This file is part of the 'Docalist Search' plugin.
  *
- * Copyright (C) 2012-2014 Daniel Ménard
+ * Copyright (C) 2012-2015 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -13,21 +13,21 @@
  */
 namespace Docalist\Search\Views;
 
+use Docalist\Search\SettingsPage;
 use Docalist\Forms\Form;
 
 /**
  * Permet à l'utilisateur de choisir les types à réindexer.
  *
- * @param array $types Un tableau contenant la liste des types actuellement
- * indexés, sous la forme nom du type => libellé.
+ * @var SettingsPage    $this
+ * @var array           $types  Un tableau contenant la liste des types actuellement
+ *                              indexés, sous la forme nom du type => libellé.
  */
 ?>
 <div class="wrap">
-    <?= screen_icon() ?>
-    <h2><?= __("Réindexation manuelle", 'docalist-search') ?></h2>
+    <h1><?= __("Réindexation manuelle", 'docalist-search') ?></h1>
 
     <p class="description"><?php
-        //@formatter:off
         printf(
             __(
                 'Cette page vous permet de lancer une réindexation manuelle
@@ -39,12 +39,10 @@ use Docalist\Forms\Form;
             ),
             esc_url($this->url('IndexerSettings'))
         );
-        // @formatter:on
     ?></p>
 
     <?php if (empty($types)) :?>
         <div class="error"><p><?php
-            //@formatter:off
             printf(
                 __(
                     'Vous n\'avez pas encore choisi les contenus à indexer
@@ -55,17 +53,14 @@ use Docalist\Forms\Form;
                 ),
                 esc_url($this->url('IndexerSettings'))
             );
-            // @formatter:on
         ?></p></div>
     <?php else :
-        //@formatter:off
         $form = new Form();
         $form->checklist('selected')
-             ->label(__('Choisissez les types à réindexer', 'docalist-search'))
-             ->options($types);
-        $form->submit(__('Réindexer les types sélectionnés', 'docalist-search'));
-        // @formatter:on
+             ->setLabel(__('Choisissez les types à réindexer', 'docalist-search'))
+             ->setOptions($types);
+        $form->submit(__('Réindexer les types sélectionnés', 'docalist-search'))->addClass('button button-primary');
 
-        $form->render('wordpress');
+        $form->display();
     endif; ?>
 </div>

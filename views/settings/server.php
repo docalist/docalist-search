@@ -13,19 +13,20 @@
  */
 namespace Docalist\Search\Views;
 
+use Docalist\Search\SettingsPage;
 use Docalist\Search\ServerSettings;
 use Docalist\Forms\Form;
 
 /**
  * Edite les paramètres du serveur Elastic Search.
  *
- * @param ServerSettings $settings Les paramètres du serveur.
- * @param string $error Erreur éventuelle à afficher.
+ * @var SettingsPage    $this
+ * @var ServerSettings  $settings   Les paramètres du serveur.
+ * @var string          $error      Erreur éventuelle à afficher.
  */
 ?>
 <div class="wrap">
-    <?= screen_icon() ?>
-    <h2><?= __('Paramètres du serveur ElasticSearch', 'docalist-search') ?></h2>
+    <h1><?= __('Paramètres du serveur ElasticSearch', 'docalist-search') ?></h1>
 
     <p class="description"><?php
         //@formatter:off
@@ -61,12 +62,12 @@ use Docalist\Forms\Form;
         $form = new Form();
         $form->input('url')->addClass('regular-text');
         $form->input('index')->addClass('regular-text');
-        $form->input('connecttimeout')->attribute('type', 'number')->addClass('small-text');
-        $form->input('timeout')->attribute('type', 'number')->addClass('small-text');
+        $form->input('connecttimeout')->setAttribute('type', 'number')->addClass('small-text');
+        $form->input('timeout')->setAttribute('type', 'number')->addClass('small-text');
         $form->checkbox('compressrequest');
         $form->checkbox('compressresponse');
-        $form->submit(__('Enregistrer les modifications', 'docalist-search'));
+        $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
 
-        $form->bind($settings)->render('wordpress');
+        $form->bind($settings)->display();
     ?>
 </div>

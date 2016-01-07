@@ -13,14 +13,16 @@
  */
 namespace Docalist\Search\Views;
 
+use Docalist\Search\SettingsPage;
+
 /**
  * Page d'accueil.
  *
+ * @var SettingsPage $this
  */
 ?>
 <div class="wrap">
-    <?= screen_icon() ?>
-    <h2><?= __("Paramètres de Docalist Search", 'docalist-search') ?></h2>
+    <h1><?= __("Paramètres de Docalist Search", 'docalist-search') ?></h1>
 
     <p class="description"><?php
         //@formatter:off
@@ -33,51 +35,51 @@ namespace Docalist\Search\Views;
         // @formatter:on
     ?></p>
 
-    <h3>
+    <h2>
         <a href="<?= esc_url($this->url('ServerSettings')) ?>">
             <?= __('Paramètres du serveur ElasticSearch', 'docalist-search') ?>
         </a>
-    </h3>
+    </h2>
     <p class="description">
         <?= __('Serveur et index ElasticSearch à utiliser, timeout des requêtes.', 'docalist-search') ?>
     </p>
 
 
-    <h3>
+    <h2>
         <a href="<?= esc_url($this->url('IndexerSettings')) ?>">
             <?= __("Paramètres de l'indexeur", 'docalist-search') ?>
         </a>
-    </h3>
+    </h2>
     <p class="description">
         <?= __("Contenus à indexer et options d'indexation.", 'docalist-search') ?>
     </p>
 
 
-    <h3>
+    <h2>
         <a href="<?= esc_url($this->url('SearchSettings')) ?>">
             <?= __("Paramètres du moteur de recherche", 'docalist-search') ?>
         </a>
-    </h3>
+    </h2>
     <p class="description">
         <?= __("Choix de la page des réponses, activation de la recherche Docalist Search.", 'docalist-search') ?>
     </p>
 
 
-    <h3>
+    <h2>
         <a href="<?= esc_url($this->url('Reindex')) ?>">
             <?= __("Réindexation manuelle", 'docalist-search') ?>
         </a>
-    </h3>
+    </h2>
     <p class="description">
         <?= __("Permet de lancer une réindexation complète des contenus indexés.", 'docalist-search') ?>
     </p>
 
 <?php /*
-    <h3>
+    <h2>
         <a href="<?= esc_url($this->url('ServerStatus')) ?>">
             <?= __("Statut", 'docalist-search') ?>
         </a>
-    </h3>
+    </h2>
     <p class="description">
         <?= __("Informations et statistiques sur le serveur et l'index ElasticSearch.", 'docalist-search') ?>
     </p>

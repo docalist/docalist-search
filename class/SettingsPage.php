@@ -14,24 +14,24 @@
 namespace Docalist\Search;
 
 use Docalist\AdminPage;
-use Docalist\Forms\Form;
 use Docalist\Http\CallbackResponse;
+use Exception;
 
 /**
  * Options de configuration du plugin.
  */
-class SettingsPage extends AdminPage {
+class SettingsPage extends AdminPage
+{
     /**
-     *
      * @var Settings
      */
     protected $settings;
 
     /**
-     *
      * @param Settings $settings
      */
-    public function __construct(Settings $settings) {
+    public function __construct(Settings $settings)
+    {
         $this->settings = $settings;
 
         // @formatter:off
@@ -57,14 +57,16 @@ class SettingsPage extends AdminPage {
         });
     }
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
         return $this->view('docalist-search:settings/index');
     }
 
     /**
      * Paramètres du serveur ElasticSearch.
      */
-    public function actionServerSettings() {
+    public function actionServerSettings()
+    {
         $settings = $this->settings->server;
 
         $error = '';
@@ -89,7 +91,7 @@ class SettingsPage extends AdminPage {
 
         return $this->view('docalist-search:settings/server', [
             'settings' => $settings,
-            'error' => $error
+            'error' => $error,
         ]);
     }
 
@@ -98,24 +100,28 @@ class SettingsPage extends AdminPage {
      *
      * Indique si le serveur répond et teste si l'index existe.
      */
-    public function actionServerStatus() {
+    public function actionServerStatus()
+    {
         /* @var $indexer Indexer */
         $indexer = docalist('docalist-search-indexer');
 
-        switch($indexer->ping()) {
+        switch ($indexer->ping()) {
             case 0:
                 $msg = __("L'url %s ne répond pas.", 'docalist-search');
+
                 return printf($msg,
                     $this->settings->server->url()
                 );
             case 1:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s n'existe pas.", 'docalist-search');
+
                 return printf($msg,
                     $this->settings->server->url(),
                     $this->settings->server->index()
                 );
             case 2:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s existe.", 'docalist-search');
+
                 return printf($msg,
                     $this->settings->server->url(),
                     $this->settings->server->index()
@@ -137,7 +143,8 @@ class SettingsPage extends AdminPage {
     /**
      * Paramètres de l'indexeur.
      */
-    public function actionIndexerSettings() {
+    public function actionIndexerSettings()
+    {
         $settings = $this->settings->indexer;
 
         $error = '';
@@ -165,7 +172,7 @@ class SettingsPage extends AdminPage {
         return $this->view('docalist-search:settings/indexer', [
             'settings' => $settings,
             'error' => $error,
-            'types' => docalist('docalist-search-indexer')->availableTypes(true)
+            'types' => docalist('docalist-search-indexer')->availableTypes(true),
         ]);
     }
 
@@ -174,9 +181,10 @@ class SettingsPage extends AdminPage {
      *
      * Permet entres autres d'activer la recherche.
      *
-     * @return boolean
+     * @return bool
      */
-    public function actionSearchSettings() {
+    public function actionSearchSettings()
+    {
 
         // Teste si la recherche peut être activée
         $error = '';
@@ -189,9 +197,10 @@ class SettingsPage extends AdminPage {
             if ($ping === 0) {
                 $msg = __('Vérifiez les <a href="%s">paramètres du serveur</a>.', 'docalist-search');
                 $msg = sprintf($msg, esc_url($this->url('ServerSettings')));
+
                 return $this->view('docalist-core:error', [
                     'h2' => __('Paramètres de recherche', 'docalist-biblio'),
-                    'h3' => __("Le serveur ElasticSearch ne répond pas", 'docalist-biblio'),
+                    'h3' => __('Le serveur ElasticSearch ne répond pas', 'docalist-biblio'),
                     'message' => $msg,
                 ]);
             }
@@ -200,6 +209,7 @@ class SettingsPage extends AdminPage {
             if ($ping === 1) {
                 $msg = __('Vérifiez les <a href="%s">paramètres de l\'indexeur</a>.', 'docalist-search');
                 $msg = sprintf($msg, esc_url($this->url('IndexerSettings')));
+
                 return $this->view('docalist-core:error', [
                     'h2' => __('Paramètres de recherche', 'docalist-biblio'),
                     'h3' => __("L'index ElasticSearch n'existe pas.", 'docalist-biblio'),
@@ -212,6 +222,7 @@ class SettingsPage extends AdminPage {
             if (!isset($response->count) || $response->count === 0) {
                 $msg = __('Lancez une <a href="%s">réindexation manuelle</a> de vos contenus.', 'docalist-search');
                 $msg = sprintf($msg, esc_url($this->url('Reindex')));
+
                 return $this->view('docalist-core:error', [
                     'h2' => __('Paramètres de recherche', 'docalist-biblio'),
                     'h3' => __("L'index ElasticSearch ne contient aucun document.", 'docalist-biblio'),
@@ -233,12 +244,12 @@ class SettingsPage extends AdminPage {
 
         return $this->view('docalist-search:settings/search', [
             'settings' => $this->settings,
-            'error' => $error
+            'error' => $error,
         ]);
     }
 
     /**
-     * Gestion des synonymes
+     * Gestion des synonymes.
      *
      * todo : pouvoir définir les synonymes qu'on veut utiliser pour les champs
      *
@@ -247,7 +258,7 @@ class SettingsPage extends AdminPage {
     // public function actionSynonyms() {}
 
     /**
-     * Fichiers logs
+     * Fichiers logs.
      *
      * todo : logs des recherches, lors des indexations, slowlog...
      */
@@ -255,7 +266,7 @@ class SettingsPage extends AdminPage {
 
     /**
      * Avancé.
-     * Paramétrage des mappings
+     * Paramétrage des mappings.
      *
      * todo : édition du json des mappings d'un type donné. Utile ?
      */
@@ -263,21 +274,22 @@ class SettingsPage extends AdminPage {
 
     /**
      * Avancé.
-     * Paramétrage des mots vides
+     * Paramétrage des mots vides.
      *
      * todo : à voir. Dernière version de ES, plus besoin de mots vides.
      */
     // public function actionStopwords() {}
 
     /**
-     * Réindexer la base
+     * Réindexer la base.
      *
      * Permet de lancer une réindexation complète des collections en
      * choisissant les types de documents à réindexer.
      *
      * @param array $types Les types à réindexer
      */
-    public function actionReindex($selected = null) {
+    public function actionReindex($selected = null)
+    {
         // Permet à l'utilisateur de choisir les types à réindexer
         if (empty($selected)) {
             return $this->view('docalist-search:settings/reindex-choose', [
@@ -287,10 +299,12 @@ class SettingsPage extends AdminPage {
 
         // On va retourner une réponse de type "callback" qui va lancer la
         // réindexation à proprement parler lorsqu'elle sera générée.
-        $response = new CallbackResponse(function() use($selected) {
+        $response = new CallbackResponse(function () use ($selected) {
 
             // Supprime la bufferisation pour voir le suivi en temps réel
-            while(ob_get_level()) ob_end_flush();
+            while (ob_get_level()) {
+                ob_end_flush();
+            }
 
             // Pour suivre le déroulement de la réindexation, on affiche
             // une vue qui installe différents filtres sur les événements
@@ -308,7 +322,7 @@ class SettingsPage extends AdminPage {
         return $response;
     }
 
-    /**
+    /*
      * Valide les options saisies.
      *
      * @return string Message en cas d'erreur.

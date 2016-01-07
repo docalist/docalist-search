@@ -18,8 +18,8 @@ namespace Docalist\Search;
 /**
  * Plugin Docalist Search.
  */
-class Plugin {
-
+class Plugin
+{
     /**
      * Les paramètres du moteur de recherche.
      *
@@ -30,28 +30,24 @@ class Plugin {
     /**
      * {@inheritdoc}
      */
-    public function __construct() {
+    public function __construct()
+    {
         // Charge les fichiers de traduction du plugin
         load_plugin_textdomain('docalist-search', false, 'docalist-search/languages');
 
         // Charge la configuration du plugin
         $this->settings = new Settings(docalist('settings-repository'));
 
-        // Services de base
+        // Services fournis pas ce plugin
         docalist('services')->add([
-            // Service "elastic-search"
-            'elastic-search' => function() {
+            'elastic-search' => function () {
                 return new ElasticSearchClient($this->settings->server);
             },
-        ]);
-
-        // Services qui dépendent d'autres services
-        docalist('services')->add([
-            // Service "docalist-search-indexer"
+            'mapping-builder' => function () {
+                return new ElasticSearchMappingBuilder();
+            },
             'docalist-search-indexer' => new Indexer($this->settings),
-
-            // Service "docalist-search-engine"
-            'docalist-search-engine' =>  new SearchEngine($this->settings),
+            'docalist-search-engine' => new SearchEngine($this->settings),
         ]);
 
         // Retourne les settings par défaut à utiliser quand un index est créé
@@ -69,14 +65,14 @@ class Plugin {
         });
 
         // Retourne l'indexeur à utiliser pour les articles
-        add_filter('docalist_search_get_post_indexer', function(TypeIndexer $indexer = null) {
+        add_filter('docalist_search_get_post_indexer', function (TypeIndexer $indexer = null) {
             is_null($indexer) && $indexer = new PostIndexer();
 
             return $indexer;
         });
 
         // Retourne l'indexeur à utiliser pour les pages
-        add_filter('docalist_search_get_page_indexer', function(TypeIndexer $indexer = null) {
+        add_filter('docalist_search_get_page_indexer', function (TypeIndexer $indexer = null) {
             is_null($indexer) && $indexer = new PageIndexer();
 
             return $indexer;
@@ -86,17 +82,17 @@ class Plugin {
         $this->registerFacets();
 
         // Crée la page Réglages » Docalist Search
-        add_action('admin_menu', function() {
+        add_action('admin_menu', function () {
             new SettingsPage($this->settings);
         });
 
         // Déclare notre widget "Search Facets"
-        add_action('widgets_init', function() {
-            register_widget( __NAMESPACE__ . '\FacetsWidget' );
+        add_action('widgets_init', function () {
+            register_widget(__NAMESPACE__ . '\FacetsWidget');
         });
 
         // Définit les lookups de type "index"
-        add_filter('docalist_index_lookup', function($value, $source, $search) {
+        add_filter('docalist_index_lookup', function ($value, $source, $search) {
             return docalist('docalist-search-engine')->lookup($source, $search);
         }, 10, 3);
     }
@@ -106,7 +102,8 @@ class Plugin {
      *
      * @return string
      */
-    public function version() {
+    public function version()
+    {
         return get_plugin_data(__DIR__ . '/../docalist-search.php', false, false)['Version'];
     }
 
@@ -115,22 +112,23 @@ class Plugin {
      *
      * Pour le moment, une seule : type de contenu (_type).
      */
-    protected function registerFacets() {
-        add_filter('docalist_search_get_facets', function($facets) {
-            $facets += array(
-                '_type' => array(
+    protected function registerFacets()
+    {
+        add_filter('docalist_search_get_facets', function ($facets) {
+            $facets += [
+                '_type' => [
                     'label' => __('Type de contenu', 'docalist-search'),
-                    'facet' => array(
+                    'facet' => [
                         'field' => '_type',
                         // 'order' => 'term',
-                    )
-                ),
-            );
+                    ],
+                ],
+            ];
 
             return $facets;
         });
 
-        add_filter('docalist_search_get_facet_label', function($term, $facet) {
+        add_filter('docalist_search_get_facet_label', function ($term, $facet) {
             static $types = null;
 
             if ($facet !== '_type') {
@@ -180,7 +178,8 @@ class Plugin {
      * @return string Retourne le code html généré ou une chaine vide si aucun
      * filtre n'est actif.
      */
-    public function theCurrentFilters($format = null, $separator = null, $wrapper = null) {
+    public function theCurrentFilters($format = null, $separator = null, $wrapper = null)
+    {
         $request = docalist('docalist-search-engine')->request(); /* @var $request SearchRequest */
 
         // Retourne une chaine vide si on n'a aucun filtre actif
@@ -194,7 +193,7 @@ class Plugin {
 
         // Génère la liste des filtres
         $result = [];
-        foreach($filters as $filter => $values) {
+        foreach ($filters as $filter => $values) {
             $class = 'filter-' . strtr($filter, '.', '-');
             foreach (array_keys($values) as $value) {
                 $url = $request->toggleFilterUrl($filter, $value);
@@ -210,6 +209,7 @@ class Plugin {
         }
 
         $result = implode(is_null($separator) ? ', ' : $separator, $result);
+
         return sprintf($wrapper, $result);
     }
 }

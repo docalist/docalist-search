@@ -34,8 +34,8 @@ return [
         'fr-elision' => [
             'type' => 'elision',
             'articles' => [
-                'l', 'm', 't', 'qu', 'n', 's','j', 'd', 'c', 'jusqu', 'quoiqu','lorsqu', 'puisqu'
-            ]
+                'l', 'm', 't', 'qu', 'n', 's','j', 'd', 'c', 'jusqu', 'quoiqu','lorsqu', 'puisqu',
+            ],
         ],
 
         /*
@@ -45,7 +45,7 @@ return [
          */
         'fr-stop' => [
             'type' => 'stop',
-            'stopwords' => ['_french_']
+            'stopwords' => ['_french_'],
         ],
 
         /*
@@ -57,7 +57,7 @@ return [
          */
         'fr-stem' => [
             'type' => 'stemmer',
-            'name' => 'french'
+            'name' => 'french',
         ],
 
         /*
@@ -71,7 +71,7 @@ return [
          */
         'fr-stem-light' => [
             'type' => 'stemmer',
-            'name' => 'light_french'
+            'name' => 'light_french',
         ],
 
         /*
@@ -84,7 +84,7 @@ return [
          */
         'fr-stem-minimal' => [
             'type' => 'stemmer',
-            'name' => 'minimal_french'
+            'name' => 'minimal_french',
         ],
     ],
 
@@ -101,7 +101,7 @@ return [
             'type' => 'custom',
 
             'char_filter' => [
-                'html_strip'    // Supprime les tags html
+                'html_strip',    // Supprime les tags html
             ],
 
             'filter' => [
@@ -109,7 +109,7 @@ return [
                 'fr-elision',   // Supprime les élisions (c', d', l'...)
                 'fr-stop',      // Supprime les mots-vides
                 'asciifolding', // Supprime les accents
-                'fr-stem-light' // Stemming léger
+                'fr-stem-light', // Stemming léger
             ],
 
             'tokenizer' => 'standard',

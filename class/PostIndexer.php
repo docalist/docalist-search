@@ -14,11 +14,13 @@
 namespace Docalist\Search;
 
 use WP_Post;
+use Docalist\MappingBuilder;
 
 /**
  * Un indexeur pour les articles de WordPress.
  */
-class PostIndexer extends TypeIndexer {
+class PostIndexer extends TypeIndexer
+{
     /**
      * Construit l'indexeur.
      *
@@ -26,7 +28,8 @@ class PostIndexer extends TypeIndexer {
      * ("post" par défaut, mais les classes descendantes peuvent ainsi passer
      * un autre type).
      */
-    public function __construct($type = 'post') {
+    public function __construct($type = 'post')
+    {
         parent::__construct($type);
     }
 
@@ -35,28 +38,33 @@ class PostIndexer extends TypeIndexer {
      *
      * @return string
      */
-    public function statuses() {
+    public function statuses()
+    {
         return ['publish', 'pending', 'private'];
     }
 
-    public function contentId($post) { /* @var $post WP_Post */
+    public function contentId($post)
+    { /* @var $post WP_Post */
         return $post->ID;
     }
 
-    public function mapping() {
-        $mapping = new MappingBuilder('fr-text'); // todo : rendre configurable
+    public function getMapping()
+    {
+        $mapping = docalist('mapping-builder'); /* @var MappingBuilder $mapping */
+        $mapping->reset()->setDefaultAnalyzer('fr-text'); // todo : rendre configurable
 
-        foreach(self::$stdFields as $field) {
+        foreach (self::$stdFields as $field) {
             static::standardMapping($field, $mapping);
         }
 
-        return $mapping->mapping();
+        return $mapping->getMapping();
     }
 
 
-    public function map($post) { /* @var $post WP_Post */
+    public function map($post)
+    { /* @var $post WP_Post */
         $document = [];
-        foreach(self::$stdFields as $field) {
+        foreach (self::$stdFields as $field) {
             $value = $post->$field;
             $value && static::standardMap($field, $value, $document);
         }
@@ -69,7 +77,8 @@ class PostIndexer extends TypeIndexer {
      *
      * @param Indexer $indexer
      */
-    public function indexAll(Indexer $indexer) {
+    public function indexAll(Indexer $indexer)
+    {
         global $wpdb;
 
         $offset = 0;
@@ -106,7 +115,7 @@ class PostIndexer extends TypeIndexer {
             }
 
             // Indexe tous les posts de ce lot
-            foreach($posts as $post) {
+            foreach ($posts as $post) {
                 $this->index($post, $indexer);
             }
 
@@ -151,12 +160,13 @@ class PostIndexer extends TypeIndexer {
     }
 */
 
-    public function realtime() {
-        add_action('transition_post_status', function($newStatus, $oldStatus, WP_Post $post) {
+    public function realtime()
+    {
+        add_action('transition_post_status', function ($newStatus, $oldStatus, WP_Post $post) {
             $this->onStatusChange($newStatus, $oldStatus, $post);
         }, 10, 3);
 
-        add_action('delete_post', function($id) {
+        add_action('delete_post', function ($id) {
             $this->onDelete($id);
         });
     }
@@ -168,7 +178,8 @@ class PostIndexer extends TypeIndexer {
      * @param string $oldStatus
      * @param WP_Post $post
      */
-    protected function onStatusChange($newStatus, $oldStatus, WP_Post $post) {
+    protected function onStatusChange($newStatus, $oldStatus, WP_Post $post)
+    {
         static $statuses = null;
 
         if ($post->post_type !== $this->type) {
@@ -179,7 +190,7 @@ class PostIndexer extends TypeIndexer {
             'type' => $this->type,
             'ID' => $post->ID,
             'old' => $oldStatus,
-            'new' => $newStatus
+            'new' => $newStatus,
         ]);
 
         if (is_null($statuses)) {
@@ -205,7 +216,8 @@ class PostIndexer extends TypeIndexer {
      *
      * @param int $id
      */
-    public function onDelete($id) {
+    public function onDelete($id)
+    {
         $post = get_post($id);
 
         if ($post->post_type !== $this->type) {
@@ -214,7 +226,7 @@ class PostIndexer extends TypeIndexer {
 
         $this->log && $this->log->debug('Deleted {type}#{ID}', [
             'type' => $this->type,
-            'ID' => $id
+            'ID' => $id,
         ]);
 
         /* @var $indexer Indexer */

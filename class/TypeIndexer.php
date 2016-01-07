@@ -13,6 +13,7 @@
  */
 namespace Docalist\Search;
 
+use Docalist\MappingBuilder;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
@@ -31,7 +32,8 @@ use Psr\Log\LoggerInterface;
  * mapper de façon homogène entre différents types certains des champs standard
  * de WordPress (post_status, post_title, etc.)
  */
-abstract class TypeIndexer {
+abstract class TypeIndexer
+{
     /**
      * Liste des champs WordPress standard qu'on sait indexer.
      *
@@ -40,11 +42,11 @@ abstract class TypeIndexer {
     protected static $stdFields = [
         'ID', 'post_type', 'post_status', 'post_name', 'post_parent',
         'post_author', 'post_date', 'post_modified', 'post_title',
-        'post_content',  'post_excerpt'
+        'post_content',  'post_excerpt',
     ];
 
     /**
-     * Le type de contenu géré par cet indexeur (post_type, comment, user...)
+     * Le type de contenu géré par cet indexeur (post_type, comment, user...).
      *
      * @var string
      */
@@ -63,7 +65,8 @@ abstract class TypeIndexer {
      * @param string $type Le type de contenu géré par cet indexeur
      * (nom du post_type, comment, user, etc...)
      */
-    public function __construct($type) {
+    public function __construct($type)
+    {
         $this->type = $type;
         $this->log = docalist('logs')->get('indexer');
     }
@@ -79,7 +82,8 @@ abstract class TypeIndexer {
      *
      * @return string
      */
-    public function type() {
+    public function type()
+    {
         return $this->type;
     }
 
@@ -100,7 +104,8 @@ abstract class TypeIndexer {
      *
      * @return array
      */
-    public function mapping() {
+    public function getMapping()
+    {
         return [];
     }
 
@@ -120,7 +125,8 @@ abstract class TypeIndexer {
      * @param object $content
      * @param Indexer $indexer L'indexeur a utiliser
      */
-    public function index($content, Indexer $indexer) {
+    public function index($content, Indexer $indexer)
+    {
         $indexer->index(
             $this->type(),
             $this->contentId($content),
@@ -134,7 +140,8 @@ abstract class TypeIndexer {
      * @param object|int $content Le contenu ou l'id du contenu à supprimer.
      * @param Indexer $indexer L'indexeur a utiliser
      */
-    public function remove($content, Indexer $indexer) {
+    public function remove($content, Indexer $indexer)
+    {
         $id = is_scalar($content) ? $content : $this->contentId($content);
         $indexer->delete($this->type(), $id);
     }
@@ -155,7 +162,8 @@ abstract class TypeIndexer {
      *
      * @throws InvalidArgumentException Si le champ indiqué n'est pas géré.
      */
-    public static function standardMapping($field, MappingBuilder $mapping) {
+    public static function standardMapping($field, MappingBuilder $mapping)
+    {
         switch ($field) {
             case 'ID':
                 return; // non indexé, on a déjà _id géré par ES
@@ -164,31 +172,31 @@ abstract class TypeIndexer {
                 return; // non indexé, on a déjà _type géré par ES
 
             case 'post_status':
-                return $mapping->field('status')->text()->filter();
+                return $mapping->addField('status')->text()->filter();
 
             case 'post_name':
-                return $mapping->field('slug')->text();
+                return $mapping->addField('slug')->text();
 
             case 'post_parent':
-                return $mapping->field('parent')->long();
+                return $mapping->addField('parent')->integer();
 
             case 'post_author':
-                return $mapping->field('createdby')->text()->filter();
+                return $mapping->addField('createdby')->text()->filter();
 
             case 'post_date':
-                return $mapping->field('creation')->dateTime();
+                return $mapping->addField('creation')->dateTime();
 
             case 'post_modified':
-                return $mapping->field('lastupdate')->dateTime();
+                return $mapping->addField('lastupdate')->dateTime();
 
             case 'post_title':
-                return $mapping->field('title')->text();
+                return $mapping->addField('title')->text();
 
             case 'post_content':
-                return $mapping->field('content')->text();
+                return $mapping->addField('content')->text();
 
             case 'post_excerpt':
-                return $mapping->field('excerpt')->text();
+                return $mapping->addField('excerpt')->text();
 
             default:
                 throw new InvalidArgumentException("Field '$field' not supported");
@@ -204,7 +212,8 @@ abstract class TypeIndexer {
      *
      * @throws InvalidArgumentException Si le champ indiqué n'est pas géré.
      */
-    public static function standardMap($field, $value, array & $document) {
+    public static function standardMap($field, $value, array & $document)
+    {
         switch ($field) {
             case 'ID':
                 return; // non indexé, on a déjà _id géré par ES
@@ -226,12 +235,12 @@ abstract class TypeIndexer {
                 return;
 
             case 'post_parent':
-                $document['parent'] = $value;
+                $document['parent'] = (int) $value;
 
                 return;
 
             case 'post_author':
-                if (false !== $user = get_user_by( 'id', $value)) { /* @var $user WP_User */
+                if (false !== $user = get_user_by('id', $value)) { /* @var $user WP_User */
                     $value = $user->user_login;
                 }
                 $document['createdby'] = $value;

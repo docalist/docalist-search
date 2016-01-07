@@ -27,6 +27,6 @@ return [
             require __DIR__ . '/language/es.php',
             require __DIR__ . '/language/fr.php',
             require __DIR__ . '/language/it.php'
-        )
+        ),
     ],
 ];

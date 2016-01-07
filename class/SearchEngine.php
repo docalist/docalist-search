@@ -19,8 +19,8 @@ use Exception;
 /**
  * La classe qui gère les recherches.
  */
-class SearchEngine {
-
+class SearchEngine
+{
     /**
      * La configuration du moteur de recherche
      * (passée en paramètre au constructeur).
@@ -46,15 +46,22 @@ class SearchEngine {
      *
      * @param Settings $settings
      */
-    public function __construct(Settings $settings) {
+    public function __construct(Settings $settings)
+    {
         // Stocke nos paramètres
         $this->settings = $settings;
+
+        // Ne fait rien tant que la recherche n'a pas été activée dans les settings
+        // (https://github.com/docalist/docalist/issues/367)
+        if (!$this->settings->enabled()) {
+            return;
+        }
 
         // Intègre le moteur dans WordPress quand parseQuery() est exécutée
         add_filter('parse_query', [$this, 'onParseQuery']);
 
         // Crée la requête quand on est sur la page "liste des réponses"
-        add_filter('docalist_search_create_request', function(SearchRequest $request = null, WP_Query $query) {
+        add_filter('docalist_search_create_request', function (SearchRequest $request = null, WP_Query $query) {
             if (is_null($request) && $query->is_page && $query->get_queried_object_id() === $this->searchPage()) {
                 $request = $this->defaultRequest()
                     ->isSearch(true)
@@ -65,20 +72,20 @@ class SearchEngine {
         }, 10, 2);
 
         // Crée le filtre par défaut pour les articles
-        add_filter('docalist_search_get_post_filter', function($filter, $type) {
+        add_filter('docalist_search_get_post_filter', function ($filter, $type) {
             return $this->defaultFilter($type);
         }, 10, 2);
 
         // Crée le filtre par défaut pour les pages
-        add_filter('docalist_search_get_page_filter', function($filter, $type) {
+        add_filter('docalist_search_get_page_filter', function ($filter, $type) {
             return $this->defaultFilter($type);
         }, 10, 2);
 
         // TODO : filtres à virer, utiliser docalist('docalist-search-engine')->xxx()
-        add_filter('docalist_search_get_request', array($this, 'request'), 10, 0);
-        add_filter('docalist_search_get_results', array($this, 'results'), 10, 0);
-        add_filter('docalist_search_get_rank', array($this, 'rank'), 10, 1);
-        add_filter('docalist_search_get_hit_link', array($this, 'hitLink'), 10, 1);
+        add_filter('docalist_search_get_request', [$this, 'request'], 10, 0);
+        add_filter('docalist_search_get_results', [$this, 'results'], 10, 0);
+        add_filter('docalist_search_get_rank', [$this, 'rank'], 10, 1);
+        add_filter('docalist_search_get_hit_link', [$this, 'hitLink'], 10, 1);
     }
 
     /**
@@ -87,13 +94,14 @@ class SearchEngine {
      *
      * @param string $types Liste des types interrogés, par défaut tous les
      * types indexés.
-     * @param boolean $ignoreQueryString Par défaut la requête tient compte des
+     * @param bool $ignoreQueryString Par défaut la requête tient compte des
      * arguments passés en query string. Passez false pour obtenir une requête
      * vide (match all) ne contenant que les filtres.
      *
      * @return SearchRequest
      */
-    public function defaultRequest($types = null, $ignoreQueryString = false) {
+    public function defaultRequest($types = null, $ignoreQueryString = false)
+    {
         // Crée la requête
         $request = new SearchRequest($ignoreQueryString ? null : wp_unslash($_REQUEST));
 
@@ -114,7 +122,7 @@ class SearchEngine {
 
         // Pour chaque type, construit le filtre de visibilité
         $filters = [];
-        foreach($types as $type) {
+        foreach ($types as $type) {
             $filter = apply_filters("docalist_search_get_{$type}_filter", null, $type);
             $filter && $filters[] = $filter;
             // Remarque : si personne n'a créé de filtre, le type n'est pas
@@ -134,7 +142,8 @@ class SearchEngine {
      *
      * @param string $type
      */
-    public function defaultFilter($type) {
+    public function defaultFilter($type)
+    {
         global $wp_post_statuses;
 
         // Définit des filtres sur le statut des notices en fonction
@@ -152,10 +161,10 @@ class SearchEngine {
 
         // Détermine la liste des statuts publics et privés/protégés
         $public = $private = [];
-        foreach($wp_post_statuses as $status) {
+        foreach ($wp_post_statuses as $status) {
             if ($status->public) {
                 $public[] = $status->label;
-            } elseif($status->protected || $status->private) {
+            } elseif ($status->protected || $status->private) {
                 $private[] = $status->label;
             }
         }
@@ -193,7 +202,8 @@ class SearchEngine {
      *
      * @return int
      */
-    public function searchPage() {
+    public function searchPage()
+    {
         return $this->settings->searchpage();
     }
 
@@ -203,7 +213,8 @@ class SearchEngine {
      *
      * @return string
      */
-    public function searchPageUrl() {
+    public function searchPageUrl()
+    {
         return get_permalink($this->settings->searchpage());
     }
 
@@ -212,7 +223,8 @@ class SearchEngine {
      *
      * @return SearchRequest
      */
-    public function request() {
+    public function request()
+    {
         return $this->request;
     }
 
@@ -221,7 +233,8 @@ class SearchEngine {
      *
      * @return SearchResults
      */
-    public function results() {
+    public function results()
+    {
         return $this->results;
     }
 
@@ -235,7 +248,8 @@ class SearchEngine {
      * est à la position 1) ou zéro si l'id indiqué ne figure pas dans la liste
      * des réponses.
      */
-    public function rank($id) {
+    public function rank($id)
+    {
         if ($this->results) {
             return $this->results->position($id) + 1 + ($this->request->page() - 1) * $this->request->size();
         }
@@ -253,7 +267,8 @@ class SearchEngine {
      *
      * @param int $id
      */
-    public function hitLink($id) {
+    public function hitLink($id)
+    {
         $url = get_pagenum_link($this->rank($id), false);
         $url = add_query_arg(['size' => 1], $url);
 
@@ -274,7 +289,8 @@ class SearchEngine {
      *
      * @return WP_Query La requête, éventuellement modifiée.
      */
-    public function onParseQuery(WP_Query & $query) {
+    public function onParseQuery(WP_Query & $query)
+    {
         $debug = false;
 
         // Si ce n'est pas la requête principale de WordPress on ne fait rien
@@ -287,7 +303,7 @@ class SearchEngine {
 
         // Si on n'a pas de requête à exécuter, on ne fait rien
         if (is_null($this->request)) {
-            $debug && print("docalist_search_create_request a retourné null, rien à faire<br />");
+            $debug && print('docalist_search_create_request a retourné null, rien à faire<br />');
 
             return $query;
         }
@@ -297,7 +313,7 @@ class SearchEngine {
             throw new Exception('Filter docalist_search_create_request did not return a SearchRequest');
         }
 
-        $debug && print("docalist_search_create_request a retourné une requête, exécution<br />");
+        $debug && print('docalist_search_create_request a retourné une requête, exécution<br />');
 
         // Si la requête est une recherche WordPress, on tient compte de "paged"
         if ($this->request->isSearch()) {
@@ -308,21 +324,26 @@ class SearchEngine {
             }
         }
 
-        $debug && var_dump($this->request);
+        if ($debug) {
+            printf(
+                "<pre>%s</pre>",
+                strtr(json_encode((array)($this->request), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), ['\u0000*' => '', '\u0000' => ''])
+            );
+        }
 
         // Exécute la recherche
         $this->results = $this->request->execute();
 
-        $debug && print($this->results->total() . " réponses obtenues<br />");
+        $debug && print($this->results->total() . ' réponses obtenues<br />');
 
         // Si la requête n'est pas une recherche WordPress, on a finit
         if (! $this->request->isSearch()) {
-            $debug && print("Le flag isSearch de la requête SearchRequest est à false, terminé<br />");
+            $debug && print('Le flag isSearch de la requête SearchRequest est à false, terminé<br />');
 
             return $query;
         }
 
-        $debug && print("Le flag isSearch est à true, force WP à exécuter comme une recherche<br />");
+        $debug && print('Le flag isSearch est à true, force WP à exécuter comme une recherche<br />');
 
         // Force WordPress à traiter la requête comme une recherche
         $query->is_search = true;
@@ -342,7 +363,7 @@ class SearchEngine {
         // Construit la liste des ID des réponses obtenues
         $id = [];
         if ($this->results) {
-            foreach($this->results->hits() as $hit) {
+            foreach ($this->results->hits() as $hit) {
                 $id[] = $hit->_id;
             }
         }
@@ -353,7 +374,7 @@ class SearchEngine {
 
             // Aucun hit : retourne sql=null pour que wpdb::query() ne fasse aucune requête
             if (empty($id)) {
-                return null;
+                return;
             }
 
             // Construit une requête sql qui récupére les posts dans l'ordre
@@ -370,7 +391,7 @@ class SearchEngine {
 
         // Une fois que WordPress a chargé les posts, vérifie qu'on a tout les
         // documents et indique à WordPress le nombre total de réponses trouvées.
-        add_filter('posts_results', function(array $posts = null, WP_Query & $query) use ($id) { //!!! pas appellé si supress_filters=true
+        add_filter('posts_results', function (array $posts = null, WP_Query & $query) use ($id) { //!!! pas appellé si supress_filters=true
             if (count($id) !== count($posts)) {
                 echo "<p>WARNING : L'index docalist-search est désynchronisé.</p>";
                 // TODO : à améliorer (cf. plugin "simple notices")
@@ -407,7 +428,8 @@ class SearchEngine {
      * Si aucun terme ne commence par le préfixe indiqué, la méthode retourne
      * un tableau vide.
      */
-    public function lookup($source, $search) {
+    public function lookup($source, $search)
+    {
         // Remarques :
         // 1. Pour le moment, le "completion suggester" ne permet pas de filtrer
         //    par type. Ce sera possible plus tard avec le "ContextSuggester".
@@ -430,13 +452,13 @@ class SearchEngine {
             $query = [
                 'aggs' => [
                     'lookup' => [
-                        "terms" => [
-                            "field" => "$source.filter",
-                            "size" => 100,
-                            "order" => [ "_term" => "asc" ]
-                        ]
-                    ]
-                ]
+                        'terms' => [
+                            'field' => "$source.filter",
+                            'size' => 100,
+                            'order' => ['_term' => 'asc'],
+                        ],
+                    ],
+                ],
             ];
 
             // Exécute la requête
@@ -446,7 +468,7 @@ class SearchEngine {
             }
 
             $result = $result->aggregations->lookup->buckets;
-            foreach($result as $bucket) {
+            foreach ($result as $bucket) {
                 $bucket->text = $bucket->key;
                 unset($bucket->key);
 
@@ -466,8 +488,8 @@ class SearchEngine {
                     'size' => 100,
                     // 'fuzzy' => true
                     'prefix_len' => 1,
-                ]
-            ]
+                ],
+            ],
         ];
 
         // Exécute la requête

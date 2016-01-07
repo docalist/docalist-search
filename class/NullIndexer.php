@@ -24,28 +24,32 @@ namespace Docalist\Search;
  * une base documentaire puis on désactive docalist-biblio). Cette classe sert
  * à gérer ce cas : au lieu de générer une erreur fatale (c'est ce que ça
  * faisait avant), l'indexeur manquant est remplacé par un NullIndexer et une
- * notice warning est générée.
- *
+ * admin notice est générée.
  */
-class NullIndexer extends TypeIndexer {
-
-    public function __construct() {
+class NullIndexer extends TypeIndexer
+{
+    public function __construct()
+    {
         parent::__construct('null');
     }
 
-    public function realtime() {
+    public function realtime()
+    {
         return;
     }
 
-    public function contentId($content) {
+    public function contentId($content)
+    {
         return 0;
     }
 
-    public function map($content) {
+    public function map($content)
+    {
         return [];
     }
 
-    public function indexAll(Indexer $indexer) {
+    public function indexAll(Indexer $indexer)
+    {
         return;
     }
 }

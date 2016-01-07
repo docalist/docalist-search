@@ -13,29 +13,29 @@
  */
 namespace Docalist\Search\Views;
 
+use Docalist\Search\SettingsPage;
 use Docalist\Search\Settings;
 use Docalist\Forms\Form;
 
 /**
  * Paramètres de la recherche.
  *
- * @param Settings $settings Les paramètres de l'indexeur.
- * @param string $error Erreur éventuelle à afficher.
+ * @var SettingsPage $this
+ * @var Settings $settings Les paramètres de l'indexeur.
+ * @var string $error Erreur éventuelle à afficher.
  */
 ?>
 <div class="wrap">
     <?= screen_icon() ?>
-    <h2><?= __("Paramètres du moteur de recherche.", 'docalist-search') ?></h2>
+    <h1><?= __("Paramètres du moteur de recherche.", 'docalist-search') ?></h1>
 
     <p class="description"><?php
-        //@formatter:off
         echo __(
             "Les options ci-dessous ne doivent être activées qu'une fois que vous
             avez choisi les contenus à indexer et lancé une réindexation manuelle
             de l'ensemble de tous les documents.",
             'docalist-search'
         );
-        // @formatter:on
     ?></p>
 
     <?php if ($error) :?>
@@ -46,11 +46,11 @@ use Docalist\Forms\Form;
 
     <?php
         $form = new Form();
-        $form->select('searchpage')->options(pagesList())->firstOption(false);
+        $form->select('searchpage')->setOptions(pagesList())->setFirstOption(false);
         $form->checkbox('enabled');
-        $form->submit(__('Enregistrer les modifications', 'docalist-search'));
+        $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
 
-        $form->bind($settings)->render('wordpress');
+        $form->bind($settings)->display();
     ?>
 </div>
 

@@ -26,28 +26,23 @@ use Docalist\Forms\Form;
  */
 ?>
 <div class="wrap">
-    <h1><?= __('Paramètres du serveur ElasticSearch', 'docalist-search') ?></h1>
+    <h1><?= __('Paramètres ElasticSearch', 'docalist-search') ?></h1>
 
     <p class="description"><?php
         //@formatter:off
         printf(
             __(
-                'Pour fonctionner, Docalist Search doit pouvoir accéder à un
-                moteur de recherche <a href="%1$s">ElasticSearch</a> dans
-                lequel il va créer un index qui permettra de stocker et de
-                retrouver vos contenus.
-                ElasticSearch peut être <a href="%2$s">installé sur le serveur</a>
-                qui héberge votre site web ou bien vous pouvez faire appel à un
-                <a href="%3$s">service d\'hébergement dédié</a>.
-
-                Cette page vous permet de spécifier l\'url de votre moteur
-                ElasticSearch, le nom de l\'index à utiliser ainsi que d\'autres
-                paramètres.',
+                'Pour fonctionner, Docalist Search doit pouvoir accéder à un cluster <a href="%1$s">ElasticSearch</a>
+                dans lequel il va créer les index qui permettront de stocker et de retrouver vos contenus.
+                ElasticSearch peut être <a href="%2$s">installé sur le serveur</a> qui héberge votre site web ou bien
+                vous pouvez faire appel à un <a href="%3$s">service d\'hébergement dédié</a>.
+                Cette page vous permet de spécifier l\'url de votre cluster ElasticSearch, le nom de l\'index à
+                utiliser ainsi que d\'autres paramètres.',
                 'docalist-search'
             ),
-            'http://www.elasticsearch.org/',                            // %1
-            'http://www.elasticsearch.org/guide/reference/setup/',      // %2
-            'https://www.google.com/search?q=elasticsearch+hosting'     // %3
+            'https://www.elastic.co/products/elasticsearch',                                // %1
+            'https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html',   // %2
+            'https://www.google.com/search?q=elasticsearch+hosting'                         // %3
         );
         // @formatter:on
     ?></p>

@@ -37,7 +37,7 @@ use Docalist\Search\SettingsPage;
 
     <h2>
         <a href="<?= esc_url($this->url('ServerSettings')) ?>">
-            <?= __('Paramètres du serveur ElasticSearch', 'docalist-search') ?>
+            <?= __('Paramètres ElasticSearch', 'docalist-search') ?>
         </a>
     </h2>
     <p class="description">

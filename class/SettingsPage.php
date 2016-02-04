@@ -23,12 +23,14 @@ use Exception;
 class SettingsPage extends AdminPage
 {
     /**
+     * Paramètres de docalist-search.
+     *
      * @var Settings
      */
     protected $settings;
 
     /**
-     * @param Settings $settings
+     * @param Settings $settings Paramètres de docalist-search.
      */
     public function __construct(Settings $settings)
     {
@@ -67,7 +69,7 @@ class SettingsPage extends AdminPage
      */
     public function actionServerSettings()
     {
-        $settings = $this->settings->server;
+        $settings = $this->settings;
 
         $error = '';
         if ($this->isPost()) {
@@ -110,21 +112,21 @@ class SettingsPage extends AdminPage
                 $msg = __("L'url %s ne répond pas.", 'docalist-search');
 
                 return printf($msg,
-                    $this->settings->server->url()
+                    $this->settings->url()
                 );
             case 1:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s n'existe pas.", 'docalist-search');
 
                 return printf($msg,
-                    $this->settings->server->url(),
-                    $this->settings->server->index()
+                    $this->settings->url(),
+                    $this->settings->index()
                 );
             case 2:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s existe.", 'docalist-search');
 
                 return printf($msg,
-                    $this->settings->server->url(),
-                    $this->settings->server->index()
+                    $this->settings->url(),
+                    $this->settings->index()
                 );
         }
 
@@ -145,7 +147,7 @@ class SettingsPage extends AdminPage
      */
     public function actionIndexerSettings()
     {
-        $settings = $this->settings->indexer;
+        $settings = $this->settings;
 
         $error = '';
         if ($this->isPost()) {

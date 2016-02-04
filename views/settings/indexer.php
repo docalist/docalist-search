@@ -14,14 +14,14 @@
 namespace Docalist\Search\Views;
 
 use Docalist\Search\SettingsPage;
-use Docalist\Search\IndexerSettings;
+use Docalist\Search\Settings;
 use Docalist\Forms\Form;
 
 /**
  * Paramètres de l'indexeur.
  *
  * @var SettingsPage    $this
- * @var IndexerSettings $settings   Les paramètres de l'indexeur.
+ * @var Settings        $settings   Les paramètres de docalist-search.
  * @var string          $error      Erreur éventuelle à afficher.
  * @var string[]        $types      Liste des types disponibles.
  */

@@ -14,14 +14,14 @@
 namespace Docalist\Search\Views;
 
 use Docalist\Search\SettingsPage;
-use Docalist\Search\ServerSettings;
+use Docalist\Search\Settings;
 use Docalist\Forms\Form;
 
 /**
  * Edite les paramètres du serveur Elastic Search.
  *
  * @var SettingsPage    $this
- * @var ServerSettings  $settings   Les paramètres du serveur.
+ * @var Settings        $settings   Les paramètres de docalist-search.
  * @var string          $error      Erreur éventuelle à afficher.
  */
 ?>

@@ -41,7 +41,7 @@ class Plugin
         // Services fournis pas ce plugin
         docalist('services')->add([
             'elastic-search' => function () {
-                return new ElasticSearchClient($this->settings->server);
+                return new ElasticSearchClient($this->settings);
             },
             'mapping-builder' => function () {
                 return new ElasticSearchMappingBuilder();

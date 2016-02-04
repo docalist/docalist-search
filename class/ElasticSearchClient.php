@@ -21,9 +21,9 @@ use Exception;
 class ElasticSearchClient
 {
     /**
-     * Les paramètres du serveur.
+     * Les paramètres de docalist-search.
      *
-     * @var ServerSettings
+     * @var Settings
      */
     protected $settings;
 
@@ -38,9 +38,9 @@ class ElasticSearchClient
      * Construit un nouveau client ElasticSearch en utilisant les options de
      * configuration passées en paramètre.
      *
-     * @param ServerSettings $settings Les paramètres du serveur.
+     * @param Settings $settings Les paramètres de docalist-search.
      */
-    public function __construct(ServerSettings $settings)
+    public function __construct(Settings $settings)
     {
         $debug = false;
 

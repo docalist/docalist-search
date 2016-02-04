@@ -114,7 +114,7 @@ class SearchEngine
 
             // Sinon on prend tous les types indexés
             else {
-                $types = $this->settings->indexer->types();
+                $types = $this->settings->types();
             }
         } else {
             $types = (array) $types;

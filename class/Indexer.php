@@ -24,10 +24,9 @@ use Psr\Log\LoggerInterface;
 class Indexer
 {
     /**
-     * La configuration du moteur de recherche
-     * (passée en paramètre au constructeur).
+     * Les paramètres de docalist-search.
      *
-     * @var IndexerSettings
+     * @var Settings
      */
     protected $settings;
 
@@ -115,12 +114,12 @@ class Indexer
     /**
      * Construit un nouvel indexeur.
      *
-     * @param IndexerSettings $settings
+     * @param Settings $settings
      */
     public function __construct(Settings $settings)
     {
         // Stocke les paramètres de l'indexeur
-        $this->settings = $settings->indexer;
+        $this->settings = $settings;
 
         // Récupère le logger à utiliser
         $this->log = docalist('logs')->get('indexer');

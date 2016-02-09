@@ -104,7 +104,13 @@ class Plugin
      */
     public function version()
     {
-        return get_plugin_data(__DIR__ . '/../docalist-search.php', false, false)['Version'];
+        static $version = null;
+
+        if (is_null($version)) {
+            $version = get_plugin_data(__DIR__ . '/../docalist-search.php', false, false)['Version'];
+        }
+
+        return $version;
     }
 
     /**

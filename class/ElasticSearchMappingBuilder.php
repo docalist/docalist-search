@@ -269,7 +269,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters-completion.html
         $this->last['fields']['suggest'] = [
             'type' => 'completion',
-            'index_analyzer' => 'suggest',
+            'analyzer' => 'suggest',
             'search_analyzer' => 'suggest',
         ];
 

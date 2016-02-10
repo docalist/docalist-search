@@ -14,16 +14,27 @@
 namespace Docalist\Search;
 
 use Docalist\Type\Settings as TypeSettings;
+use Docalist\Type\Text;
 use Docalist\Type\Integer;
 use Docalist\Type\Boolean;
 
 /**
  * Options de configuration du plugin.
  *
- * @property Integer            $searchpage ID de la page "liste des réponses".
- * @property Boolean            $enabled    Indique si la recherche est activée.
- * @property ServerSettings     $server     Paramètres du serveur ElasticSearch.
- * @property IndexerSettings    $indexer    Paramètres de l'indexeur.
+ * @property Text       $url                Url complète du serveur ElasticSearch.
+ * @property Text       $index              Nom de l'index ElasticSearch utilisé.
+ * @property Integer    $shards             Nombre de shards de l'index.
+ * @property Integer    $replicas           Nombre de replicas par shard.
+ * @property Integer    $connecttimeout     Timeout de connexion, en secondes.
+ * @property Integer    $timeout            Timeout des requêtes, en secondes.
+ * @property Boolean    $compressrequest    Compresser les requêtes.
+ * @property Boolean    $compressresponse   Compresser les réponses.
+ * @property Text[]     $types              Contenus à indexer.
+ * @property Integer    $bulkMaxSize        Taille maximale du buffer (Mo).
+ * @property Integer    $bulkMaxCount       Nombre maximum de documents dans le buffer.
+ * @property Boolean    $realtime           Indexation en temps réel activée.
+ * @property Integer    $searchpage         ID de la page "liste des réponses".
+ * @property Boolean    $enabled            Indique si la recherche est activée.
  */
 class Settings extends TypeSettings
 {
@@ -65,6 +76,34 @@ class Settings extends TypeSettings
                         'docalist-search'
                     ),
                     'default' => $defaultIndex,
+                ],
+                'shards' => [
+                    'type' => 'Docalist\Type\Integer',
+                    'label' => __('Nombre de shards', 'docalist-search'),
+                    'description' => sprintf(__(
+                        "ElasticSearch permet de <a href='%s'>partitionner un index en plusieurs shards</a> (segments)
+                         et de distribuer ces segments sur les différents noeuds qui composent le cluster.
+                         Indiquez le nombre de shards à créer en fonction du nombre de noeuds dans votre cluster et de
+                         la taille des données que vous prévoyez d'indexer.",
+                        'docalist-search'),
+                        'https://www.elastic.co/guide/en/elasticsearch/guide/master/shard-scale.html'
+                    ),
+                    'default' => 3,
+                ],
+                'replicas' => [
+                    'type' => 'Docalist\Type\Integer',
+                    'label' => __('Nombre de réplicas', 'docalist-search'),
+                    'description' => sprintf(__(
+                        "Pour <a href='%s'>augmenter la tolérance aux pannes</a>, ElasticSearch peut créer des copies
+                         des shards (des réplicats) et les répartir sur les noeuds du cluster. Ces copies permettent à
+                         ElasticSearch de continuer à fonctionner si un noeud tombe en panne et augmente le nombre de
+                         requêtes simultanées qui pourront être traitées. Indiquez le nombre de réplicats à créer en
+                         fonction du nombre de noeuds présents dans votre cluster (zéro si vous n'avez qu'un seul
+                         serveur).",
+                        'docalist-search'),
+                        'https://www.elastic.co/guide/en/elasticsearch/reference/master/_basic_concepts.html#_shards_amp_replicas'
+                    ),
+                    'default' => 0,
                 ],
                 'connecttimeout' => [
                     'type' => 'Docalist\Type\Integer',

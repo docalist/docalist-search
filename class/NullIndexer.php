@@ -38,7 +38,7 @@ class NullIndexer extends TypeIndexer
         return;
     }
 
-    public function contentId($content)
+    public function getID($content)
     {
         return 0;
     }

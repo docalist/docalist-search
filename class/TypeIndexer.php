@@ -20,17 +20,14 @@ use Psr\Log\LoggerInterface;
 /**
  * Classe de base abstraite pour les indexeurs.
  *
- * Le rôle d'un indexeur consiste à transformer un objet stocké dans la base de
- * données (article, page, notice, utilisateur, commentaire, produit...) en
- * document destiné à être indexé par ElasticSearch.
+ * Le rôle d'un indexeur consiste à transformer un objet stocké dans la base de données (article, page, notice,
+ * utilisateur, commentaire, produit...) en document destiné à être indexé par ElasticSearch.
  *
- * Chaque indexeur gère un seul type de contenu et dispose de méthode permettant
- * de convertir un objet en document ElasticSearch, d'indexer / mettre à jour /
- * supprimer un objet, de réindexer la totalité des objets de ce type.
+ * Chaque indexeur gère un seul type de contenu et dispose de méthode permettant de convertir un objet en document
+ * ElasticSearch, d'indexer / mettre à jour / supprimer un objet, de réindexer la totalité des objets de ce type.
  *
- * Cette classe de base contient également des méthodes qui permettent de
- * mapper de façon homogène entre différents types certains des champs standard
- * de WordPress (post_status, post_title, etc.)
+ * Cette classe de base contient également des méthodes qui permettent de mapper de façon homogène entre différents
+ * types certains des champs standard de WordPress (post_status, post_title, etc.)
  */
 abstract class TypeIndexer
 {
@@ -40,9 +37,8 @@ abstract class TypeIndexer
      * @var string[]
      */
     protected static $stdFields = [
-        'ID', 'post_type', 'post_status', 'post_name', 'post_parent',
-        'post_author', 'post_date', 'post_modified', 'post_title',
-        'post_content',  'post_excerpt',
+        'ID', 'post_type', 'post_status', 'post_name', 'post_parent', 'post_author', 'post_date', 'post_modified',
+        'post_title', 'post_content',  'post_excerpt',
     ];
 
     /**
@@ -62,8 +58,7 @@ abstract class TypeIndexer
     /**
      * Construit un nouvel indexeur.
      *
-     * @param string $type Le type de contenu géré par cet indexeur
-     * (nom du post_type, comment, user, etc...)
+     * @param string $type Le type de contenu géré par cet indexeur (nom du post_type, comment, user, etc...)
      */
     public function __construct($type)
     {
@@ -72,8 +67,8 @@ abstract class TypeIndexer
     }
 
     /**
-     * Installe les hooks nécessaires pour permettre l'indexation en temps réel
-     * des contenus créés, modifiés ou supprimés.
+     * Installe les hooks nécessaires pour permettre l'indexation en temps réel des contenus créés, modifiés
+     * ou supprimés.
      */
     abstract public function realtime();
 
@@ -82,22 +77,42 @@ abstract class TypeIndexer
      *
      * @return string
      */
-    public function type()
+    public function getType()
     {
         return $this->type;
     }
 
     /**
+     * Retourne le libellé à utiliser pour désigner les contenus gérés par cet indexeur.
+     *
+     * @return string
+     */
+    public function getLabel()
+    {
+        return ' label-' . $this->type;
+    }
+
+    /**
+     * Retourne la catégorie dans laquelle figure les contenus gérés par cet indexeur (WordPress, Bases docalist...).
+     *
+     * @return string
+     */
+    public function getCategory()
+    {
+        return __('Autres', 'docalist-search');
+    }
+
+    /**
      * Retourne un identifiant unique pour le contenu passé en paramètre.
      *
-     * Cette méthode est surchargée dans les classes descendantes : elle
-     * retourne le Post ID pour un post, le User ID pour un utilisateur, etc.
+     * Cette méthode est surchargée dans les classes descendantes : elle retourne le Post ID pour un post,
+     * le User ID pour un utilisateur, etc.
      *
      * @param object $content
      *
      * @return int L'identifiant du contenu.
      */
-    abstract public function contentId($content);
+    abstract public function getID($content);
 
     /**
      * Retourne le mapping ElasticSearch pour ce type.
@@ -110,8 +125,7 @@ abstract class TypeIndexer
     }
 
     /**
-     * Transforme le contenu passé en paramètre en document destiné
-     * à être indexé par ElasticSearch.
+     * Transforme le contenu passé en paramètre en document destiné à être indexé par ElasticSearch.
      *
      * @param object $content Le contenu à convertir.
      *
@@ -128,8 +142,8 @@ abstract class TypeIndexer
     public function index($content, Indexer $indexer)
     {
         $indexer->index(
-            $this->type(),
-            $this->contentId($content),
+            $this->getType(),
+            $this->getID($content),
             $this->map($content)
         );
     }
@@ -142,12 +156,12 @@ abstract class TypeIndexer
      */
     public function remove($content, Indexer $indexer)
     {
-        $id = is_scalar($content) ? $content : $this->contentId($content);
-        $indexer->delete($this->type(), $id);
+        $id = is_scalar($content) ? $content : $this->getID($content);
+        $indexer->delete($this->getType(), $id);
     }
 
     /**
-     * Réindexe tous les documents de ce type.
+     * Indexe tous les documents de ce type.
      *
      * @param Indexer $indexer
      * @param string $type
@@ -165,39 +179,18 @@ abstract class TypeIndexer
     public static function standardMapping($field, MappingBuilder $mapping)
     {
         switch ($field) {
-            case 'ID':
-                return; // non indexé, on a déjà _id géré par ES
-
-            case 'post_type':
-                return; // non indexé, on a déjà _type géré par ES
-
-            case 'post_status':
-                return $mapping->addField('status')->text()->filter();
-
-            case 'post_name':
-                return $mapping->addField('slug')->text();
-
-            case 'post_parent':
-                return $mapping->addField('parent')->integer();
-
-            case 'post_author':
-                return $mapping->addField('createdby')->text()->filter();
-
-            case 'post_date':
-                return $mapping->addField('creation')->dateTime();
-
-            case 'post_modified':
-                return $mapping->addField('lastupdate')->dateTime();
-
-            case 'post_title':
-                return $mapping->addField('title')->text();
-
-            case 'post_content':
-                return $mapping->addField('content')->text();
-
-            case 'post_excerpt':
-                return $mapping->addField('excerpt')->text();
-
+            case 'ID':              // non indexé, on a déjà _id géré par ES
+            case 'post_type':       // non indexé, on a déjà _type géré par ES
+                return;
+            case 'post_status':     return $mapping->addField('status')->text()->filter();
+            case 'post_name':       return $mapping->addField('slug')->text();
+            case 'post_parent':     return $mapping->addField('parent')->integer();
+            case 'post_author':     return $mapping->addField('createdby')->text()->filter();
+            case 'post_date':       return $mapping->addField('creation')->dateTime();
+            case 'post_modified':   return $mapping->addField('lastupdate')->dateTime();
+            case 'post_title':      return $mapping->addField('title')->text();
+            case 'post_content':    return $mapping->addField('content')->text();
+            case 'post_excerpt':    return $mapping->addField('excerpt')->text();
             default:
                 throw new InvalidArgumentException("Field '$field' not supported");
         }

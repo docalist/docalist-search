@@ -24,13 +24,22 @@ class PostIndexer extends TypeIndexer
     /**
      * Construit l'indexeur.
      *
-     * @param string $type Optionnel, le type de contenu géré par cet indexeur
-     * ("post" par défaut, mais les classes descendantes peuvent ainsi passer
-     * un autre type).
+     * @param string $type Optionnel, le type de contenu géré par cet indexeur ("post" par défaut, mais les classes
+     * descendantes peuvent passer un autre type).
      */
     public function __construct($type = 'post')
     {
         parent::__construct($type);
+    }
+
+    public function getLabel()
+    {
+        return get_post_type_object($this->type)->labels->name;
+    }
+
+    public function getCategory()
+    {
+        return __('WordPress', 'docalist-search');
     }
 
     /**
@@ -38,13 +47,13 @@ class PostIndexer extends TypeIndexer
      *
      * @return string
      */
-    public function statuses()
+    public function getStatuses()
     {
         return ['publish', 'pending', 'private'];
     }
 
-    public function contentId($post)
-    { /* @var $post WP_Post */
+    public function getID($post) /* @var $post WP_Post */
+    {
         return $post->ID;
     }
 
@@ -61,8 +70,8 @@ class PostIndexer extends TypeIndexer
     }
 
 
-    public function map($post)
-    { /* @var $post WP_Post */
+    public function map($post) /* @var $post WP_Post */
+    {
         $document = [];
         foreach (self::$stdFields as $field) {
             $value = $post->$field;
@@ -92,8 +101,8 @@ class PostIndexer extends TypeIndexer
          . 'LIMIT %s OFFSET %s',
 
             $wpdb->posts,
-            $this->type(),
-            implode("','", $this->statuses()),
+            $this->getType(),
+            implode("','", $this->getStatuses()),
             '%d',
             '%d'
         );
@@ -126,39 +135,6 @@ class PostIndexer extends TypeIndexer
             // if ($offset >= 1000) break;
         }
     }
-/*
-    public function OLDindexAll(Indexer $indexer) {
-        $offset = 0;
-        $size = 1000;
-
-        $query = new WP_Query();
-
-        $args = [
-            'post_type' => $this->type(),
-            'post_status' => $this->statuses(),
-
-            'offset' => $offset,
-            'posts_per_page'=> $size,
-
-            'orderby' => 'ID',
-            'order' => 'ASC',
-
-            'cache_results' => false,
-            'update_post_term_cache' => false,
-            'update_post_meta_cache' => false,
-
-            'no_found_rows' => true
-        ];
-
-        while ($posts = $query->query($args)) {
-            echo '<pre>', $query->request, '</pre>';
-            foreach($posts as $post) {
-                $this->index($post, $indexer);
-            }
-            $args['offset'] += count($posts);
-        }
-    }
-*/
 
     public function realtime()
     {
@@ -194,7 +170,7 @@ class PostIndexer extends TypeIndexer
         ]);
 
         if (is_null($statuses)) {
-            $statuses = array_flip($this->statuses());
+            $statuses = array_flip($this->getStatuses());
         }
 
         /* @var $indexer Indexer */

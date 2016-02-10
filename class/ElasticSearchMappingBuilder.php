@@ -37,15 +37,6 @@ use InvalidArgumentException;
 class ElasticSearchMappingBuilder implements MappingBuilder
 {
     /**
-     * Liste des analyseurs disponibles.
-     *
-     * Initialisé lors du premier appel à getAvailableAnalyzers().
-     *
-     * @var string[]
-     */
-    private static $availableAnalyzers;
-
-    /**
      * L'analyseur par défaut à utiliser pour les champs de type texte.
      *
      * @var string
@@ -89,26 +80,9 @@ class ElasticSearchMappingBuilder implements MappingBuilder
 
     public function setDefaultAnalyzer($defaultAnalyzer)
     {
-        $this->checkAnalyzer($defaultAnalyzer);
         $this->defaultAnalyzer = $defaultAnalyzer;
 
         return $this;
-    }
-
-    public function getAvailableAnalyzers()
-    {
-        // Initialisation au premier appel, charge la liste des analyseurs disponibles dans les settings de l'index
-        if (is_null(self::$availableAnalyzers)) {
-            $settings = apply_filters('docalist_search_get_index_settings', []);
-            if (isset($settings['settings']['analysis']['analyzer'])) {
-                $analyzers = $settings['settings']['analysis']['analyzer'];
-            } else {
-                $analyzers = [];
-            }
-            self::$availableAnalyzers = $analyzers;
-        }
-
-        return self::$availableAnalyzers;
     }
 
     public function addField($name)
@@ -158,7 +132,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     public function text($analyzer = null)
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
-        is_null($analyzer) ? $analyzer = $this->defaultAnalyzer : $this->checkAnalyzer($analyzer);
+        is_null($analyzer) && $analyzer = $this->defaultAnalyzer;
         $this->last['type'] = 'string';
         $this->last['analyzer'] = $analyzer;
 
@@ -316,7 +290,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
             // Stocke la version de docalist-search qui a créé ce type
             // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-meta-field.html
             '_meta' => [
-                'docalist-search' => docalist('docalist-search')->version(),
+                'docalist-search' => docalist('docalist-search')->getVersion(),
             ],
 
             // Par défaut le mapping est dynamique
@@ -420,20 +394,5 @@ class ElasticSearchMappingBuilder implements MappingBuilder
         }
 
         return implode('||', $formats);
-    }
-
-    /**
-     * Génère une exception si l'analyseur indiqué n'existe pas.
-     *
-     * @param string $analyzer
-     *
-     * @throws InvalidArgumentException
-     */
-    protected function checkAnalyzer($analyzer)
-    {
-        $analyzers = $this->getAvailableAnalyzers();
-        if (! isset($analyzers[$analyzer])) {
-            throw new InvalidArgumentException("Analyzer '$analyzer' not found");
-        }
     }
 }

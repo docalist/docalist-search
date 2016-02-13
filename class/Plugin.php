@@ -50,32 +50,12 @@ class Plugin
             'docalist-search-engine' => new SearchEngine($this->settings),
         ]);
 
-        // Retourne les settings par défaut à utiliser quand un index est créé
-        // Remarque : priorité 1 pour être le premier
-        add_filter('docalist_search_get_index_settings', function (array $settings) {
-            return require __DIR__ . '/../index-settings/default.php';
-        }, 1);
+        // Liste des indexeurs prédéfinis
+        add_filter('docalist_search_get_indexers', function ($indexers) {
+            $indexers['post'] = new PostIndexer();
+            $indexers['page'] = new PageIndexer();
 
-        // Retourne les types de contenus indexables
-        add_filter('docalist_search_get_types', function (array $types) {
-            $types['post'] = get_post_type_object('post')->labels->name;
-            $types['page'] = get_post_type_object('page')->labels->name;
-
-            return $types;
-        });
-
-        // Retourne l'indexeur à utiliser pour les articles
-        add_filter('docalist_search_get_post_indexer', function (TypeIndexer $indexer = null) {
-            is_null($indexer) && $indexer = new PostIndexer();
-
-            return $indexer;
-        });
-
-        // Retourne l'indexeur à utiliser pour les pages
-        add_filter('docalist_search_get_page_indexer', function (TypeIndexer $indexer = null) {
-            is_null($indexer) && $indexer = new PageIndexer();
-
-            return $indexer;
+            return $indexers;
         });
 
         // Enregistre la liste des facettes disponibles
@@ -102,7 +82,7 @@ class Plugin
      *
      * @return string
      */
-    public function version()
+    public function getVersion()
     {
         static $version = null;
 

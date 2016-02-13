@@ -13,8 +13,6 @@
  */
 namespace Docalist\Search;
 
-use Docalist\MappingBuilder;
-use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -32,16 +30,6 @@ use Psr\Log\LoggerInterface;
 abstract class TypeIndexer
 {
     /**
-     * Liste des champs WordPress standard qu'on sait indexer.
-     *
-     * @var string[]
-     */
-    protected static $stdFields = [
-        'ID', 'post_type', 'post_status', 'post_name', 'post_parent', 'post_author', 'post_date', 'post_modified',
-        'post_title', 'post_content',  'post_excerpt',
-    ];
-
-    /**
      * Le type de contenu géré par cet indexeur (post_type, comment, user...).
      *
      * @var string
@@ -55,6 +43,10 @@ abstract class TypeIndexer
      */
     protected $log;
 
+    /*
+     * API publique des indexeurs (méthodes qui sont appellées depuis l'extérieur)
+     */
+
     /**
      * Construit un nouvel indexeur.
      *
@@ -65,12 +57,6 @@ abstract class TypeIndexer
         $this->type = $type;
         $this->log = docalist('logs')->get('indexer');
     }
-
-    /**
-     * Installe les hooks nécessaires pour permettre l'indexation en temps réel des contenus créés, modifiés
-     * ou supprimés.
-     */
-    abstract public function realtime();
 
     /**
      * Retourne le type de contenu géré par cet indexeur.
@@ -89,7 +75,7 @@ abstract class TypeIndexer
      */
     public function getLabel()
     {
-        return ' label-' . $this->type;
+        return $this->type;
     }
 
     /**
@@ -99,8 +85,44 @@ abstract class TypeIndexer
      */
     public function getCategory()
     {
-        return __('Autres', 'docalist-search');
+        return __('Autres contenus', 'docalist-search');
     }
+
+    /**
+     * Construit les settings de l'index ElasticSearch.
+     *
+     * Cette méthode permet à l'indexeur d'ajouter dans les settings de l'index les analyseurs et les mappings
+     * dont il a besoin.
+     *
+     * La création des settings de l'index est un processus distribué entre les différents indexeurs et chaque
+     * indexeur doit veiller à ne pas écraser les settings définis préalablement par un autre indexeur.
+     *
+     * @param array $settings Les settings à mettre à jour.
+     *
+     * @return array Les settings modifiés.
+     */
+    public function buildIndexSettings(array $settings)
+    {
+        return $settings;
+    }
+
+    /**
+     * Installe les hooks nécessaires pour permettre l'indexation en temps réel des contenus créés, modifiés
+     * ou supprimés.
+     */
+    abstract public function activeRealtime();
+
+    /**
+     * Indexe tous les documents de ce type.
+     *
+     * @param Indexer $indexer
+     * @param string $type
+     */
+    abstract public function indexAll(Indexer $indexer);
+
+    /*
+     * API interne des indexeurs (méthodes destinées aux classes descendantes)
+     */
 
     /**
      * Retourne un identifiant unique pour le contenu passé en paramètre.
@@ -112,17 +134,7 @@ abstract class TypeIndexer
      *
      * @return int L'identifiant du contenu.
      */
-    abstract public function getID($content);
-
-    /**
-     * Retourne le mapping ElasticSearch pour ce type.
-     *
-     * @return array
-     */
-    public function getMapping()
-    {
-        return [];
-    }
+    abstract protected function getID($content);
 
     /**
      * Transforme le contenu passé en paramètre en document destiné à être indexé par ElasticSearch.
@@ -131,7 +143,7 @@ abstract class TypeIndexer
      *
      * @return array Le document ElasticSearch obtenu.
      */
-    abstract public function map($content);
+    abstract protected function map($content);
 
     /**
      * Indexe ou réindexe le contenu passé en paramètre.
@@ -139,13 +151,9 @@ abstract class TypeIndexer
      * @param object $content
      * @param Indexer $indexer L'indexeur a utiliser
      */
-    public function index($content, Indexer $indexer)
+    final protected function index($content, Indexer $indexer)
     {
-        $indexer->index(
-            $this->getType(),
-            $this->getID($content),
-            $this->map($content)
-        );
+        $indexer->index($this->getType(), $this->getID($content), $this->map($content));
     }
 
     /**
@@ -154,119 +162,9 @@ abstract class TypeIndexer
      * @param object|int $content Le contenu ou l'id du contenu à supprimer.
      * @param Indexer $indexer L'indexeur a utiliser
      */
-    public function remove($content, Indexer $indexer)
+    final protected function remove($content, Indexer $indexer)
     {
         $id = is_scalar($content) ? $content : $this->getID($content);
         $indexer->delete($this->getType(), $id);
-    }
-
-    /**
-     * Indexe tous les documents de ce type.
-     *
-     * @param Indexer $indexer
-     * @param string $type
-     */
-    abstract public function indexAll(Indexer $indexer);
-
-    /**
-     * Génère le mapping standard à utiliser pour un champ WordPress.
-     *
-     * @param string $field Le nom d'un champ WP_Post.
-     * @param MappingBuilder $mapping Le mapping à modifier.
-     *
-     * @throws InvalidArgumentException Si le champ indiqué n'est pas géré.
-     */
-    public static function standardMapping($field, MappingBuilder $mapping)
-    {
-        switch ($field) {
-            case 'ID':              // non indexé, on a déjà _id géré par ES
-            case 'post_type':       // non indexé, on a déjà _type géré par ES
-                return;
-            case 'post_status':     return $mapping->addField('status')->text()->filter();
-            case 'post_name':       return $mapping->addField('slug')->text();
-            case 'post_parent':     return $mapping->addField('parent')->integer();
-            case 'post_author':     return $mapping->addField('createdby')->text()->filter();
-            case 'post_date':       return $mapping->addField('creation')->dateTime();
-            case 'post_modified':   return $mapping->addField('lastupdate')->dateTime();
-            case 'post_title':      return $mapping->addField('title')->text();
-            case 'post_content':    return $mapping->addField('content')->text();
-            case 'post_excerpt':    return $mapping->addField('excerpt')->text();
-            default:
-                throw new InvalidArgumentException("Field '$field' not supported");
-        }
-    }
-
-    /**
-     * Mappe un champ WordPress standard.
-     *
-     * @param string $field Le nom du champ
-     * @param la valeur du champ $value
-     * @param array $document Le document à génerer.
-     *
-     * @throws InvalidArgumentException Si le champ indiqué n'est pas géré.
-     */
-    public static function standardMap($field, $value, array & $document)
-    {
-        switch ($field) {
-            case 'ID':
-                return; // non indexé, on a déjà _id géré par ES
-
-            case 'post_type':
-                return; // non indexé, on a déjà _type géré par ES
-
-            case 'post_status':
-                if (! is_null($status = get_post_status_object($value))) {
-                    $value = $status->label;
-                }
-                $document['status'] = $value;
-
-                return;
-
-            case 'post_name':
-                $document['slug'] = $value;
-
-                return;
-
-            case 'post_parent':
-                $document['parent'] = (int) $value;
-
-                return;
-
-            case 'post_author':
-                if (false !== $user = get_user_by('id', $value)) { /* @var $user WP_User */
-                    $value = $user->user_login;
-                }
-                $document['createdby'] = $value;
-
-                return;
-
-            case 'post_date':
-                $document['creation'] = $value;
-
-                return;
-
-            case 'post_modified':
-                $document['lastupdate'] = $value;
-
-                return;
-
-            case 'post_title':
-                $document['title'] = $value;
-
-                return;
-
-            case 'post_content':
-                $document['content'] = $value;
-
-                return;
-
-            case 'post_excerpt':
-                $document['excerpt'] = $value;
-
-                return;
-
-            default:
-                throw new InvalidArgumentException("Field '$field' not supported");
-        }
     }
 }

@@ -33,7 +33,7 @@ class NullIndexer extends TypeIndexer
         parent::__construct('null');
     }
 
-    public function realtime()
+    public function activeRealtime()
     {
         return;
     }

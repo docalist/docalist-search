@@ -11,8 +11,10 @@
  * @subpackage  Search
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
-namespace Docalist\Search;
+namespace Docalist\Search\Indexer;
 
+use Docalist\Search\IndexManager;
+use Docalist\Search\Indexer\AbstractIndexer;
 use wpdb;
 use WP_Post;
 use Docalist\MappingBuilder;
@@ -21,7 +23,7 @@ use InvalidArgumentException;
 /**
  * Un indexeur pour les articles de WordPress.
  */
-class PostIndexer extends TypeIndexer
+class PostIndexer extends AbstractIndexer
 {
     /**
      * Liste des champs WordPress standard qu'on sait indexer.
@@ -33,14 +35,14 @@ class PostIndexer extends TypeIndexer
         'post_title', 'post_content',  'post_excerpt',
     ];
 
-    public function __construct($type = 'post')
+    public function getType()
     {
-        parent::__construct($type);
+        return 'post';
     }
 
     public function getLabel()
     {
-        return get_post_type_object($this->type)->labels->name;
+        return get_post_type_object($this->getType())->labels->name;
     }
 
     public function getCategory()
@@ -62,18 +64,54 @@ class PostIndexer extends TypeIndexer
         return $settings;
     }
 
-    public function activeRealtime()
+    /**
+     * Retourne la liste des status à indexer.
+     *
+     * @return string
+     */
+    protected function getStatuses()
     {
-        add_action('transition_post_status', function ($newStatus, $oldStatus, WP_Post $post) {
-            $this->onStatusChange($newStatus, $oldStatus, $post);
-        }, 10, 3);
-
-            add_action('delete_post', function ($id) {
-                $this->onDelete($id);
-            });
+        return ['publish', 'pending', 'private'];
     }
 
-    public function indexAll(Indexer $indexer)
+    public function activateRealtime(IndexManager $indexManager)
+    {
+        $statuses = array_flip($this->getStatuses());
+        $type = $this->getType();
+
+        add_action('transition_post_status',
+            function ($newStatus, $oldStatus, WP_Post $post) use ($indexManager, $type, $statuses)
+            {
+                // Si ce n'est pas un de nos contenus, terminé
+                if ($post->post_type !== $type) {
+                    return;
+                }
+
+                // Si le nouveau statut est indexable, on indexe le post
+                if (isset($statuses[$newStatus])) {
+                    return $this->index($post, $indexManager);
+                }
+
+                // Si le nouveau statut n'est pas indexable mais que l'ancien l'était, on désindexe le post
+                if (isset($statuses[$oldStatus])) {
+                    return $indexManager->delete($this->getType(), $this->getID($post));
+                }
+            },
+            10, 3
+        );
+
+        add_action('deleted_post',
+            function ($id) use ($indexManager)
+            {
+                $post = get_post($id);
+                if ($post->post_type === $this->getType()) {
+                    $indexManager->delete($this->getType(), $this->getID($post));
+                }
+            }
+        );
+    }
+
+    public function indexAll(IndexManager $indexer)
     {
         $wpdb = docalist('wordpress-database'); /* @var wpdb $wpdb */
         $offset = 0;
@@ -126,80 +164,6 @@ class PostIndexer extends TypeIndexer
         }
 
         return $document;
-    }
-
-
-    /**
-     * Retourne la liste des status à indexer.
-     *
-     * @return string
-     */
-    protected function getStatuses()
-    {
-        return ['publish', 'pending', 'private'];
-    }
-
-    /**
-     * Ajoute, modifie ou supprime un post de l'index lorsque son statut change.
-     *
-     * @param string $newStatus
-     * @param string $oldStatus
-     * @param WP_Post $post
-     */
-    protected function onStatusChange($newStatus, $oldStatus, WP_Post $post)
-    {
-        static $statuses = null;
-
-        if ($post->post_type !== $this->type) {
-            return;
-        }
-
-        $this->log && $this->log->debug('Status change for {type}#{ID}: {old}->{new}', [
-            'type' => $this->type,
-            'ID' => $post->ID,
-            'old' => $oldStatus,
-            'new' => $newStatus,
-        ]);
-
-        if (is_null($statuses)) {
-            $statuses = array_flip($this->getStatuses());
-        }
-
-        /* @var $indexer Indexer */
-        $indexer = docalist('docalist-search-indexer');
-
-        // Si le nouveau statut est indexable, on indexe le post
-        if (isset($statuses[$newStatus])) {
-            $this->index($post, $indexer);
-        }
-
-        // Le nouveau statut n'est pas indexé, si l'ancien l'était, on l'enlève
-        elseif (isset($statuses[$oldStatus])) {
-            $indexer->delete($this->type, $post->ID);
-        }
-    }
-
-    /**
-     * Enlève un document de l'index quand il est supprimé.
-     *
-     * @param int $id
-     */
-    protected function onDelete($id)
-    {
-        $post = get_post($id);
-
-        if ($post->post_type !== $this->type) {
-            return;
-        }
-
-        $this->log && $this->log->debug('Deleted {type}#{ID}', [
-            'type' => $this->type,
-            'ID' => $id,
-        ]);
-
-        /* @var $indexer Indexer */
-        $indexer = docalist('docalist-search-indexer');
-        $indexer->delete($this->type, $post->ID);
     }
 
     /**

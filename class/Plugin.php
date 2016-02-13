@@ -13,6 +13,8 @@
  */
 namespace Docalist\Search;
 
+use Docalist\Search\Indexer\PostIndexer;
+use Docalist\Search\Indexer\PageIndexer;
 /* Documentation : doc/search-design.md */
 
 /**
@@ -46,7 +48,7 @@ class Plugin
             'mapping-builder' => function () {
                 return new ElasticSearchMappingBuilder();
             },
-            'docalist-search-indexer' => new Indexer($this->settings),
+            'docalist-search-index-manager' => new IndexManager($this->settings),
             'docalist-search-engine' => new SearchEngine($this->settings),
         ]);
 

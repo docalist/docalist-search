@@ -59,6 +59,11 @@ class SettingsPage extends AdminPage
         });
     }
 
+    /**
+     * Page d'accueil (menu) des réglages Docalist(Search.
+     *
+     * @return ViewResponse
+     */
     public function actionIndex()
     {
         return $this->view('docalist-search:settings/index');
@@ -66,6 +71,8 @@ class SettingsPage extends AdminPage
 
     /**
      * Paramètres du serveur ElasticSearch.
+     *
+     * @return ViewResponse
      */
     public function actionServerSettings()
     {
@@ -77,10 +84,17 @@ class SettingsPage extends AdminPage
                 $_POST = wp_unslash($_POST);
                 $settings->url = rtrim($_POST['url'], '/');
                 $settings->index = $_POST['index'];
-                $settings->connecttimeout = $_POST['connecttimeout'];
-                $settings->timeout = $_POST['timeout'];
+                $settings->shards = (int) $_POST['shards'];
+                $settings->replicas = (int) $_POST['replicas'];
+                $settings->connecttimeout = (int) $_POST['connecttimeout'];
+                $settings->timeout = (int) $_POST['timeout'];
                 $settings->compressrequest = (bool) $_POST['compressrequest'];
                 $settings->compressresponse = (bool) $_POST['compressresponse'];
+                $settings->bulkMaxSize = (int) $_POST['bulkMaxSize'];
+                $settings->bulkMaxCount = (int) $_POST['bulkMaxCount'];
+                if (isset($_POST['realtime']) && $_POST['realtime'] === '') {
+                    $settings->realtime = false;
+                }
 
                 // $settings->validate();
                 $this->settings->save();
@@ -143,39 +157,56 @@ class SettingsPage extends AdminPage
     }
 
     /**
-     * Paramètres de l'indexeur.
+     * Crée (ou recrée) l'index.
+     *
+     * @param array $types Liste des contenus à indexer.
+     *
+     * @return CallbackResponse
      */
-    public function actionIndexerSettings()
+    public function actionCreateIndex($types = null)
     {
         $settings = $this->settings;
-
         $error = '';
-        if ($this->isPost()) {
-            try {
-                $_POST = wp_unslash($_POST);
-                $settings->types = isset($_POST['types']) ? $_POST['types'] : [];
-                $settings->bulkMaxSize = $_POST['bulkMaxSize'];
-                $settings->bulkMaxCount = $_POST['bulkMaxCount'];
-                $settings->realtime = (bool) $_POST['realtime'];
 
-                // $settings->validate();
-                $this->settings->save();
+        // Permet à l'utilisateur de choisir les types à indexer
+        if (is_null($types)) {
+            $this->isPost() && $error = __(
+                'Vous devez sélectionner au moins un type de contenu à indexer.',
+                'docalist-search'
+            );
 
-                // crée l'index, les mappings, etc.
-                $indexer = docalist('docalist-search-indexer'); /* @var $indexer Indexer */
-                $indexer->setup();
-
-                return $this->redirect($this->url('Index'), 303);
-            } catch (Exception $e) {
-                $error = $e->getMessage();
-            }
+            return $this->view('docalist-search:settings/create-index', [
+                'settings' => $settings,
+                'error' => $error,
+                'indexers' => docalist('docalist-search-indexer')->getAvailableIndexers(),
+            ]);
         }
 
-        return $this->view('docalist-search:settings/indexer', [
-            'settings' => $settings,
-            'error' => $error,
-            'types' => docalist('docalist-search-indexer')->availableTypes(true),
-        ]);
+        // Enregistre les types choisis dans les settings
+        $settings->types = $types;
+        $this->settings->save();
+
+        // On retourne une réponse de type "callback" qui va lancer la création de l'index et l'indexation
+        $response = new CallbackResponse(function () use ($types) {
+            // Supprime la bufferisation pour voir le suivi en temps réel
+            while (ob_get_level()) {
+                ob_end_flush();
+            }
+
+            // Pour suivre le déroulement de l'indexation, on affiche une vue qui installe différents filtres sur les
+            // événements déclenchés par l'indexeur.
+            $this->view('docalist-search:settings/reindex')->sendContent();
+
+            // Lance la réindexation
+            $indexer = docalist('docalist-search-indexer'); /* @var $indexer Indexer */
+            $indexer->createIndex();
+        });
+
+        // Indique que notre réponse doit s'afficher dans le back-office wp
+        $response->adminPage(true);
+
+        // Terminé
+        return $response;
     }
 
     /**
@@ -183,11 +214,10 @@ class SettingsPage extends AdminPage
      *
      * Permet entres autres d'activer la recherche.
      *
-     * @return bool
+     * @return ViewResponse
      */
     public function actionSearchSettings()
     {
-
         // Teste si la recherche peut être activée
         $error = '';
         if (! $this->settings->enabled()) {
@@ -248,80 +278,6 @@ class SettingsPage extends AdminPage
             'settings' => $this->settings,
             'error' => $error,
         ]);
-    }
-
-    /**
-     * Gestion des synonymes.
-     *
-     * todo : pouvoir définir les synonymes qu'on veut utiliser pour les champs
-     *
-     * autre p
-     */
-    // public function actionSynonyms() {}
-
-    /**
-     * Fichiers logs.
-     *
-     * todo : logs des recherches, lors des indexations, slowlog...
-     */
-    // public function actionLogs() {}
-
-    /**
-     * Avancé.
-     * Paramétrage des mappings.
-     *
-     * todo : édition du json des mappings d'un type donné. Utile ?
-     */
-    // public function actionMappings() {}
-
-    /**
-     * Avancé.
-     * Paramétrage des mots vides.
-     *
-     * todo : à voir. Dernière version de ES, plus besoin de mots vides.
-     */
-    // public function actionStopwords() {}
-
-    /**
-     * Réindexer la base.
-     *
-     * Permet de lancer une réindexation complète des collections en
-     * choisissant les types de documents à réindexer.
-     *
-     * @param array $types Les types à réindexer
-     */
-    public function actionReindex($selected = null)
-    {
-        // Permet à l'utilisateur de choisir les types à réindexer
-        if (empty($selected)) {
-            return $this->view('docalist-search:settings/reindex-choose', [
-                'types' => docalist('docalist-search-indexer')->indexedTypes(true),
-            ]);
-        }
-
-        // On va retourner une réponse de type "callback" qui va lancer la
-        // réindexation à proprement parler lorsqu'elle sera générée.
-        $response = new CallbackResponse(function () use ($selected) {
-
-            // Supprime la bufferisation pour voir le suivi en temps réel
-            while (ob_get_level()) {
-                ob_end_flush();
-            }
-
-            // Pour suivre le déroulement de la réindexation, on affiche
-            // une vue qui installe différents filtres sur les événements
-            // déclenchés par l'indexeur.
-            $this->view('docalist-search:settings/reindex')->sendContent();
-
-            // Lance la réindexation
-            docalist('docalist-search-indexer')->reindex($selected);
-        });
-
-        // Indique que notre réponse doit s'afficher dans le back-office wp
-        $response->adminPage(true);
-
-        // Terminé
-        return $response;
     }
 
     /*

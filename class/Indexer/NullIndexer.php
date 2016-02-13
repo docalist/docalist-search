@@ -11,7 +11,10 @@
  * @subpackage  Search
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
-namespace Docalist\Search;
+namespace Docalist\Search\Indexer;
+
+use Docalist\Search\Indexer\AbstractIndexer;
+use Docalist\Search\IndexManager;
 
 /**
  * Un indexeur qui ne fait rien.
@@ -26,11 +29,11 @@ namespace Docalist\Search;
  * faisait avant), l'indexeur manquant est remplacé par un NullIndexer et une
  * admin notice est générée.
  */
-class NullIndexer extends TypeIndexer
+class NullIndexer extends AbstractIndexer
 {
-    public function __construct()
+    public function getType()
     {
-        parent::__construct('null');
+        return 'null';
     }
 
     public function activeRealtime()
@@ -48,7 +51,7 @@ class NullIndexer extends TypeIndexer
         return [];
     }
 
-    public function indexAll(Indexer $indexer)
+    public function indexAll(IndexManager $indexManager)
     {
         return;
     }

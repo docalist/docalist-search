@@ -16,7 +16,7 @@ namespace Docalist\Search\Views;
 use Docalist\Search\SettingsPage;
 use Docalist\Search\Settings;
 use Docalist\Forms\Form;
-use Docalist\Search\TypeIndexer;
+use Docalist\Search\Indexer\IndexerInterface;
 
 /**
  * Créer/recréer l'index
@@ -29,7 +29,7 @@ use Docalist\Search\TypeIndexer;
 
 // Crée la liste des types disponibles (options de la checklist)
 $types = [];
-foreach($indexers as $indexer) { /* @var TypeIndexer $indexer */
+foreach($indexers as $indexer) { /* @var IndexerInterface $indexer */
     $types[$indexer->getCategory()][$indexer->getType()] = $indexer->getLabel();
 }
 ?>

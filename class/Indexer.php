@@ -262,6 +262,12 @@ class Indexer
         // A partir de maintenant, toutes les écritures se font dans le nouvel index, que ce soient les nôtres ou
         // celles faites depuis une autre requête php (sauvegarde d'une notice pendant qu'on réindexe, par exemple)
 
+        // Active l'indexation en temps réel si elle ne l'était pas encore
+        if (! $this->settings->realtime()) {
+            $this->settings->realtime = true;
+            $this->settings->save();
+        }
+
         // Réindexe tous les contenus
         $this->reindex($this->settings->types());
 

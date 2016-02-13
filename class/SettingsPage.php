@@ -187,7 +187,7 @@ class SettingsPage extends AdminPage
         $this->settings->save();
 
         // On retourne une réponse de type "callback" qui va lancer la création de l'index et l'indexation
-        $response = new CallbackResponse(function () use ($types) {
+        $response = new CallbackResponse(function () {
             // Supprime la bufferisation pour voir le suivi en temps réel
             while (ob_get_level()) {
                 ob_end_flush();

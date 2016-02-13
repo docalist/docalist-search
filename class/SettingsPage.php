@@ -118,10 +118,10 @@ class SettingsPage extends AdminPage
      */
     public function actionServerStatus()
     {
-        /* @var $indexer Indexer */
-        $indexer = docalist('docalist-search-indexer');
+        /* @var $indexManager IndexManager */
+        $indexManager = docalist('docalist-search-index-manager');
 
-        switch ($indexer->ping()) {
+        switch ($indexManager->ping()) {
             case 0:
                 $msg = __("L'url %s ne répond pas.", 'docalist-search');
 
@@ -178,7 +178,7 @@ class SettingsPage extends AdminPage
             return $this->view('docalist-search:settings/create-index', [
                 'settings' => $settings,
                 'error' => $error,
-                'indexers' => docalist('docalist-search-indexer')->getAvailableIndexers(),
+                'indexers' => docalist('docalist-search-index-manager')->getAvailableIndexers(),
             ]);
         }
 
@@ -198,8 +198,8 @@ class SettingsPage extends AdminPage
             $this->view('docalist-search:settings/reindex')->sendContent();
 
             // Lance la réindexation
-            $indexer = docalist('docalist-search-indexer'); /* @var $indexer Indexer */
-            $indexer->createIndex();
+            $indexManager = docalist('docalist-search-index-manager'); /* @var $indexManager IndexManager */
+            $indexManager->createIndex();
         });
 
         // Indique que notre réponse doit s'afficher dans le back-office wp
@@ -221,9 +221,9 @@ class SettingsPage extends AdminPage
         // Teste si la recherche peut être activée
         $error = '';
         if (! $this->settings->enabled()) {
-            /* @var $indexer Indexer */
-            $indexer = docalist('docalist-search-indexer');
-            $ping = $indexer->ping();
+            /* @var $indexManager IndexManager */
+            $indexManager = docalist('docalist-search-index-manager');
+            $ping = $indexManager->ping();
 
             // 0. ES ne répond pas
             if ($ping === 0) {

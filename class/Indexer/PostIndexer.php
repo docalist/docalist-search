@@ -14,27 +14,15 @@
 namespace Docalist\Search\Indexer;
 
 use Docalist\Search\IndexManager;
-use Docalist\Search\Indexer\AbstractIndexer;
+use Docalist\Search\ElasticSearchMappingBuilder;
 use wpdb;
 use WP_Post;
-use Docalist\MappingBuilder;
-use InvalidArgumentException;
 
 /**
  * Un indexeur pour les articles de WordPress.
  */
 class PostIndexer extends AbstractIndexer
 {
-    /**
-     * Liste des champs WordPress standard qu'on sait indexer.
-     *
-     * @var string[]
-     */
-    protected static $stdFields = [
-        'ID', 'post_type', 'post_status', 'post_name', 'post_parent', 'post_author', 'post_date', 'post_modified',
-        'post_title', 'post_content',  'post_excerpt',
-    ];
-
     public function getType()
     {
         return 'post';
@@ -52,11 +40,19 @@ class PostIndexer extends AbstractIndexer
 
     public function buildIndexSettings(array $settings)
     {
-        $mapping = docalist('mapping-builder'); /* @var MappingBuilder $mapping */
-        $mapping->reset()->setDefaultAnalyzer('fr-text'); // todo : rendre configurable
+        $mapping = new ElasticSearchMappingBuilder('fr-text'); // todo : rendre configurable
 
-        foreach (self::$stdFields as $field) {
-            static::standardMapping($field, $mapping);
+        // On n'indexe pas post_ID et post_type car ElasticSearch gère déjà _id et _type
+        $mapping->addField('status')->text()->filter();
+        $mapping->addField('slug')->text();
+        $mapping->addField('createdby')->text()->filter();
+        $mapping->addField('creation')->dateTime();
+        $mapping->addField('lastupdate')->dateTime();
+        $mapping->addField('title')->text();
+        $mapping->addField('content')->text();
+        $mapping->addField('excerpt')->text();
+        if (is_post_type_hierarchical($this->getType())) {
+            $mapping->addField('parent')->integer();
         }
 
         $settings['mappings'][$this->getType()] = $mapping->getMapping();
@@ -80,8 +76,7 @@ class PostIndexer extends AbstractIndexer
         $type = $this->getType();
 
         add_action('transition_post_status',
-            function ($newStatus, $oldStatus, WP_Post $post) use ($indexManager, $type, $statuses)
-            {
+            function ($newStatus, $oldStatus, WP_Post $post) use ($indexManager, $type, $statuses) {
                 // Si ce n'est pas un de nos contenus, terminé
                 if ($post->post_type !== $type) {
                     return;
@@ -94,24 +89,23 @@ class PostIndexer extends AbstractIndexer
 
                 // Si le nouveau statut n'est pas indexable mais que l'ancien l'était, on désindexe le post
                 if (isset($statuses[$oldStatus])) {
-                    return $indexManager->delete($this->getType(), $this->getID($post));
+                    return $this->remove($post, $indexManager);
                 }
             },
             10, 3
         );
 
         add_action('deleted_post',
-            function ($id) use ($indexManager)
-            {
+            function ($id) use ($indexManager) {
                 $post = get_post($id);
                 if ($post->post_type === $this->getType()) {
-                    $indexManager->delete($this->getType(), $this->getID($post));
+                    return $this->remove($post, $indexManager);
                 }
             }
         );
     }
 
-    public function indexAll(IndexManager $indexer)
+    public function indexAll(IndexManager $indexManager)
     {
         $wpdb = docalist('wordpress-database'); /* @var wpdb $wpdb */
         $offset = 0;
@@ -142,7 +136,7 @@ class PostIndexer extends AbstractIndexer
 
             // Indexe tous les posts de ce lot
             foreach ($posts as $post) {
-                $this->index($post, $indexer);
+                $this->index($post, $indexManager);
             }
 
             // Passe au lot suivant
@@ -158,113 +152,42 @@ class PostIndexer extends AbstractIndexer
     protected function map($post) /* @var $post WP_Post */
     {
         $document = [];
-        foreach (self::$stdFields as $field) {
-            $value = $post->$field;
-            $value && static::standardMap($field, $value, $document);
+
+        // Statut
+        $status = get_post_status_object($post->post_status);
+        $document['status'] = $status ? $status->label : $post->post_status;
+
+        // Slug
+        $document['slug'] = $post->post_name;
+
+        // Auteur
+        $user = get_user_by('id', $post->post_author);
+        $document['createdby'] = $user ? $user->user_login : $post->post_author;
+
+        // Date de création
+        $document['creation'] = $post->post_date;
+
+        // Date de modification
+        $document['lastupdate'] = $post->post_modified;
+
+        // Titre
+        $document['title'] = $post->post_title;
+
+        // Extrait
+        if (! empty($post->post_excerpt)) {
+            $document['excerpt'] = $post->post_excerpt;
+        }
+
+        // Contenu
+        if (! empty($post->post_content)) {
+            $document['content'] = $post->post_content;
+        }
+
+        // Parent
+        if (is_post_type_hierarchical($this->getType()) && ! empty($post->post_parent)) {
+            $document['parent'] = (int) $post->post_parent;
         }
 
         return $document;
-    }
-
-    /**
-     * Génère le mapping standard à utiliser pour un champ WordPress.
-     *
-     * @param string $field Le nom d'un champ WP_Post.
-     * @param MappingBuilder $mapping Le mapping à modifier.
-     *
-     * @throws InvalidArgumentException Si le champ indiqué n'est pas géré.
-     */
-    public static function standardMapping($field, MappingBuilder $mapping)
-    {
-        switch ($field) {
-            case 'ID':              // non indexé, on a déjà _id géré par ES
-            case 'post_type':       // non indexé, on a déjà _type géré par ES
-                return;
-            case 'post_status':     return $mapping->addField('status')->text()->filter();
-            case 'post_name':       return $mapping->addField('slug')->text();
-            case 'post_parent':     return $mapping->addField('parent')->integer();
-            case 'post_author':     return $mapping->addField('createdby')->text()->filter();
-            case 'post_date':       return $mapping->addField('creation')->dateTime();
-            case 'post_modified':   return $mapping->addField('lastupdate')->dateTime();
-            case 'post_title':      return $mapping->addField('title')->text();
-            case 'post_content':    return $mapping->addField('content')->text();
-            case 'post_excerpt':    return $mapping->addField('excerpt')->text();
-            default:
-                throw new InvalidArgumentException("Field '$field' not supported");
-        }
-    }
-
-    /**
-     * Mappe un champ WordPress standard.
-     *
-     * @param string $field Le nom du champ
-     * @param la valeur du champ $value
-     * @param array $document Le document à génerer.
-     *
-     * @throws InvalidArgumentException Si le champ indiqué n'est pas géré.
-     */
-    public static function standardMap($field, $value, array & $document)
-    {
-        switch ($field) {
-            case 'ID':
-                return; // non indexé, on a déjà _id géré par ES
-
-            case 'post_type':
-                return; // non indexé, on a déjà _type géré par ES
-
-            case 'post_status':
-                if (! is_null($status = get_post_status_object($value))) {
-                    $value = $status->label;
-                }
-                $document['status'] = $value;
-
-                return;
-
-            case 'post_name':
-                $document['slug'] = $value;
-
-                return;
-
-            case 'post_parent':
-                $document['parent'] = (int) $value;
-
-                return;
-
-            case 'post_author':
-                if (false !== $user = get_user_by('id', $value)) { /* @var $user WP_User */
-                    $value = $user->user_login;
-                }
-                $document['createdby'] = $value;
-
-                return;
-
-            case 'post_date':
-                $document['creation'] = $value;
-
-                return;
-
-            case 'post_modified':
-                $document['lastupdate'] = $value;
-
-                return;
-
-            case 'post_title':
-                $document['title'] = $value;
-
-                return;
-
-            case 'post_content':
-                $document['content'] = $value;
-
-                return;
-
-            case 'post_excerpt':
-                $document['excerpt'] = $value;
-
-                return;
-
-            default:
-                throw new InvalidArgumentException("Field '$field' not supported");
-        }
     }
 }

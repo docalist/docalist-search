@@ -467,12 +467,18 @@ class IndexManager
             return $this;
         }
 
-        // Réinitialise le cache wordpress
-        wp_cache_init();//********************** non, on ne veut pas pour un save unitaire
-
         // Stocke la taille actuelle du buffer
         $count = $this->bulkCount;
         $size = strlen($this->bulk);
+
+        // Réinitialise périodiquement le cache WordPress
+        if ($count >= $this->bulkMaxCount || $size >= $this->bulkMaxSize) {
+            wp_cache_init();
+            // Tous les dropins "object-cache" de WordPress consomment de la mémoire (cache interne le temps de la
+            // requête pour éviter d'appeller le backend, stats sur le nombre de hits, etc.) Pour une requête normale
+            // ça ne pose pas de problème, mais lors d'une indexation complète, on finit par consommer toute la
+            // mémoire php disponible. Pour éviter ça, on réinitialise périodiquement le cache.
+        }
 
         // Informe qu'on va flusher
         $this->log && $this->log->info('flush()', ['count' => $count, 'size' => $size]);

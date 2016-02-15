@@ -21,7 +21,7 @@ use RuntimeException;
 use Exception;
 
 /**
- * L'indexeur.
+ * Gestionnaire d'index docalist-search.
  */
 class IndexManager
 {
@@ -107,6 +107,23 @@ class IndexManager
      * cf. updateStat() pour le détail des statistiques générées pour chaque type.
      */
     protected $stats = [];
+
+    /**
+     * Traduit un type ElasticSearch (_type) en nom de type tel que vu par l'utilisateur.
+     *
+     * Souvent, le type ES et le type utilisateur sont les mêmes (post, page...) mais pour une base doc, ce n'est
+     * pas le cas : le type utilisateur sera (par exemple) "dbprisme" alors que les types ES indiqueront le type
+     * de notice ("dbprisme-article" par exemple).
+     *
+     * Ce tableau est un mapping entre les types ES et le type utilisateur correspondant
+     * (par exemple "dbprisme-article" => "dbprisme" avec l'exemple ci-dessus).
+     *
+     * Le tableau est initialisé au fil de l'eau dans index() et remove() et il est utilisé dans flush() pour
+     * stocker les statistiques de réindexation dans le bon type.
+     *
+     * @var string[]
+     */
+    protected $esType = [];
 
     /**
      * Construit un nouvel indexeur.
@@ -342,8 +359,9 @@ class IndexManager
      * @param string $type Le type du document.
      * @param scalar $id L'identifiant du document.
      * @param array $document Les données du document.
+     * @param string $esType Nom du mapping ElasticSearch à utiliser si différent de $type.
      */
-    public function index($type, $id, array $document)
+    public function index($type, $id, array $document, $esType = null)
     {
         // Format d'une commande "bulk index" pour ES
         static $format = "{\"index\":{\"_type\":%s,\"_id\":%s}}\n%s\n";
@@ -351,7 +369,16 @@ class IndexManager
         // Vérifie le type et l'id
         $this->checkType($type)->checkId($id);
 
-        $this->log && $this->log->info('index({type},{id})', ['type' => $type, 'id' => $id, 'document' => $document]);
+        // esType sert à initialiser _type, par défaut est égal à type, différent pour un Database
+        is_null($esType) && $esType = $type;
+        $this->esType[$esType] = $type;
+
+        $this->log && $this->log->info('index({type},{id})', [
+            'type' => $type,
+            '_type' => $esType,
+            'id' => $id,
+            'document' => $document
+        ]);
 
         // Flushe le buffer si nécessaire
         $this->maybeFlush();
@@ -359,7 +386,7 @@ class IndexManager
         // Stocke la commande dans le buffer
         $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
         $document = json_encode($document, $options);
-        $this->bulk .= sprintf($format, json_encode($type, $options), json_encode($id, $options), $document);
+        $this->bulk .= sprintf($format, json_encode($esType, $options), json_encode($id, $options), $document);
         ++$this->bulkCount;
 
         // Met à jour les statistiques sur la taille des documents
@@ -379,8 +406,9 @@ class IndexManager
      *
      * @param string $type Le type du document.
      * @param scalar $id L'identifiant du document.
+     * @param string $esType Nom du mapping ElasticSearch à utiliser si différent de $type.
      */
-    public function delete($type, $id)
+    public function delete($type, $id, $esType = null)
     {
         // Format d'une commande "bulk delete" pour ES
         static $format = "{\"delete\":{\"_type\":%s,\"_id\":%s}}\n";
@@ -388,7 +416,15 @@ class IndexManager
         // Vérifie le type et l'id
         $this->checkType($type)->checkId($id);
 
-        $this->log && $this->log->info('delete({type},{id})', ['type' => $type, 'id' => $id]);
+        // esType sert à initialiser _type, par défaut est égal à type, différent pour un Database
+        is_null($esType) && $esType = $type;
+        $this->esType[$esType] = $type;
+
+        $this->log && $this->log->info('delete({type},{id})', [
+            'type' => $type,
+            '_type' => $esType,
+            'id' => $id]
+        );
 
         // Flushe le buffer si nécessaire
         $this->maybeFlush();
@@ -470,16 +506,18 @@ class IndexManager
                         );
                         $this->log && $this->log->error('Indexing error', ['item' => $item]);
                     } else {
-                        $this->updateStat($item->_type, 'indexed', 1);
+                        $type = $this->esType[$item->_type];
+                        $this->updateStat($type, 'indexed', 1);
                         if ($item->_version === 1) {
-                            $this->updateStat($item->_type, 'added', 1);
+                            $this->updateStat($type, 'added', 1);
                         } else {
-                            $this->updateStat($item->_type, 'updated', 1);
+                            $this->updateStat($type, 'updated', 1);
                         }
                     }
                 } elseif (isset($item->delete)) {
                     $item = $item->delete;
-                    $this->updateStat($item->_type, 'deleted', 1);
+                    $type = $this->esType[$item->_type];
+                    $this->updateStat($type, 'deleted', 1);
                 } else {
                     printf(
                         "<p style='color:red'>Unknown bulk response type:<pre>%s</pre></p>",

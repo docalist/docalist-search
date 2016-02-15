@@ -75,7 +75,7 @@ abstract class AbstractIndexer implements IndexerInterface
      * @param object $content
      * @param IndexManager $indexManager Le gestionnaire d'index docalist-search.
      */
-    final protected function index($content, IndexManager $indexManager)
+    protected function index($content, IndexManager $indexManager)
     {
         $indexManager->index($this->getType(), $this->getID($content), $this->map($content));
     }
@@ -86,7 +86,7 @@ abstract class AbstractIndexer implements IndexerInterface
      * @param object|scalar $content Le contenu ou l'id du contenu à supprimer.
      * @param IndexManager $indexManager Le gestionnaire d'index docalist-search.
      */
-    final protected function remove($content, IndexManager $indexManager)
+    protected function remove($content, IndexManager $indexManager)
     {
         $indexManager->delete($this->getType(), is_scalar($content) ? $content : $this->getID($content));
     }

@@ -51,8 +51,21 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     protected $mapping;
 
     /**
-     * Une référence vers le dernier champ ou le dernier template ajouté au
-     * mapping.
+     * Une référence vers l'objet en cours.
+     *
+     * Initialement, c'est l'objet mapping, mais si on appelle innerObject() ou nested() l'objet en cours est
+     * initialisé avec le champ en cours et les méthodes addField(), text(), date(), etc. modifieront cet objet
+     * et non le mapping global.
+     *
+     * Une fois qu'on a terminé le paramétrage d'un innerObject ou d'un nested, il faut obligatoirement appeller
+     * la méthode done() pour remonter d'un niveau.
+     *
+     * @var array
+     */
+    protected $currentObject;
+
+    /**
+     * Une référence vers le dernier champ ou le dernier template ajouté.
      *
      * @var array
      */
@@ -66,7 +79,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
      */
     public function __construct($defaultAnalyzer = 'text')
     {
-        $this->reset()->setDefaultAnalyzer($defaultAnalyzer);
+        $this->reset()->setDefaultAnalyzer($defaultAnalyzer)->done();
     }
 
     // -------------------------------------------------------------------------
@@ -87,17 +100,24 @@ class ElasticSearchMappingBuilder implements MappingBuilder
 
     public function addField($name)
     {
-        if (isset($this->mapping['properties'][$name])) {
+        if (isset($this->currentObject[$name])) {
             throw new InvalidArgumentException("Field '$name' is already defined");
         }
 
-        $this->mapping['properties'][$name] = [];
+        $this->currentObject[$name] = [];
 
-        $this->last = & $this->mapping['properties'][$name];
+        $this->last = & $this->currentObject[$name];
 
         return $this;
     }
+/*
+    public function addProperties($properties)
+    {
+        $this->last += $properties;
 
+        return $this;
+    }
+*/
     public function addTemplate($match)
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-templates.html
@@ -116,6 +136,56 @@ class ElasticSearchMappingBuilder implements MappingBuilder
         ];
 
         $this->last = & $this->mapping['dynamic_templates'][$pos][$match]['mapping'];
+
+        return $this;
+    }
+
+    /**
+     * Indique que le champ est de type objet imbriqué.
+     *
+     * Tous les appels suivants à la méthode addField() ajouteront des champs à l'objet jusqu'à ce que done() soit
+     * appellée.
+     *
+     * @return self
+     */
+    public function innerObject()
+    {
+        // https://www.elastic.co/guide/en/elasticsearch/reference/master/object.html
+        $this->last['type'] = 'object';
+        $this->last['properties'] = [];
+
+        $this->currentObject = & $this->last['properties'];
+
+        return $this;
+    }
+
+    /**
+     * Indique que le champ est de type nested.
+     *
+     * Tous les appels suivants à la méthode addField() ajouteront des champs à l'objet jusqu'à ce que done() soit
+     * appellée.
+     *
+     * @return self
+     */
+    public function nested()
+    {
+        // https://www.elastic.co/guide/en/elasticsearch/reference/master/nested.html
+        $this->last['type'] = 'nested';
+        $this->last['properties'] = [];
+
+        $this->currentObject = & $this->last['properties'];
+
+        return $this;
+    }
+
+    /**
+     * Indique que la création d'un objet créé via un appel à innerObject() ou nested() est terminée.
+     *
+     * @return self
+     */
+    public function done()
+    {
+        $this->currentObject = & $this->mapping['properties'];
 
         return $this;
     }
@@ -260,11 +330,11 @@ class ElasticSearchMappingBuilder implements MappingBuilder
 
     public function copyFrom($field)
     {
-        if (! isset($this->mapping['properties'][$field])) {
+        if (! isset($this->currentObject[$field])) {
             throw new InvalidArgumentException("Field '$field' not found");
         }
 
-        $this->last = $this->mapping['properties'][$field];
+        $this->last = $this->currentObject[$field];
 
         // La ligne ci-dessus est difficile à comprendre car on voit mal comment ça peut faire une copie du mapping.
         // Cela fonctionne car :

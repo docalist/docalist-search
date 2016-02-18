@@ -64,6 +64,20 @@ use Docalist\Search\SettingsPage;
     <p class="description">
         <?= __("Choix de la page des réponses, activation de la recherche Docalist Search.", 'docalist-search') ?>
     </p>
+
+    <h2 style="margin-top: 5em;">
+        <?= __("Outils de débogage", 'docalist-search') ?>
+    </h2>
+
+    <ul class="ul-square">
+        <li>
+            <a href="<?= esc_url($this->url('FieldData')) ?>">
+                <?= __("FieldData : affiche le contenu exact des documents stockés dans l'index", 'docalist-search') ?>
+            </a>
+        </li>
+    </ul>
+
+
 <?php /*
     <h2>
         <a href="<?= esc_url($this->url('ServerStatus')) ?>">

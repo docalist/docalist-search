@@ -60,7 +60,7 @@ class SettingsPage extends AdminPage
     }
 
     /**
-     * Page d'accueil (menu) des réglages Docalist(Search.
+     * Page d'accueil (menu) des réglages Docalist-Search.
      *
      * @return ViewResponse
      */
@@ -309,4 +309,52 @@ class SettingsPage extends AdminPage
      *    existe déjà). Après en routine, c'est une simple confirmation (ok,
      *    l'index que j'ai choisit existe toujours).
      */
+
+    protected function getAllFields()
+    {
+        // On fait une recherche * en demandant une aggrégation su rle champ spécial _field_names
+        // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-field-names-field.html
+        $response = docalist('elastic-search')->get('/{index}/_search', [
+            'size' => 0,
+            'aggs' => [
+                'fields' => [ // Nom de l'aggrégation générée
+                    'terms' => [
+                        'field' => '_field_names',
+                        'size' => 0, // 0 = pas de limit (INT_MAX)
+                        'order' => [ '_term' => 'asc' ],
+                    ],
+                ],
+            ]
+        ]);
+
+        $fields = [];
+        foreach($response->aggregations->fields->buckets as $bucket) {
+            $field = $bucket->key;
+            // On ne peut avoir de "field data" pour le champ source, ni pour un champ de type "completion"
+            if ($field === '_source' || substr($field, -8) === '.suggest') {
+                continue;
+            }
+            $fields[] = $field;
+        }
+
+        return $fields;
+    }
+
+    public function actionFieldData($query = '*')
+    {
+        $response = docalist('elastic-search')->get('/{index}/_search', [
+            'query' => [
+                'query_string' => [
+                    'query' => $query,
+                ],
+            ],
+            'fielddata_fields' => $this->getAllFields(),
+        ]);
+
+        return $this->view('docalist-search:debug/field-data', [
+            'query' => $query,
+            'response' => $response
+        ]);
+
+    }
 }

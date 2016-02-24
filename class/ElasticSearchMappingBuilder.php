@@ -190,6 +190,16 @@ class ElasticSearchMappingBuilder implements MappingBuilder
         return $this;
     }
 
+    public function keyword()
+    {
+        // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
+        // https://github.com/elastic/elasticsearch/issues/12394
+        $this->last['type'] = 'string';
+        $this->last['index'] = 'not_analyzed';
+
+        return $this;
+    }
+
     public function literal()
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html

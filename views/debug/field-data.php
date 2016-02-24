@@ -25,6 +25,20 @@ use stdClass;
  * @var stdClass        $response   Réponse ElasticSearch.
  */
 ?>
+<style>
+    .field-data {
+        table-layout: fixed;
+    }
+    .field-data .field {
+        width: 20%;
+    }
+    .field-data .terms {
+        width: 40%;
+    }
+    .field-data .source {
+        width: 40%;
+    }
+</style>
 <div class="wrap">
     <h1><?= __('Debug', 'docalist-search') ?></h1>
 
@@ -39,8 +53,8 @@ use stdClass;
         if (empty($response->hits->hits)) {
             echo '<p>Aucune réponse</p>';
         } else {
-            echo '<table border="0" class="widefat">';
-            echo '<tr><th>Champ</th><th>Contenu</th><th>Termes indexés</th></tr>';
+            echo '<table class="widefat field-data">';
+            echo '<tr><th class="field">Champ</th><th class="terms">Termes indexés</th><th class="source">Source</th></tr>';
             foreach($response->hits->hits as $hit) {
                 $rows = [];
                 $fields = $hit->fields;
@@ -79,8 +93,8 @@ use stdClass;
                         '<tr class="%s"><td class="row-title">%s</td><td>%s</td><td>%s</td></tr>',
                         $alt ? 'alternate' : '',
                         $field,
-                        htmlspecialchars($value),
-                        $terms
+                        $terms,
+                        htmlspecialchars($value)
                     );
 
                     $alt = !$alt;

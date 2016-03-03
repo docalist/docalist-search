@@ -42,10 +42,10 @@ class PostIndexer extends AbstractIndexer
     {
         $mapping = new ElasticSearchMappingBuilder('fr-text'); // todo : rendre configurable
 
-        // On n'indexe pas post_ID et post_type car ElasticSearch gère déjà _id et _type
-        $mapping->addField('status')->text()->filter();
+        $mapping->addField('type')->keyword();
+        $mapping->addField('status')->keyword();
         $mapping->addField('slug')->text();
-        $mapping->addField('createdby')->text()->filter();
+        $mapping->addField('createdby')->keyword();
         $mapping->addField('creation')->dateTime();
         $mapping->addField('lastupdate')->dateTime();
         $mapping->addField('title')->text();
@@ -152,6 +152,9 @@ class PostIndexer extends AbstractIndexer
     protected function map($post) /* @var $post WP_Post */
     {
         $document = [];
+
+        // Type
+        $document['type'] = $this->getType();
 
         // Statut
         $status = get_post_status_object($post->post_status);

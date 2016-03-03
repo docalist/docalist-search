@@ -15,7 +15,8 @@ namespace Docalist\Search;
 
 use Docalist\Search\Indexer\PostIndexer;
 use Docalist\Search\Indexer\PageIndexer;
-/* Documentation : doc/search-design.md */
+use Docalist\Search\Lookup\IndexLookup;
+use Docalist\Search\Lookup\SearchLookup;
 
 /**
  * Plugin Docalist Search.
@@ -50,6 +51,14 @@ class Plugin
             },
             'docalist-search-index-manager' => new IndexManager($this->settings),
             'docalist-search-engine' => new SearchEngine($this->settings),
+
+            'index-lookup' => function() {
+                return new IndexLookup();
+            },
+
+            'search-lookup' => function() {
+                return new SearchLookup();
+            },
         ]);
 
         // Liste des indexeurs prédéfinis
@@ -74,9 +83,9 @@ class Plugin
         });
 
         // Définit les lookups de type "index"
-        add_filter('docalist_index_lookup', function ($value, $source, $search) {
-            return docalist('docalist-search-engine')->lookup($source, $search);
-        }, 10, 3);
+//         add_filter('docalist_index_lookup', function ($value, $source, $search) {
+//             return docalist('docalist-search-engine')->termLookup($source, $search);
+//         }, 10, 3);
     }
 
     /**

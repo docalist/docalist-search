@@ -223,7 +223,7 @@ class IndexManager
      *
      * @return array
      */
-    protected function getIndexSettings()
+    public function getIndexSettings()
     {
         // Crée le settings de base
         $settings = require __DIR__ . '/../index-settings/default.php';

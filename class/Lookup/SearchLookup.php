@@ -30,7 +30,7 @@ class SearchLookup implements LookupInterface
 
     public function getCacheMaxAge()
     {
-        return 10 * MINUTE_IN_SECONDS; // peut changer à chaque enregistrement de notice (candidat descripteurs, etc.)
+        return 0; // Pas de cache
     }
 
     public function getDefaultSuggestions($source = '')

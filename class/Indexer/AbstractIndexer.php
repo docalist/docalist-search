@@ -40,9 +40,15 @@ abstract class AbstractIndexer implements IndexerInterface
         return $settings;
     }
 
-    abstract public function activateRealtime(IndexManager $indexManager);
+    public function activateRealtime(IndexManager $indexManager)
+    {
+        return $this; // par défaut, ne fait rien (exemple NullIndexer)
+    }
 
-    abstract public function indexAll(IndexManager $indexManager);
+    public function indexAll(IndexManager $indexManager)
+    {
+        return $this; // par défaut, ne fait rien (exemple NullIndexer)
+    }
 
     /*
      * API interne des indexeurs (méthodes destinées à être surchargées par les classes descendantes)

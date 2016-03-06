@@ -61,10 +61,10 @@ class IndexManager
      * Exemple :
      *
      * <code>
-     *     {"index":{"_type": "dclref", "_id":1234}}\n      // indexer cette notice
+     *     {"index":{"_type": "dbbasedoc", "_id":1234}}\n      // indexer cette notice
      *     {"ref":12,"title":"test1", etc.}\n
      *     {"delete":{"_type": "post", "_id":13}}\n         // supprimer cet article
-     *     {"index":{"_type": "dclresource", "_id":5678}}\n // indexer cette ressource
+     *     {"index":{"_type": "dbwebs", "_id":5678}}\n // indexer cette ressource
      *     {"ref":25,"title":"test2", etc.}\n
      *     etc.
      * </code>

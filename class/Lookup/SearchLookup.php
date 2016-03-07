@@ -14,6 +14,7 @@
 namespace Docalist\Search\Lookup;
 
 use Docalist\Lookup\LookupInterface;
+use wpdb;
 
 /**
  * Lookup sur les titres des posts et des notices.
@@ -98,10 +99,45 @@ class SearchLookup implements LookupInterface
                 'code' => $hit->_id,
                 'label' => $hit->_source->title ?: ('ID #' . $hit->_id),
             ];
-
         }
 
         // Ok
         return $result;
+    }
+
+    public function convertCodes(array $data, $source = '')
+    {
+        // Sanity check
+        if (empty($data)) {
+            return $data;
+        }
+
+        // Récupère la base wordpress
+        $wpdb = docalist('wordpress-database'); /* @var wpdb $wpdb */
+
+        // Construit la clause WHERE ... IN (...)
+        $codes = [];
+        foreach ($data as $code) {
+            $code = (int) $code; // les codes doivent être des ID wordpress (int)
+            $code && $codes[] = $code;
+        }
+        $where = 'ID IN (' . implode(',', $codes) . ')';
+
+        // Recherche toutes les entrées, on obtient un tableau d'objets qu'on indexe par ID
+        $sql = "SELECT ID, post_title FROM `$wpdb->posts` WHERE $where";
+        $results = [];
+        foreach ($wpdb->get_results($sql) as $result) {
+            $results[$result->ID] = $result->post_title;
+        }
+
+        // Construit le tableau résultat, en respectant l'ordre initial des données
+        $codes = [];
+        foreach ($data as $code) {
+            $codes[$code] = isset($results[$code]) ? $results[$code] : __('Invalid: ', 'docalist-core') . $code;
+        }
+
+        // Ok
+        return $codes;
+
     }
 }

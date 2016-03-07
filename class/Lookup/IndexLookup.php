@@ -92,4 +92,9 @@ class IndexLookup implements LookupInterface
         // Ok. Résultat de la forme suivante : [{"text":"artwork","score":1},{"text":"artistic","score":1}]
         return $result->lookup[0]->options;
     }
+
+    public function convertCodes(array $data, $source = '')
+    {
+        return array_combine($data, $data); // Lookup sur index : label = code
+    }
 }

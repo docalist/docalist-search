@@ -22,28 +22,21 @@ use Docalist\Forms\Form;
  *
  * @var SettingsPage    $this
  * @var Settings        $settings   Les paramètres de docalist-search.
- * @var string          $error      Erreur éventuelle à afficher.
  */
 ?>
 <div class="wrap">
     <h1><?= __('Paramètres Docalist-Search', 'docalist-search') ?></h1>
 
-    <?php if ($error) :?>
-        <div class="error">
-            <p><?= $error ?></p>
-        </div>
-    <?php endif ?>
-
     <?php
         $form = new Form();
 
-        $form->tag('h2.title', __('Cluster ElasticSearch', 'docalist-biblio'));
+        $form->tag('h2.title', __('Cluster Elasticsearch', 'docalist-biblio'));
         $description = sprintf(
             __(
-                'Pour fonctionner, Docalist Search doit pouvoir accéder à un cluster <a href="%1$s">ElasticSearch</a>
+                'Pour fonctionner, Docalist Search doit pouvoir accéder à un cluster <a href="%1$s">Elasticsearch</a>
                 dans lequel il va créer les index qui permettront de stocker et de retrouver vos contenus.
 
-                ElasticSearch peut être <a href="%2$s">installé sur le serveur</a> qui héberge votre site web ou bien
+                Elasticsearch peut être <a href="%2$s">installé sur le serveur</a> qui héberge votre site web ou bien
                 vous pouvez faire appel à un <a href="%3$s">service d\'hébergement dédié</a>.',
                 'docalist-search'
             ),
@@ -53,6 +46,9 @@ use Docalist\Forms\Form;
         );
         $form->tag('p.description', $description);
         $form->input('url')->addClass('regular-text');
+        if (isset($settings->esversion) && $settings->esversion() !== '0.0.0') {
+            $form->input('esversion')->addClass('small-text')->setAttribute('disabled');
+        }
         $form->input('index')->addClass('regular-text');
         $form->input('shards')->setAttribute('type', 'number')->addClass('small-text');
         $form->input('replicas')->setAttribute('type', 'number')->addClass('small-text');
@@ -61,8 +57,8 @@ use Docalist\Forms\Form;
         $form->tag('h2.title', __("Délai d'attente", 'docalist-biblio'));
         $description = __(
             "Les options ci-dessous permettent de fixer une limite sur le temps de réponse de votre cluster
-             ElasticSearch. En général, les options par défaut conviennent mais si vous utilisez un service
-             ElasticSearch distant ou si votre cluster est un peu lent, vous pouvez augmenter un peu les délais.",
+             Elasticsearch. En général, les options par défaut conviennent mais si vous utilisez un service
+             Elasticsearch distant ou si votre cluster est un peu lent, vous pouvez augmenter un peu les délais.",
             'docalist-search'
         );
         $form->tag('p.description', $description);
@@ -72,10 +68,10 @@ use Docalist\Forms\Form;
 
         $form->tag('h2.title', __('Compression du trafic réseau', 'docalist-biblio'));
         $description = __(
-            "Les requêtes adressées au cluster ElasticSearch et les réponses retournées peuvent parfois être
-             volumineuses. Si vous utilisez un cluster ElasticSearch distant, les options ci-dessous vous permettent
+            "Les requêtes adressées au cluster Elasticsearch et les réponses retournées peuvent parfois être
+             volumineuses. Si vous utilisez un cluster Elasticsearch distant, les options ci-dessous vous permettent
              d'activer la compression gzip et de diminuer le volume des données échangées.
-             Remarque : si ElasticSearch est installé en local, c'est en général contre-productif d'activer ces
+             Remarque : si Elasticsearch est installé en local, c'est en général contre-productif d'activer ces
              options puisqu'il n'y a pas de traffic réseau.",
             'docalist-search'
         );
@@ -90,12 +86,12 @@ use Docalist\Forms\Form;
              lequel il stocke les documents à mettre à jour et à supprimer.
 
              Ce buffer permet d'optimiser l'indexation des documents en limitant le nombre de requêtes adressées au
-             cluster ElasticSearch, mais il consomme de la mémoire sur votre serveur.
+             cluster Elasticsearch, mais il consomme de la mémoire sur votre serveur.
 
              Vous pouvez paramétrer le fonctionnement de ce buffer et fixer des limites sur la quantité de mémoire
              utilisée et le nombre de documents stockés dans le buffer.
 
-             Dès que l'une des deux limites est atteinte, le buffer est envoyé à ElasticSearch puis est réinitialisé.",
+             Dès que l'une des deux limites est atteinte, le buffer est envoyé à Elasticsearch puis est réinitialisé.",
             'docalist-search'
         );
         $form->tag('p.description', $description);

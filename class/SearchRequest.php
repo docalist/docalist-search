@@ -13,7 +13,6 @@
  */
 namespace Docalist\Search;
 
-use Docalist;
 use Exception;
 
 /**
@@ -998,17 +997,17 @@ class SearchRequest
         return [is_scalar($value) ? 'term' : 'terms' => [$field => $value]];
     }
 
-    public static function mustFilter($clause1, $clause2 /* ... */)
+    public static function mustFilter($clause1 /* ... */)
     {
         return ['bool' => ['must' => func_get_args()]];
     }
 
-    public static function shouldFilter($clause1, $clause2 /* ... */)
+    public static function shouldFilter($clause1 /* ... */)
     {
         return ['bool' => ['should' => func_get_args()]];
     }
 
-    public static function notFilter($clause1, $clause2 /* ... */)
+    public static function notFilter($clause1 /* ... */)
     {
         return ['bool' => ['must_not' => func_get_args()]];
     }

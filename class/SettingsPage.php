@@ -15,6 +15,7 @@ namespace Docalist\Search;
 
 use Docalist\AdminPage;
 use Docalist\Http\CallbackResponse;
+use InvalidArgumentException;
 use Exception;
 
 /**
@@ -78,7 +79,6 @@ class SettingsPage extends AdminPage
     {
         $settings = $this->settings;
 
-        $error = '';
         if ($this->isPost()) {
             try {
                 $_POST = wp_unslash($_POST);
@@ -96,20 +96,52 @@ class SettingsPage extends AdminPage
                     $settings->realtime = false;
                 }
 
-                // $settings->validate();
+                $this->validateSettings();
+
                 $this->settings->save();
 
                 return $this->redirect($this->url('Index'), 303);
             } catch (Exception $e) {
-                $error = $e->getMessage();
+                docalist('admin-notices')->error($e->getMessage(), __('Erreur dans vos paramètres', 'docalist-search'));
             }
         }
 
-        return $this->view('docalist-search:settings/server', [
-            'settings' => $settings,
-            'error' => $error,
-        ]);
+        return $this->view('docalist-search:settings/server', ['settings' => $settings]);
     }
+
+    /**
+     * Valide les settings.
+     *
+     * @throws InvalidArgumentException en cas d'erreur.
+     */
+     protected function validateSettings()
+     {
+         // Vérifie qu'on a une url
+         $url = $this->settings->url();
+         if (empty($url)) {
+             throw new InvalidArgumentException(
+                 __("Vous devez indiquer l'url du cluster elasticsearch.", 'docalist-search')
+             );
+         }
+
+        // Ping le serveur
+        try {
+            $response = docalist('elastic-search')->get('/');
+        } catch (Exception $e) {
+             throw new InvalidArgumentException(
+                 __("Le cluster elasticsearch ne répond pas, verifiez l'url indiquée.", 'docalist-search')
+             );
+        }
+
+        if (! is_object($response) || !isset($response->version->number)) {
+            throw new InvalidArgumentException(
+                __("Le cluster elasticsearch a retourné une réponse invalide, verifiez l'url indiquée.", 'docalist-search')
+            );
+        }
+
+        // Stocke le numéro de version de elasticsearch
+        $this->settings->esversion = $response->version->number;
+     }
 
     /**
      * Est-ce que le serveur ES répond ?
@@ -280,39 +312,9 @@ class SettingsPage extends AdminPage
         ]);
     }
 
-    /*
-     * Valide les options saisies.
-     *
-     * @return string Message en cas d'erreur.
-     */
-
-    /*
-     * protected function validateSettings() { }
-     *  todo : - tester si l'url indiquée pour le server est correcte / répond
-     *  - faire une action ajax qui prend en paramètre l'url et
-     *    répond true ou un message d'erreur
-     *
-     *  - ajouter un javascript qui fait enabled.onchange = appeller l'url et
-     *    mettre un message à coté de la zone de texte (ok, pas ok).
-     *
-     *  - faire la même chose dès le chargement de la page (comme ça quand on
-     *    va sur la page, on sait tout de suite si le serveur est ok ou pas).
-     *
-     *  - tester si l'index indiqué existe déjà ou pas - ne fait quelque chose
-     *    que si on sait que le serveur répond
-     *
-     *  - faire une action ajax qui teste si l'index existe
-     *
-     *  - le javascript ajoute un message qui signale simplement si l'index
-     *    existe ou non. Lorsqu'on installe docalist search, ça fait office de
-     *    warning (attention, vous allez mettre vos données dans un index qui
-     *    existe déjà). Après en routine, c'est une simple confirmation (ok,
-     *    l'index que j'ai choisit existe toujours).
-     */
-
     protected function getAllFields()
     {
-        // On fait une recherche * en demandant une aggrégation su rle champ spécial _field_names
+        // On fait une recherche * en demandant une aggrégation sur le champ spécial _field_names
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-field-names-field.html
         $response = docalist('elastic-search')->get('/{index}/_search', [
             'size' => 0,
@@ -355,6 +357,5 @@ class SettingsPage extends AdminPage
             'query' => $query,
             'response' => $response
         ]);
-
     }
 }

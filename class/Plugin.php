@@ -43,8 +43,18 @@ class Plugin
 
         // Services fournis pas ce plugin
         docalist('services')->add([
-            'elastic-search' => function () {
+            'elastic-search' => function () { // TODO : enlever le tiret
                 return new ElasticSearchClient($this->settings);
+            },
+            'elasticsearch-query-dsl' => function () {
+                $version = $this->settings->esversion();
+                if ($version >= '5.0.0') {
+                    return new QueryDSL\Version500();
+                } elseif ($version >= '2.0.0') {
+                    return new QueryDSL\Version200();
+                } else {
+                    return new QueryDSL\Version200();
+                }
             },
             'mapping-builder' => function () {
                 return new ElasticSearchMappingBuilder();

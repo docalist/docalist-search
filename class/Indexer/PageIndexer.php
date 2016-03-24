@@ -22,4 +22,9 @@ class PageIndexer extends PostIndexer
     {
         return 'page';
     }
+
+    public function getCollection()
+    {
+        return 'pages';
+    }
 }

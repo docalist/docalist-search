@@ -21,8 +21,9 @@ use Docalist\Type\Boolean;
 /**
  * Options de configuration du plugin.
  *
- * @property Text       $url                Url complète du serveur ElasticSearch.
- * @property Text       $index              Nom de l'index ElasticSearch utilisé.
+ * @property Text       $url                Url complète du serveur Elasticsearch.
+ * @property Text       $esversion          Numéro de version de Elasticsearch.
+ * @property Text       $index              Nom de l'index Elasticsearch utilisé.
  * @property Integer    $shards             Nombre de shards de l'index.
  * @property Integer    $replicas           Nombre de replicas par shard.
  * @property Integer    $connecttimeout     Timeout de connexion, en secondes.
@@ -54,9 +55,9 @@ class Settings extends TypeSettings
                  */
                 'url' => [
                     'type' => 'Docalist\Type\Text',
-                    'label' => __('Url du cluster ElasticSearch', 'docalist-search'),
+                    'label' => __('Url du cluster Elasticsearch', 'docalist-search'),
                     'description' => __(
-                        "Adresse complète de votre cluster ElasticSearch (exemple : <code>http://127.0.0.1:9200</code>).
+                        "Adresse complète de votre cluster Elasticsearch (exemple : <code>http://127.0.0.1:9200</code>).
                          Vous devez indiquer le protocole utilisé (http ou https), l'adresse IP ou le nom DNS du
                          cluster et le port TCP à utiliser s'il est spécifique.
                          Si votre cluster est protégé par un login et un mot de passe, indiquez-les en utilisant la
@@ -66,11 +67,22 @@ class Settings extends TypeSettings
                     ),
                     'default' => 'http://127.0.0.1:9200',
                 ],
+                'esversion' => [
+                    'type' => 'Docalist\Type\Text',
+                    'label' => __("Version de Elasticsearch", 'docalist-search'),
+                    'description' => __(
+                        "Numéro de version retourné par votre cluster Elasticsearch lorsque vos paramètres ont été
+                         enregistrés pour la dernière fois. Si votre cluster change de version, ré-enregistrez vos
+                         paramètres.",
+                        'docalist-search'
+                    ),
+                    'default' => '0.0.0',
+                ],
                 'index' => [
                     'type' => 'Docalist\Type\Text',
                     'label' => __("Nom de base de l'index", 'docalist-search'),
                     'description' => __(
-                        "Préfixe qui sera utilisé pour déterminer le nom des index et des alias ElasticSearch
+                        "Préfixe qui sera utilisé pour déterminer le nom des index et des alias Elasticsearch
                          qui contiendront les contenus indexés. Assurez-vous que le préfixe indiqué soit unique :
                          les index ne doivent pas être partagés entre plusieurs sites docalist.",
                         'docalist-search'
@@ -81,7 +93,7 @@ class Settings extends TypeSettings
                     'type' => 'Docalist\Type\Integer',
                     'label' => __('Nombre de shards', 'docalist-search'),
                     'description' => sprintf(__(
-                        "ElasticSearch permet de <a href='%s'>partitionner un index en plusieurs shards</a> (segments)
+                        "Elasticsearch permet de <a href='%s'>partitionner un index en plusieurs shards</a> (segments)
                          et de distribuer ces segments sur les différents noeuds qui composent le cluster.
                          Indiquez le nombre de shards à créer en fonction du nombre de noeuds dans votre cluster et de
                          la taille des données que vous prévoyez d'indexer.",
@@ -94,9 +106,9 @@ class Settings extends TypeSettings
                     'type' => 'Docalist\Type\Integer',
                     'label' => __('Nombre de réplicas', 'docalist-search'),
                     'description' => sprintf(__(
-                        "Pour <a href='%s'>augmenter la tolérance aux pannes</a>, ElasticSearch peut créer des copies
+                        "Pour <a href='%s'>augmenter la tolérance aux pannes</a>, Elasticsearch peut créer des copies
                          des shards (des réplicats) et les répartir sur les noeuds du cluster. Ces copies permettent à
-                         ElasticSearch de continuer à fonctionner si un noeud tombe en panne et augmente le nombre de
+                         Elasticsearch de continuer à fonctionner si un noeud tombe en panne et augmente le nombre de
                          requêtes simultanées qui pourront être traitées. Indiquez le nombre de réplicats à créer en
                          fonction du nombre de noeuds présents dans votre cluster (zéro si vous n'avez qu'un seul
                          serveur).",
@@ -109,7 +121,7 @@ class Settings extends TypeSettings
                     'type' => 'Docalist\Type\Integer',
                     'label' => __('Timeout de connexion', 'docalist-search'),
                     'description' => __(
-                        "En secondes. Si la connexion avec le cluster ElasticSearch n'est pas établie au bout
+                        "En secondes. Si la connexion avec le cluster Elasticsearch n'est pas établie au bout
                          du nombre de secondes indiqué, une erreur sera générée.",
                         'docalist-search'
                     ),
@@ -119,7 +131,7 @@ class Settings extends TypeSettings
                     'type' => 'Docalist\Type\Integer',
                     'label' => __('Timeout des requêtes', 'docalist-search'),
                     'description' => __(
-                        "En secondes. Si le serveur ElasticSearch n'a pas répondu au bout du nombre
+                        "En secondes. Si le serveur Elasticsearch n'a pas répondu au bout du nombre
                          de secondes indiqué, une erreur sera générée.",
                         'docalist-search'
                     ),
@@ -130,7 +142,7 @@ class Settings extends TypeSettings
                     'label' => __('Compresser les requêtes', 'docalist-search'),
                     'description' => __(
                         "Compresse les requêtes envoyées au serveur. N'activez cette option que si votre serveur
-                         ElasticSearch sait décoder les requêtes compressées.",
+                         Elasticsearch sait décoder les requêtes compressées.",
                         'docalist-search'
                     ),
                     'default' => false,
@@ -139,8 +151,8 @@ class Settings extends TypeSettings
                     'type' => 'Docalist\Type\Boolean',
                     'label' => __('Compresser les réponses', 'docalist-search'),
                     'description' => sprintf(__(
-                        "Demande à ElasticSearch de compresser les réponses retournées. Cette option n'a aucun effet
-                         si l'option <a href='%s'>http.compression</a> n'est pas activée sur le serveur ElasticSearch.",
+                        "Demande à Elasticsearch de compresser les réponses retournées. Cette option n'a aucun effet
+                         si l'option <a href='%s'>http.compression</a> n'est pas activée sur le serveur Elasticsearch.",
                         'docalist-search'),
                         'http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-http.html'
                     ),

@@ -14,6 +14,7 @@
 namespace Docalist\Search\Indexer;
 
 use Docalist\Search\IndexManager;
+use Docalist\Search\SearchRequest;
 
 /**
  * Classe de base abstraite pour les indexeurs.
@@ -33,6 +34,11 @@ abstract class AbstractIndexer implements IndexerInterface
     public function getCategory()
     {
         return __('Autres contenus', 'docalist-search');
+    }
+
+    public function getCollection()
+    {
+        return $this->getType();
     }
 
     public function buildIndexSettings(array $settings)
@@ -95,5 +101,10 @@ abstract class AbstractIndexer implements IndexerInterface
     protected function remove($content, IndexManager $indexManager)
     {
         $indexManager->delete($this->getType(), is_scalar($content) ? $content : $this->getID($content));
+    }
+
+    public function getSearchFilter()
+    {
+        return SearchRequest::termFilter('in', $this->getCollection());
     }
 }

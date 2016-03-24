@@ -17,6 +17,7 @@ use Docalist\Search\IndexManager;
 use Docalist\Search\ElasticSearchMappingBuilder;
 use wpdb;
 use WP_Post;
+use Docalist\Search\SearchRequest;
 
 /**
  * Un indexeur pour les articles de WordPress.
@@ -38,10 +39,16 @@ class PostIndexer extends AbstractIndexer
         return __('Contenus WordPress', 'docalist-search');
     }
 
+    public function getCollection()
+    {
+        return 'posts';
+    }
+
     public function buildIndexSettings(array $settings)
     {
         $mapping = new ElasticSearchMappingBuilder('fr-text'); // todo : rendre configurable
 
+        $mapping->addField('in')->keyword();
         $mapping->addField('type')->keyword();
         $mapping->addField('status')->keyword();
         $mapping->addField('slug')->text();
@@ -153,17 +160,21 @@ class PostIndexer extends AbstractIndexer
     {
         $document = [];
 
+        // Nom de la collection (in)
+        $document['in'] = $this->getCollection();
+
         // Type
         $document['type'] = $this->getType();
 
         // Statut
-        $status = get_post_status_object($post->post_status);
-        $document['status'] = $status ? $status->label : $post->post_status;
+        $document['status'] = $post->post_status;
+//      $status = get_post_status_object($post->post_status);
+//      $document['status'] = $status ? $status->label : $post->post_status;
 
         // Slug
         $document['slug'] = $post->post_name;
 
-        // Auteur
+        // CreatedBy
         $user = get_user_by('id', $post->post_author);
         $document['createdby'] = $user ? $user->user_login : $post->post_author;
 
@@ -192,5 +203,51 @@ class PostIndexer extends AbstractIndexer
         }
 
         return $document;
+    }
+
+    protected function getStatusFilter()
+    {
+        // Détermine le nom de la capacité "read_private_posts" pour ce type
+        $postType = get_post_type_object($this->getType());
+        $readPrivatePosts = $postType->cap->read_private_posts;
+
+        // Si l'utilisateur en cours a le droit "read_private_posts", inutile de filtrer par statut
+        if (current_user_can($readPrivatePosts)) {
+            return null;
+        }
+
+        // Détermine la liste des statuts publics
+        $public = [];
+        foreach ($this->getStatuses() as $status) {
+            $statusObject = get_post_status_object($status);
+            $statusObject && $statusObject->public && $public[] = $status;
+        }
+
+        // L'utilisateur ne peut voir que les posts publics
+        $filter = SearchRequest::termFilter('status', $public);
+
+        //  Et ceux dont il est auteur
+        if (is_user_logged_in()) {
+            $user = wp_get_current_user()->user_login;
+
+            $filter = SearchRequest::shouldFilter(
+                $filter,
+                SearchRequest::termFilter('createdby', $user)
+            );
+        }
+
+        // Ok
+        return $filter;
+    }
+
+    public function getSearchFilter()
+    {
+        $typeFilter = parent::getSearchFilter();
+        $statusFilter = $this->getStatusFilter();
+        if (empty($statusFilter)) {
+            return $typeFilter;
+        }
+
+        return SearchRequest::mustFilter($typeFilter, $statusFilter);
     }
 }

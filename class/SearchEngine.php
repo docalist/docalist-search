@@ -121,16 +121,20 @@ class SearchEngine
         }
 
         // Pour chaque type, construit le filtre de visibilité
+        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+
         $filters = [];
         foreach ($types as $type) {
-            $filter = apply_filters("docalist_search_get_{$type}_filter", null, $type);
+            $filter = $indexManager->getIndexer($type)->getSearchFilter();
             $filter && $filters[] = $filter;
-            // Remarque : si personne n'a créé de filtre, le type n'est pas
-            // interrogeable, c'est mieux que de rendre tout visible.
         }
 
-        // Combine tous les filtres ensmeble et ajoute à la requête
-        $request->addHiddenFilter(['bool' => ['should' => $filters]]);
+        // Combine tous les filtres ensemble et les ajoute à la requête
+        if (count($filters) === 1) {
+            $request->addHiddenFilter($filters[0]);
+        } else {
+            $request->addHiddenFilter($request::shouldFilter($filters));
+        }
 
         // Ok
         return $request;
@@ -163,20 +167,20 @@ class SearchEngine
         $public = $private = [];
         foreach ($wp_post_statuses as $status) {
             if ($status->public) {
-                $public[] = $status->label;
+                $public[] = $status->name;
             } elseif ($status->protected || $status->private) {
-                $private[] = $status->label;
+                $private[] = $status->name;
             }
         }
 
         // Si l'utilisateur a le droit "read_private_posts" : tout
         if ($canReadPrivate) {
-            $filter = SearchRequest::termFilter('status.filter', $public + $private);
+            $filter = SearchRequest::termFilter('status', $public + $private);
         }
 
         // Sinon, que le statut "publish"
         else {
-            $filter = SearchRequest::termFilter('status.filter', $public);
+            $filter = SearchRequest::termFilter('status', $public);
 
             //  Et les statuts privés pour les posts dont il est auteur
             if ($private && is_user_logged_in()) {
@@ -185,8 +189,8 @@ class SearchEngine
                 $filter = SearchRequest::shouldFilter(
                     $filter,
                     SearchRequest::mustFilter(
-                        SearchRequest::termFilter('createdby.filter', $user),
-                        SearchRequest::termFilter('status.filter', $private)
+                        SearchRequest::termFilter('createdby', $user),
+                        SearchRequest::termFilter('status', $private)
                     )
                 );
             }

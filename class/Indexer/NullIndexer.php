@@ -33,11 +33,6 @@ class NullIndexer extends AbstractIndexer
         return 'null';
     }
 
-    public function activeRealtime()
-    {
-        return;
-    }
-
     public function getID($content)
     {
         return 0;

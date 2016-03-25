@@ -32,15 +32,10 @@ class Version200 implements QueryDSL
 
     public function matchAll(array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de MatchQueryParser.java)
-        $accept = [
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de MatchQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
             '_name', 'boost',
-        ];
-
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid matchAll parameters: " . implode(', ', $bad));
-        }
+        ]);
 
         // Ok
         return ['match_all' => $parameters];
@@ -48,95 +43,67 @@ class Version200 implements QueryDSL
 
     public function matchNone(array $parameters = []) // n'existe pas avec ES < 5.0
     {
-        return $this->term('', '-', $parameters);
+        return $this->term('-', '', $parameters);
     }
 
     // -------------------------------------------------------------------------------
     // Full text queries
     // -------------------------------------------------------------------------------
 
-    public function match($query, $field = '_all', $type = 'match', array $parameters = [])
+    public function match($field, $term, $type = 'match', array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de MatchQueryParser.java)
-        $accept = [
-         // 'query', 'type', // fixés par nous donc pas autorisés dans $parameters
-            'operator', 'analyzer', 'slop', 'minimum_should_match', 'fuzziness', 'fuzzy_rewrite', 'prefix_length',
-            'fuzzy_transpositions', 'max_expansions', 'lenient', 'cutoff_frequency', 'zero_terms_query',
-            '_name', 'boost',
-        ];
-
         // Vérifie le type
         if (! in_array($type, ['match', 'match_phrase', 'match_phrase_prefix'])) {
             throw new InvalidArgumentException("Invalid match type: '$type'");
         }
 
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid match parameters: " . implode(', ', $bad));
-        }
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de MatchQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
+         // 'query', 'type', // fixés par nous donc pas autorisés dans $parameters
+            'operator', 'analyzer', 'slop', 'minimum_should_match', 'fuzziness', 'fuzzy_rewrite', 'prefix_length',
+            'fuzzy_transpositions', 'max_expansions', 'lenient', 'cutoff_frequency', 'zero_terms_query',
+            '_name', 'boost',
+        ]);
 
         // Construit les arguments de la requête. Génère la version simplifiée si on n'a aucun paramètre
-        $args = $parameters ? (['query' => $query] + $parameters) : $query;
+        $args = $parameters ? (['query' => $term] + $parameters) : $term;
 
         // Ok
         return [$type => [$field => $args]];
     }
 
-    public function multiMatch($query, $fields = '_all', $type = 'best_fields', array $parameters = [])
+    public function multiMatch($fields, $terms, $type = 'best_fields', array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de MultiMatchQueryParser.java)
-        $accept = [
-          //'query', 'fields', 'type', // fixés par nous donc pas autorisés dans $parameters
-            'analyzer', 'cutoff_frequency', 'fuzziness', 'fuzzy_rewrite', 'use_dis_max', 'lenient', 'max_expansions',
-            'minimum_should_match', 'operator', 'prefix_length', 'slop', 'tie_breaker', 'zero_terms_query',
-            'boost', '_name',
-        ];
-
         // Vérifie le/les noms de champs indiqués
         $fields = (array) $this->checkFields($fields);
 
         // Vérifie le type
         if (! in_array($type, ['best_fields', 'most_fields', 'cross_fields', 'phrase', 'phrase_prefix'])) {
-            throw new InvalidArgumentException("Invalid MultiMatch type: '$type'");
+            throw new InvalidArgumentException("Invalid multiMatch type: '$type'");
         }
 
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid MultiMatch parameters: " . implode(', ', $bad));
-        }
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de MultiMatchQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
+          //'query', 'fields', 'type', // fixés par nous donc pas autorisés dans $parameters
+            'analyzer', 'cutoff_frequency', 'fuzziness', 'fuzzy_rewrite', 'use_dis_max', 'lenient', 'max_expansions',
+            'minimum_should_match', 'operator', 'prefix_length', 'slop', 'tie_breaker', 'zero_terms_query',
+            'boost', '_name',
+        ]);
 
         // Construit les arguments de la requête
-        $args = ['type' => $type, 'query' => $query, 'fields' => $fields] + $parameters;
+        $args = ['type' => $type, 'query' => $terms, 'fields' => $fields] + $parameters;
 
         // Ok
         return ['multi_match' => $args];
     }
 
-    /**
-     * Valide et normalise la liste de champs passée en paramétre.
-     *
-     * @param string|array $fields Un tableau contenant une liste de champs ou une chaine contenant les noms des champs
-     * séparés par une virgule.
-     *
-     * @return string|array Retourne une chaine si on a un nom de champ unique, un tableau de noms de champs sinon.
-     *
-     * @throws InvalidArgumentException Si $fields n'est ni un tableau ni une chaine
-     */
-    protected function checkFields($fields)
-    {
-        is_string($fields) && $fields = array_map('trim', explode(',', $fields));
-        if (! is_array($fields)) {
-            throw new InvalidArgumentException('Invalid fields parameter, expected string or array');
-        }
-        count($fields) === 1 && $fields = reset($fields);
-
-        return $fields;
-    }
-
     public function queryString($query, $fields = '_all', $defaultOperator = 'or', array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de QueryStringQueryParser.java)
-        $accept = [
+        // Vérifie le/les noms de champs indiqués
+        $fields = $this->checkFields($fields);
+
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de QueryStringQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
             // 'query', 'fields', 'default_field', 'default_operator', // fixés par nous, pas autorisés dans $parameters
             'analyzer', 'quote_analyzer', 'allow_leading_wildcard',
             'auto_generate_phrase_queries', 'auto_generated_phrase_queries', // avec un "d" dans ES 5.0 alpha ?
@@ -145,15 +112,7 @@ class Version200 implements QueryDSL
             'fuzziness', 'tie_breaker', 'analyze_wildcard', 'rewrite', 'minimum_should_match', 'quote_field_suffix',
             'lenient', 'locale', 'time_zone',
             'boost', '_name',
-        ];
-
-        // Vérifie le/les noms de champs indiqués
-        $fields = $this->checkFields($fields);
-
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid QueryString parameters: " . implode(', ', $bad));
-        }
+        ]);
 
         // Construit les arguments de la requête
         $args = ['query' => $query];
@@ -167,20 +126,15 @@ class Version200 implements QueryDSL
 
     public function simpleQueryString($query, $fields = '_all', $defaultOperator = 'or', array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de SimpleQueryStringParser.java)
-        $accept = [
-            // 'query', 'fields', 'default_operator', // fixés par nous, pas autorisés dans $parameters
-            'analyzer', 'minimum_should_match', 'flags', 'locale', 'lowercase_expanded_terms',
-            'lenient', 'analyze_wildcard', 'boost', '_name',
-        ];
-
         // Vérifie le/les noms de champs indiqués
         $fields = (array) $this->checkFields($fields);
 
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid SimpleQueryString parameters: " . implode(', ', $bad));
-        }
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de SimpleQueryStringParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
+            // 'query', 'fields', 'default_operator', // fixés par nous, pas autorisés dans $parameters
+            'analyzer', 'minimum_should_match', 'flags', 'locale', 'lowercase_expanded_terms',
+            'lenient', 'analyze_wildcard', 'boost', '_name',
+        ]);
 
         // Construit les arguments de la requête
         $args = ['query' => $query, 'fields' => $fields];
@@ -195,65 +149,55 @@ class Version200 implements QueryDSL
     // Term level queries
     // -------------------------------------------------------------------------------
 
-    public function term($query, $field = '_all', array $parameters = [])
+    public function term($field, $term, array $parameters = [])
     {
         // Convenience : si on est appellé avec plusieurs termes, génère une terms query
-        if (is_array($query)) {
-            if (count($query) !== 1) {
-                return $this->terms($query, $field, $parameters);
+        if (is_array($term)) {
+            if (count($term) !== 1) {
+                return $this->terms($field, $term, $parameters);
             }
-            $query = reset($query);
+            $term = reset($term);
         }
 
-        // Liste des paramètres autorisés (déterminée en regardant le code source de TermQueryParser.java)
-        $accept = [
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de TermQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
             // 'term', 'value', // fixés par nous, pas autorisés dans $parameters
             'boost', '_name',
-        ];
-
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid Term parameters: " . implode(', ', $bad));
-        }
+        ]);
 
         // Construit les arguments de la requête. Génère la version simplifiée si on n'a aucun paramètre
-        $args = $parameters ? (['value' => $query] + $parameters) : $query;
+        $args = $parameters ? (['value' => $term] + $parameters) : $term;
 
         // Ok
         return ['term' => [$field => $args]];
     }
 
-    public function terms($query, $field = '_all', array $parameters = [])
+    public function terms($field, $terms, array $parameters = [])
     {
         // Convenience : si on est appellé un seul terme, génère une term query
-        if (is_scalar($query) || (is_array($query) && count($query) === 1)) {
-            return $this->term($query, $field, $parameters);
+        if (is_scalar($terms) || (is_array($terms) && count($terms) === 1)) {
+            return $this->term($field, $terms, $parameters);
         }
 
-        // Liste des paramètres autorisés (déterminée en regardant le code source de TermsQueryParser.java)
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de TermsQueryParser.java)
         // + indices/TermsLookup.java
-        $accept = [
+        $this->checkParameters(__FUNCTION__, $parameters, [
             // 'term', 'value', // fixés par nous, pas autorisés dans $parameters
             'boost', '_name',
             'index', 'type', 'id', 'routing', 'path',
-        ];
-
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid Terms parameters: " . implode(', ', $bad));
-        }
+        ]);
 
         // Construit les arguments de la requête. Génère la version simplifiée si on n'a aucun paramètre
-        $args = $parameters ? (['value' => $query] + $parameters) : $query;
+        $args = $parameters ? (['value' => $terms] + $parameters) : $terms;
 
         // Ok
         return ['terms' => [$field => $args]];
     }
 
-    public function range(array $query, $field = '_all', array $parameters = [])
+    public function range($field, array $clauses, array $parameters = [])
     {
         // Vérifie qu'on a des clauses
-        if (empty($query)) {
+        if (empty($clauses)) {
             throw new InvalidArgumentException('Invalid range (empty)');
         }
 
@@ -268,35 +212,26 @@ class Version200 implements QueryDSL
         ];
 
         // Vérifie les clauses
-        if ($bad = array_diff(array_keys($query), $accept)) {
+        if ($bad = array_diff(array_keys($clauses), $accept)) {
             throw new InvalidArgumentException("Invalid range operators: " . implode(', ', $bad));
         }
 
         // Liste des paramètres autorisés (déterminée en regardant le code source de RangeQueryParser.java)
-        $accept = [
+        $this->checkParameters(__FUNCTION__, $parameters, [
             'time_zone', 'format',                  // Date range only
             'boost', '_name',
-        ];
+        ]);
 
-        // Vérifie les paramètres
-        if ($bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid range parameters: " . implode(', ', $bad));
-        }
-
-        return ['range' => [$field => $query + $parameters]];
+        // Ok
+        return ['range' => [$field => $clauses + $parameters]];
     }
 
     public function exists($field, array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de ExistsQueryParser.java)
-        $accept = [
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de ExistsQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
             'boost', '_name',
-        ];
-
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid Terms parameters: " . implode(', ', $bad));
-        }
+        ]);
 
         // Construit les arguments de la requête
         $args = ['field' => $field] + $parameters;
@@ -307,46 +242,36 @@ class Version200 implements QueryDSL
 
     public function missing($field, array $parameters = [])
     {
-        return self::bool([self::mustNot(self::exists($field, $parameters))]);
+        return self::bool([self::mustNot(self::exists($field), $parameters)]);
     }
 
-    public function prefix($query, $field = '_all', array $parameters = [])
+    public function prefix($field, $prefix, array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de ExistsQueryParser.java)
-        $accept = [
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de PrefixQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
          // 'value', 'prefix', // fixés par nous, pas autorisés dans $parameters
             'boost', '_name',
             'rewrite',
-        ];
-
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid Prefix parameters: " . implode(', ', $bad));
-        }
+        ]);
 
         // Construit les arguments de la requête. Génère la version simplifiée si on n'a aucun paramètre
-        $args = $parameters ? (['prefix' => $query] + $parameters) : $query;
+        $args = $parameters ? (['prefix' => $prefix] + $parameters) : $prefix;
 
         // Ok
         return ['prefix' => [$field => $args]];
     }
 
-    public function wildcard($query, $field = '_all', array $parameters = [])
+    public function wildcard($field, $wildcard, array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de WildcardQueryParser.java)
-        $accept = [
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de WildcardQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
          // 'value', 'wildcard', // fixés par nous, pas autorisés dans $parameters
             'boost', '_name',
             'rewrite',
-        ];
-
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid Wildcard parameters: " . implode(', ', $bad));
-        }
+        ]);
 
         // Construit les arguments de la requête. Génère la version simplifiée si on n'a aucun paramètre
-        $args = $parameters ? (['wildcard' => $query] + $parameters) : $query;
+        $args = $parameters ? (['wildcard' => $wildcard] + $parameters) : $wildcard;
 
         // Ok
         return ['wildcard' => [$field => $args]];
@@ -355,21 +280,16 @@ class Version200 implements QueryDSL
     // regexpQuery
     // fuzzyQuery
 
-    public function type($query, array $parameters = [])
+    public function type($esType, array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de WildcardQueryParser.java)
-        $accept = [
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de TypeQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
          // 'value', // fixés par nous, pas autorisés dans $parameters
             'boost', '_name',
-        ];
-
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid Type parameters: " . implode(', ', $bad));
-        }
+        ]);
 
         // Construit les arguments de la requête
-        $args = ['value' => $query] + $parameters;
+        $args = ['value' => $esType] + $parameters;
 
         // Ok
         return ['type' => $args];
@@ -377,16 +297,11 @@ class Version200 implements QueryDSL
 
     public function ids($id, $type = null, array $parameters = [])
     {
-        // Liste des paramètres autorisés (déterminée en regardant le code source de IdsQueryParser.java)
-        $accept = [
+        // Vérifie les paramètres autorisés (déterminée en regardant le code source de IdsQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
             // 'values', 'type', // fixés par nous, pas autorisés dans $parameters
             'boost', '_name',
-        ];
-
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid Ids parameters: " . implode(', ', $bad));
-        }
+        ]);
 
         // Construit les arguments de la requête
         $args = ['values' => (array) $id];
@@ -407,27 +322,23 @@ class Version200 implements QueryDSL
         $merge = [];
         foreach ($clauses as $key => $clause) {
             if (!is_int($key) || !is_array($clause) || count($clause) !== 1) {
-                throw new InvalidArgumentException('Invalid boolean clause');
+                throw new InvalidArgumentException('Invalid bool clause');
             }
             $type = key($clause);
             if (! is_string($type) || ! in_array($type, ['must', 'filter', 'should', 'must_not'], true)) {
-                throw new InvalidArgumentException("Invalid boolean clause type: $type");
+                throw new InvalidArgumentException("Invalid bool clause type: $type");
             }
 
             $merge[$type][] = reset($clause);
         }
 
         // Liste des paramètres autorisés (déterminée en regardant le code source de IdsQueryParser.java)
-        $accept = [
+        $this->checkParameters(__FUNCTION__, $parameters, [
             'disable_coord', 'minimum_should_match', 'minimum_number_should_match', 'adjust_pure_negative',
             'boost', '_name',
-        ];
+        ]);
 
-        // Vérifie les paramètres
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
-            throw new InvalidArgumentException("Invalid boolean parameters: " . implode(', ', $bad));
-        }
-
+        // Ok
         return ['bool' => $merge + $parameters];
     }
 
@@ -453,5 +364,46 @@ class Version200 implements QueryDSL
     public function mustNot($clause)
     {
         return ['must_not' => $clause];
+    }
+
+    // -------------------------------------------------------------------------------
+    // Méthodes protégées (vérification des paramètres)
+    // -------------------------------------------------------------------------------
+
+    /**
+     * Valide et normalise la liste de champs passée en paramétre.
+     *
+     * @param string|array $fields Un tableau contenant une liste de champs ou une chaine contenant les noms des champs
+     * séparés par une virgule.
+     *
+     * @return string|array Retourne une chaine si on a un nom de champ unique, un tableau de noms de champs sinon.
+     *
+     * @throws InvalidArgumentException Si $fields n'est ni un tableau ni une chaine
+     */
+    protected function checkFields($fields)
+    {
+        is_string($fields) && $fields = array_map('trim', explode(',', $fields));
+        if (! is_array($fields)) {
+            throw new InvalidArgumentException('Invalid fields parameter, expected string or array');
+        }
+        count($fields) === 1 && $fields = reset($fields);
+
+        return $fields;
+    }
+
+    /**
+     * Génère une exception si certains des paramètres passés à une requête ne sont pas autorisés.
+     *
+     * @param string $queryName Nom de la requête.
+     * @param array $parameters Liste des paramètres à vérifier.
+     * @param array $accept Liste des paramètres autorisés.
+     *
+     * @throws InvalidArgumentException Si $parameters contient des paramètres non autorisés.
+     */
+    protected function checkParameters($queryName, array $parameters, array $accept)
+    {
+        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
+            throw new InvalidArgumentException("Invalid $queryName parameters: " . implode(', ', $bad));
+        }
     }
 }

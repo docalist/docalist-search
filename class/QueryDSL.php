@@ -63,8 +63,8 @@ interface QueryDSL
     /**
      * Crée une requête qui analyse le texte indiqué et recherche les documents correspondants dans un champ unique.
      *
-     * @param string $query Le texte recherché.
      * @param string $field Le champ sur lequel porte la recherche.
+     * @param string $term Le texte recherché.
      * @param string $type Le type de requête match à générer :
      * - 'match' : (par défaut) une booléenne qui combine les termes avec des clauses 'should' par défaut ou avec
      *             des clauses 'must' si vous indiquez 'operator' => 'and' dans les paramètres.
@@ -76,13 +76,13 @@ interface QueryDSL
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/master/query-dsl-match-query.html
      */
-    public function match($query, $field = '_all', $type = 'match', array $parameters = []);
+    public function match($field, $term, $type = 'match', array $parameters = []);
 
     /**
      * Crée une requête qui analyse le texte indiqué et recherche les documents correspondants dans plusieurs champs.
      *
-     * @param string $query Le texte recherché.
      * @param string|array $fields Les champ sur lesquels porte la recherche.
+     * @param string $terms Le texte recherché.
      * @param string $type Le type de requête match à générer :
      * - 'best_fields' : (par défaut) Recherche les termes dans tous les champs et utilise le score du meilleur champ.
      * - 'most_fields' : Recherche les termes dans tous les champs mais combine les scores obtenus pour chaque champ.
@@ -95,7 +95,7 @@ interface QueryDSL
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/master/query-dsl-match-query.html
      */
-    public function multiMatch($query, $fields = '_all', $type = 'best_fields', array $parameters = []);
+    public function multiMatch($fields, $terms, $type = 'best_fields', array $parameters = []);
 
     // public function commonTerms(); // plus ou moins intégré dans match/multiMatch donc pas très utile
 
@@ -137,8 +137,8 @@ interface QueryDSL
     /**
      * Crée une requête qui retourne les documents ayant l'un des termes indiqués dans le champ passé en paramètre.
      *
-     * @param string|string[] $query Le ou les termes recherchés.
      * @param string $field Le champ sur lequel porte la recherche.
+     * @param string|string[] $term Le ou les termes recherchés.
      * @param array $parameters Paramètres additionnels de la requête.
      *
      * @return array Un tableau décrivant une requête de type "Term" (si vous passez un terme unique) ou une
@@ -147,13 +147,13 @@ interface QueryDSL
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
      */
-    public function term($query, $field = 'all', array $parameters = []);
+    public function term($field, $term, array $parameters = []);
 
     /**
      * Alias de term().
      *
-     * @param string|string[] $query Le ou les termes recherchés.
      * @param string $field Le champ sur lequel porte la recherche.
+     * @param string|string[] $terms Le ou les termes recherchés.
      * @param array $parameters Paramètres additionnels de la requête.
      *
      * @return array Un tableau décrivant une requête de type "Term" (si vous passez un terme unique) ou une
@@ -162,13 +162,13 @@ interface QueryDSL
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
      */
-    public function terms($query, $field = 'all', array $parameters = []);
+    public function terms($field, $terms, array $parameters = []);
 
     /**
      * Crée une requête qui retourne les documents qui sont dans un intervalle donné.
      *
-     * @param array $query Un tableau décrivant l'intervalle (par exemple : ['gte' => 10, 'lte' => 20]).
      * @param string $field Le champ sur lequel porte la recherche.
+     * @param array $clauses Un tableau décrivant l'intervalle (par exemple : ['gte' => 10, 'lte' => 20]).
      * @param array $parameters Paramètres additionnels de la requête.
      *
      * @return array Un tableau décrivant une requête de type "Range".
@@ -177,7 +177,7 @@ interface QueryDSL
      *
      * @throws InvalidArgumentException Si le tableau range comporte des paramètres invalides.
      */
-    public function range(array $query, $field = '_all', array $parameters = []);
+    public function range($field, array $clauses, array $parameters = []);
 
     /**
      * Crée une requête qui retourne les documents ayant au moins une valeur non nulle dans le champ indiqué.
@@ -206,43 +206,43 @@ interface QueryDSL
     /**
      * Crée une requête qui retourne les documents ayant un terme commençant par le préfixe indiqué.
      *
-     * @param string $query Le préfixe recherché.
      * @param string $field Le champ sur lequel porte la recherche.
+     * @param string $prefix Le préfixe recherché.
      * @param array $parameters Paramètres additionnels de la requête.
      *
      * @return array Un tableau décrivant une requête de type "Prefix".
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-prefix-query.html
      */
-    public function prefix($query, $field = '_all', array $parameters = []);
+    public function prefix($field, $prefix, array $parameters = []);
 
     /**
      * Crée une requête qui retourne les documents ayant un terme correspondant au masque indiqué.
      *
-     * @param string $query L'expression recherchée (par exemple 'd?ocal*').
      * @param string $field Le champ sur lequel porte la recherche.
+     * @param string $wildcard L'expression recherchée (par exemple 'd?ocal*').
      * @param array $parameters Paramètres additionnels de la requête.
      *
      * @return array Un tableau décrivant une requête de type "Wildcard".
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html
      */
-    public function wildcard($query, $field = '_all', array $parameters = []);
+    public function wildcard($field, $wildcard, array $parameters = []);
 
     // public function regexp();
     // public function fuzzy(); // deprecated in 5.0
 
     /**
-     * Crée une requête qui retourne les documents ayant type elasticsearch indiqué.
+     * Crée une requête qui retourne les documents ayant le type elasticsearch indiqué.
      *
-     * @param string $query Le nom du type elasticsearch (exemples : 'post', 'page', 'dbprisme-article'...)
+     * @param string $esType Le nom du type elasticsearch (exemples : 'post', 'page', 'dbprisme-article'...)
      * @param array $parameters Paramètres additionnels de la requête.
      *
      * @return array Un tableau décrivant une requête de type "Type".
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-type-query.html
      */
-    public function type($query, array $parameters = []);
+    public function type($esType, array $parameters = []);
 
     /**
      * Crée une requête qui retourne les documents ayant l'un des ID indiqués.

@@ -18,6 +18,12 @@ use Docalist\Search\QueryDSL\Version500 as DSL;
 
 class DSL500Test extends WP_UnitTestCase
 {
+    public function testVersion()
+    {
+        $dsl = new DSL();
+        $this->assertSame($dsl->getVersion(), '5.x.x');
+    }
+
     public function testMatchNone()
     {
         $dsl = new DSL();

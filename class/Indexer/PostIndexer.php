@@ -46,7 +46,8 @@ class PostIndexer extends AbstractIndexer
 
     public function buildIndexSettings(array $settings)
     {
-        $mapping = new ElasticSearchMappingBuilder('fr-text'); // todo : rendre configurable
+        $mapping = docalist('mapping-builder'); /* @var ElasticSearchMappingBuilder $mapping */
+        $mapping->reset()->setDefaultAnalyzer('fr-text'); // todo : rendre configurable
 
         $mapping->addField('in')->keyword();
         $mapping->addField('type')->keyword();

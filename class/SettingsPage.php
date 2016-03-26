@@ -124,23 +124,14 @@ class SettingsPage extends AdminPage
              );
          }
 
-        // Ping le serveur
-        try {
-            $response = docalist('elastic-search')->get('/');
-        } catch (Exception $e) {
+        // Stocke le numéro de version de elasticsearch
+         $version = docalist('elastic-search')->getVersion();
+         if (is_null($version)) {
              throw new InvalidArgumentException(
-                 __("Le cluster elasticsearch ne répond pas, verifiez l'url indiquée.", 'docalist-search')
+                 __("Impossible d'obtenir la version de elasticsearch, verifiez l'url indiquée.", 'docalist-search')
              );
         }
-
-        if (! is_object($response) || !isset($response->version->number)) {
-            throw new InvalidArgumentException(
-                __("Le cluster elasticsearch a retourné une réponse invalide, verifiez l'url indiquée.", 'docalist-search')
-            );
-        }
-
-        // Stocke le numéro de version de elasticsearch
-        $this->settings->esversion = $response->version->number;
+        $this->settings->esversion = $version;
      }
 
     /**

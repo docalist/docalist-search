@@ -87,6 +87,27 @@ class ElasticSearchClient
     }
 
     /**
+     * Interroge le serveur Elasticsearch pour obtenir le numéro de version.
+     *
+     * @return string|null Retourne un numéro de version (exemples : "2.2.1", "5.0.0-alpha1"...) ou null si le
+     * serveur ne répond pas ou retourne une réponse invalide.
+     */
+    public function getVersion()
+    {
+        try {
+            $response = $this->get('/', null, 1);
+        } catch (Exception $e) {
+            return null;
+        }
+
+        if (is_object($response) && isset($response->version->number)) {
+            return $response->version->number;
+        }
+
+        return null;
+    }
+
+    /**
      * Essaie de reformatter et d'indenter le code JSON passé en paramètre.
      *
      * @param string $data Les données à indenter.

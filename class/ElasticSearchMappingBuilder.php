@@ -72,14 +72,46 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     protected $last;
 
     /**
+     * Version de elasticsearch.
+     *
+     * @var string
+     */
+    protected $esVersion;
+
+    /**
+     * Code à utiliser pour un champ de type "text".
+     * Avec ES >= 5, c'est "text", avant c'était "string".
+     *
+     * @var string
+     */
+    protected $textType;
+
+    /**
+     * Code à utiliser pour un champ de type "keyword".
+     * Avec ES >= 5, c'est "keyword", avant c'était "string".
+     *
+     * @var string
+     */
+    protected $keywordType;
+
+    /**
      * Construit un générateur de mappings.
      *
-     * @param string $defaultAnalyzer Le nom de l'analyseur par défaut à
-     * utiliser pour les champs de type texte ('text', 'fr-text', 'en-text'...)
+     * @param string $esVersion Version de elasticsearch.
      */
-    public function __construct($defaultAnalyzer = 'text')
+    public function __construct($esVersion)
     {
-        $this->reset()->setDefaultAnalyzer($defaultAnalyzer)->done();
+        $this->esVersion = $esVersion;
+
+        if (version_compare($esVersion, '4.99', '>=')) { // minimum '5.0.0-alpha' (5-alpha < 5)
+            $this->textType = 'text';
+            $this->keywordType = 'keyword';
+        } else {
+            $this->textType = 'string';
+            $this->keywordType = 'string';
+        }
+
+        $this->reset()->setDefaultAnalyzer('text');
     }
 
     // -------------------------------------------------------------------------
@@ -194,7 +226,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
         // https://github.com/elastic/elasticsearch/issues/12394
-        $this->last['type'] = 'string';
+        $this->last['type'] = $this->keywordType;
         $this->last['index'] = 'not_analyzed';
 
         return $this;
@@ -203,7 +235,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     public function literal()
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
-        $this->last['type'] = 'string';
+        $this->last['type'] = $this->textType;
         $this->last['analyzer'] = 'text';
 
         return $this;
@@ -213,7 +245,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
         is_null($analyzer) && $analyzer = $this->defaultAnalyzer;
-        $this->last['type'] = 'string';
+        $this->last['type'] = $this->textType;
         $this->last['analyzer'] = $analyzer;
 
         return $this;
@@ -302,7 +334,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     public function url()
     {
         // Remarque : n'existe pas dans ElasticSearch, on crée simplement un champ "string" avec l'analyseur "url".
-        $this->last['type'] = 'string';
+        $this->last['type'] = $this->textType;
         $this->last['analyzer'] = 'url';
 
         return $this;
@@ -311,7 +343,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     public function filter()
     {
         $this->last['fields']['filter'] = [
-            'type' => 'string',
+            'type' => $this->keywordType,
             'index' => 'not_analyzed',
         ];
 
@@ -399,7 +431,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
             'properties' => [],
         ];
 
-        return $this;
+        return $this->done();
     }
 
     // -------------------------------------------------------------------------

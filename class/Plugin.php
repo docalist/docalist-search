@@ -17,6 +17,7 @@ use Docalist\Search\Indexer\PostIndexer;
 use Docalist\Search\Indexer\PageIndexer;
 use Docalist\Search\Lookup\IndexLookup;
 use Docalist\Search\Lookup\SearchLookup;
+use Exception;
 
 /**
  * Plugin Docalist Search.
@@ -57,7 +58,11 @@ class Plugin
                 }
             },
             'mapping-builder' => function () {
-                return new ElasticSearchMappingBuilder();
+                $version = $this->settings->esversion();
+                if( is_null($version) || $version === '0.0.0') {
+                    throw new Exception('Service mapping-builder is not available, elasticsearch url is not set');
+                }
+                return new ElasticSearchMappingBuilder($version);
             },
             'docalist-search-index-manager' => new IndexManager($this->settings),
             'docalist-search-engine' => new SearchEngine($this->settings),

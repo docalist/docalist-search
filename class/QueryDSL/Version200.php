@@ -187,11 +187,12 @@ class Version200 implements QueryDSL
             'index', 'type', 'id', 'routing', 'path',
         ]);
 
-        // Construit les arguments de la requête. Génère la version simplifiée si on n'a aucun paramètre
-        $args = $parameters ? (['value' => $terms] + $parameters) : $terms;
+        // Construit les arguments de la requête
+        $args = [$field => $terms];
+        $parameters && $args += $parameters;
 
         // Ok
-        return ['terms' => [$field => $args]];
+        return ['terms' => $args];
     }
 
     public function range($field, array $clauses, array $parameters = [])
@@ -242,7 +243,7 @@ class Version200 implements QueryDSL
 
     public function missing($field, array $parameters = [])
     {
-        return self::bool([self::mustNot(self::exists($field), $parameters)]);
+        return self::bool([self::mustNot(self::exists($field))], $parameters);
     }
 
     public function prefix($field, $prefix, array $parameters = [])

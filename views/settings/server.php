@@ -47,7 +47,7 @@ use Docalist\Forms\Form;
         $form->tag('p.description', $description);
         $form->input('url')->addClass('regular-text');
         if (isset($settings->esversion) && $settings->esversion() !== '0.0.0') {
-            $form->input('esversion')->addClass('small-text')->setAttribute('disabled');
+            $form->input('esversion')->addClass('regular-text')->setAttribute('disabled');
         }
         $form->input('index')->addClass('regular-text');
         $form->input('shards')->setAttribute('type', 'number')->addClass('small-text');

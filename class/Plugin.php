@@ -17,6 +17,7 @@ use Docalist\Search\Indexer\PostIndexer;
 use Docalist\Search\Indexer\PageIndexer;
 use Docalist\Search\Lookup\IndexLookup;
 use Docalist\Search\Lookup\SearchLookup;
+use Docalist\Search\MappingBuilder\ElasticsearchMappingBuilder;
 use Exception;
 
 /**
@@ -62,7 +63,7 @@ class Plugin
                 if( is_null($version) || $version === '0.0.0') {
                     throw new Exception('Service mapping-builder is not available, elasticsearch url is not set');
                 }
-                return new ElasticSearchMappingBuilder($version);
+                return new ElasticsearchMappingBuilder($version);
             },
             'docalist-search-index-manager' => new IndexManager($this->settings),
             'docalist-search-engine' => new SearchEngine($this->settings),

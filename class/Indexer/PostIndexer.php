@@ -14,7 +14,7 @@
 namespace Docalist\Search\Indexer;
 
 use Docalist\Search\IndexManager;
-use Docalist\Search\ElasticSearchMappingBuilder;
+use Docalist\Search\MappingBuilder;
 use wpdb;
 use WP_Post;
 use Docalist\Search\SearchRequest;
@@ -46,7 +46,7 @@ class PostIndexer extends AbstractIndexer
 
     public function buildIndexSettings(array $settings)
     {
-        $mapping = docalist('mapping-builder'); /* @var ElasticSearchMappingBuilder $mapping */
+        $mapping = docalist('mapping-builder'); /* @var MappingBuilder $mapping */
         $mapping->reset()->setDefaultAnalyzer('fr-text'); // todo : rendre configurable
 
         $mapping->addField('in')->keyword();

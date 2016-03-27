@@ -11,9 +11,9 @@
  * @subpackage  Search
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
-namespace Docalist\Search;
+namespace Docalist\Search\MappingBuilder;
 
-use Docalist\MappingBuilder;
+use Docalist\Search\MappingBuilder;
 use InvalidArgumentException;
 
 /**
@@ -34,7 +34,7 @@ use InvalidArgumentException;
  * Le mapping généré peut être obtenu avec <code>$mapping->mapping()</code> qui retourne un tableau
  * contenant le mapping elasticSearch (pour l'exemple ci-dessus, le tableau généré fait plus de 50 lignes en JSON).
  */
-class ElasticSearchMappingBuilder implements MappingBuilder
+class ElasticsearchMappingBuilder implements MappingBuilder
 {
     /**
      * L'analyseur par défaut à utiliser pour les champs de type texte.

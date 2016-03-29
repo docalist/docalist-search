@@ -469,8 +469,11 @@ class Version200Test extends WP_UnitTestCase
             'index' => 'wp_prisme', 'type' => 'post', 'id' => 1, 'routing' => 'p', 'path' => 'comments',
         ];
 
+        $query = $dsl->terms('status', ['publish', 'pending'], $args);
+        $this->assertSame($query, ['terms' => ['status' => ['publish', 'pending']] + $args]);
+
         $query = $dsl->terms('status', null, $args);
-        $this->assertSame($query, ['terms' => ['status' => ['value' => null] + $args]]);
+        $this->assertSame($query, ['terms' => ['status' => null] + $args]);
     }
 
     /**

@@ -31,19 +31,21 @@ class SearchResults
     /**
      * Durée d'exécution de la requête qui a généré ces résultats.
      *
-     * @var int durée en milli-secondes.
+     * @var float Durée en secondes (la partie fractionnelle indique les millisecondes).
      */
-    protected $time;
+    protected $elapsedTime;
 
     /**
      * Initialise l'objet à partir de la réponse retournée par Elastic Search.
      *
      * @param stdClass $response
+     * @param float $elapsedTime Optionnel, durée totale en secondes et millisecondes de la requête qui a généré
+     * ce résultat.
      */
-    public function __construct(stdClass $response, $time = null)
+    public function __construct(stdClass $response, $elapsedTime = null)
     {
         $this->response = $response;
-        $this->time = $time;
+        $this->elapsedTime = $elapsedTime;
     }
 
     /**
@@ -69,13 +71,13 @@ class SearchResults
     }
 
     /**
-     * Temps total d'exécution de la requête qui a généré ces résultats.
+     * Retourne le temps total d'exécution de la requête qui a généré ces résultats.
      *
-     * @return int durée en milli-secondes
+     * @return float Durée en secondes (la partie fractionnelle indique les millisecondes).
      */
-    public function time()
+    public function getElapsedTime()
     {
-        return $this->time;
+        return $this->elapsedTime;
     }
 
     /**

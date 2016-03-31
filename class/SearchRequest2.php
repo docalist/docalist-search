@@ -731,9 +731,11 @@ class SearchRequest2
         // Nombre de réponses par page
         $this->size !== 10 && $request['size'] = $this->size;
 
+        // Champs _source à retourner
+        $request['_source'] = $this->sourceFilter;
+
         // Expliquer les hits obtenus
         // $this->explainHits && $request['explain'] = true;
-
 
         return $request;
     }

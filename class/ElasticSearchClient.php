@@ -52,7 +52,9 @@ class ElasticSearchClient
                 echo '<pre style="background-color:#DDF2FF">';
                 echo rtrim($headers, "\r\n");
                 if ($request) {
-                    echo "\n", htmlspecialchars($this->prettify($request));
+                    $request = $this->prettify($request);
+                    (php_sapi_name() !== 'cli') && $request = htmlspecialchars($request);
+                    echo "\n", $request;
                 }
                 echo '</pre>';
             }, 10, 2);
@@ -282,10 +284,10 @@ class ElasticSearchClient
     /**
      * Retourne le temps d'exécution de la dernière requête exécutée.
      *
-     * @return int Durée en secondes de la dernière transaction ou -1 si aucune
-     * requête n'a encore été exécutée.
+     * @return float Durée en secondes de la dernière transaction (la partie fractionnelle indique les millisecondes)
+     * ou -1 si aucune requête n'a encore été exécutée.
      */
-    public function time()
+    public function getElapsedTime()
     {
         return $this->curl ? curl_getinfo($this->curl, CURLINFO_TOTAL_TIME) : -1;
     }

@@ -802,7 +802,7 @@ class SearchRequest
 
         $this->hasErrors = false;
 
-        return new SearchResults($response, $es->time());
+        return new SearchResults($response, $es->getElapsedTime());
     }
 
     /**

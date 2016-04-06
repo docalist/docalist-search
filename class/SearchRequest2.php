@@ -72,6 +72,13 @@ class SearchRequest2
     protected $sourceFilter = false;
 
     /**
+     * Liste des agrégations qui composent la recherche.
+     *
+     * @var array
+     */
+    protected $aggregations = [];
+
+    /**
      * Indique si la requête exécutée a des erreurs.
      *
      * Initialisé lorsque execute() est appelée.
@@ -93,7 +100,7 @@ class SearchRequest2
      * - aucun filtre utilisateur,
      * - pas de filtre global.
      *
-     * Les aggrégations éventuelles et les autres paramètres de la recherche (size, page...) ne sont pas
+     * Les agrégations éventuelles et les autres paramètres de la recherche (size, page...) ne sont pas
      * pris en compte.
      *
      * @return bool
@@ -693,6 +700,110 @@ class SearchRequest2
     }
 
     // -------------------------------------------------------------------------------
+    // Agrégations
+    // -------------------------------------------------------------------------------
+
+    /**
+     * Indique si la recherche contient des agrégations.
+     *
+     * @return bool
+     */
+    public function hasAggregations()
+    {
+        return !empty($this->aggregations);
+    }
+
+    /**
+     * Retourne les agrégations qui composent la recherche.
+     *
+     * @return array[] Un tableau de la forme nom => agrégation.
+     */
+    public function getAggregations()
+    {
+        return $this->aggregations;
+    }
+
+    /**
+     * Définit les agrégations qui composent la recherche.
+     *
+     * @param array[] $aggregations Un tableau d'agrégations de la forme nom => aggrégation.
+     *
+     * Chaque aggregation est elle-même un tableau.
+     *
+     * Si la méthode est appelée sans arguments ou avec un tableau vide, la liste des agrégations est réinitialisée.
+     *
+     * @return self
+     */
+    public function setAggregations(array $aggregations = [])
+    {
+        $this->aggregations = [];
+        foreach($aggregations as $name => $aggregation) {
+            $this->addAggregation($name, $aggregation);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Ajoute une agrégation à la liste des agrégations qui composent la recherche.
+     *
+     * @param string $name Nom de l'agrégation.
+     * @param array  $aggregation Un tableau décrivant l'agrégation.
+     *
+     * @return self
+     */
+    public function addAggregation($name, array $aggregation)
+    {
+        if (isset($this->aggregations[$name])) {
+            throw new InvalidArgumentException("An aggregation named '$name' already exists");
+        }
+
+        $this->aggregations[$name] = $aggregation;
+
+        return $this;
+    }
+
+    /**
+     * Indique si la recherche contient l'agrégation indiquée.
+     *
+     * @param string $name Le nom de l'agrégation à tester.
+     *
+     * @return bool
+     */
+    public function hasAggregation($name)
+    {
+        return isset($this->aggregations[$name]);
+    }
+
+    /**
+     * Retourne l'agrégation dont le nom est indiqué.
+     *
+     * @param string $name Le nom de l'agrégation à retourner.
+     *
+     * @return array|null Retourne l'agrégation demandée ou null si aucune agrégation n'a le nom indiqué.
+     */
+    public function getAggregation($name)
+    {
+        return isset($this->aggregations[$name]) ? $this->aggregations[$name] : null;
+    }
+
+    /**
+     * Supprime l'agrégation indiquée.
+     *
+     * Remarque : aucune erreur n'est générée si l'agrégation indiquée n'existe pas.
+     *
+     * @param string $name Le nom de l'agrégation à supprimer.
+     *
+     * @return self
+     */
+    public function removeAggregation($name)
+    {
+        unset($this->aggregations[$name]);
+
+        return $this;
+    }
+
+    // -------------------------------------------------------------------------------
     // Exécution
     // -------------------------------------------------------------------------------
 
@@ -737,6 +848,12 @@ class SearchRequest2
         // Expliquer les hits obtenus
         // $this->explainHits && $request['explain'] = true;
 
+        // Agrégrations
+        if ($this->aggregations) {
+            $request['aggs'] = $this->aggregations;
+        }
+
+        // Ok
         return $request;
     }
 

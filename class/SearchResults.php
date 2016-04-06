@@ -154,6 +154,10 @@ class SearchResults
     {
         return isset($this->response->facets) ? $this->response->facets : [];
     }
+    public function getAggregations()
+    {
+        return isset($this->response->aggregations) ? $this->response->aggregations : [];
+    }
 
     /**
      * Indique si les résultats contiennent la facette dont le nom est indiqué.
@@ -163,6 +167,10 @@ class SearchResults
     public function hasFacet($name)
     {
         return isset($this->response->facets->$name);
+    }
+    public function hasAggregation($name)
+    {
+        return isset($this->response->aggregations->$name);
     }
 
     /**
@@ -180,6 +188,10 @@ class SearchResults
     public function facet($name)
     {
         return isset($this->response->facets->$name) ? $this->response->facets->$name : null;
+    }
+    public function getAggregation($name)
+    {
+        return isset($this->response->aggregations->$name) ? $this->response->aggregations->$name : null;
     }
 
     /**

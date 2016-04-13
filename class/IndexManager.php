@@ -431,7 +431,7 @@ class IndexManager
 
         // Stocke la commande dans le buffer
         $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
-        $this->bulk .= sprintf($format, json_encode($type, $options), json_encode($id, $options));
+        $this->bulk .= sprintf($format, json_encode($esType, $options), json_encode($id, $options));
         ++$this->bulkCount;
 
         // Met à jour la statistique sur le nombre de documents supprimés

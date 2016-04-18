@@ -49,7 +49,7 @@ class ElasticSearchClient
         if ($debug) {
             add_action('elastic-search-request', function ($request, $curl) {
                 $headers = curl_getinfo($curl, CURLINFO_HEADER_OUT);
-                echo '<pre style="background-color:#DDF2FF">';
+                echo '<pre style="background-color:#DDF2FF;text-align:left">';
                 echo rtrim($headers, "\r\n");
                 if ($request) {
                     $request = $this->prettify($request);
@@ -66,7 +66,7 @@ class ElasticSearchClient
 
                 $time = curl_getinfo($curl, CURLINFO_TOTAL_TIME) * 1000;
 
-                echo '<pre style="background-color:#E8FFDD">';
+                echo '<pre style="background-color:#E8FFDD;text-align:left">';
                 echo $time, ' ms - ', $header;
                 if ($response) {
                     echo ' ', $this->prettify($response);

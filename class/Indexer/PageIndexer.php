@@ -11,18 +11,20 @@
  * @subpackage  Search
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
-namespace Docalist\Search;
+namespace Docalist\Search\Indexer;
 
 /**
  * Un indexeur pour les pages WordPress.
  */
 class PageIndexer extends PostIndexer
 {
-    /**
-     * Construit l'indexeur.
-     */
-    public function __construct()
+    public function getType()
     {
-        parent::__construct('page');
+        return 'page';
+    }
+
+    public function getCollection()
+    {
+        return 'pages';
     }
 }

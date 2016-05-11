@@ -31,19 +31,21 @@ class SearchResults
     /**
      * Durée d'exécution de la requête qui a généré ces résultats.
      *
-     * @var int durée en milli-secondes.
+     * @var float Durée en secondes (la partie fractionnelle indique les millisecondes).
      */
-    protected $time;
+    protected $elapsedTime;
 
     /**
      * Initialise l'objet à partir de la réponse retournée par Elastic Search.
      *
      * @param stdClass $response
+     * @param float $elapsedTime Optionnel, durée totale en secondes et millisecondes de la requête qui a généré
+     * ce résultat.
      */
-    public function __construct(stdClass $response, $time = null)
+    public function __construct(stdClass $response, $elapsedTime = null)
     {
         $this->response = $response;
-        $this->time = $time;
+        $this->elapsedTime = $elapsedTime;
     }
 
     /**
@@ -69,13 +71,13 @@ class SearchResults
     }
 
     /**
-     * Temps total d'exécution de la requête qui a généré ces résultats.
+     * Retourne le temps total d'exécution de la requête qui a généré ces résultats.
      *
-     * @return int durée en milli-secondes
+     * @return float Durée en secondes (la partie fractionnelle indique les millisecondes).
      */
-    public function time()
+    public function getElapsedTime()
     {
-        return $this->time;
+        return $this->elapsedTime;
     }
 
     /**
@@ -152,6 +154,10 @@ class SearchResults
     {
         return isset($this->response->facets) ? $this->response->facets : [];
     }
+    public function getAggregations()
+    {
+        return isset($this->response->aggregations) ? $this->response->aggregations : [];
+    }
 
     /**
      * Indique si les résultats contiennent la facette dont le nom est indiqué.
@@ -161,6 +167,10 @@ class SearchResults
     public function hasFacet($name)
     {
         return isset($this->response->facets->$name);
+    }
+    public function hasAggregation($name)
+    {
+        return isset($this->response->aggregations->$name);
     }
 
     /**
@@ -178,6 +188,10 @@ class SearchResults
     public function facet($name)
     {
         return isset($this->response->facets->$name) ? $this->response->facets->$name : null;
+    }
+    public function getAggregation($name)
+    {
+        return isset($this->response->aggregations->$name) ? $this->response->aggregations->$name : null;
     }
 
     /**

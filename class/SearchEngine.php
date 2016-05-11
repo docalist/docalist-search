@@ -114,23 +114,27 @@ class SearchEngine
 
             // Sinon on prend tous les types indexés
             else {
-                $types = $this->settings->indexer->types();
+                $types = $this->settings->types();
             }
         } else {
             $types = (array) $types;
         }
 
         // Pour chaque type, construit le filtre de visibilité
+        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+
         $filters = [];
         foreach ($types as $type) {
-            $filter = apply_filters("docalist_search_get_{$type}_filter", null, $type);
+            $filter = $indexManager->getIndexer($type)->getSearchFilter();
             $filter && $filters[] = $filter;
-            // Remarque : si personne n'a créé de filtre, le type n'est pas
-            // interrogeable, c'est mieux que de rendre tout visible.
         }
 
-        // Combine tous les filtres ensmeble et ajoute à la requête
-        $request->addHiddenFilter(['bool' => ['should' => $filters]]);
+        // Combine tous les filtres ensemble et les ajoute à la requête
+        if (count($filters) === 1) {
+            $request->addHiddenFilter($filters[0]);
+        } else {
+            $request->addHiddenFilter($request::shouldFilter($filters));
+        }
 
         // Ok
         return $request;
@@ -163,20 +167,20 @@ class SearchEngine
         $public = $private = [];
         foreach ($wp_post_statuses as $status) {
             if ($status->public) {
-                $public[] = $status->label;
+                $public[] = $status->name;
             } elseif ($status->protected || $status->private) {
-                $private[] = $status->label;
+                $private[] = $status->name;
             }
         }
 
         // Si l'utilisateur a le droit "read_private_posts" : tout
         if ($canReadPrivate) {
-            $filter = SearchRequest::termFilter('status.filter', $public + $private);
+            $filter = SearchRequest::termFilter('status', $public + $private);
         }
 
         // Sinon, que le statut "publish"
         else {
-            $filter = SearchRequest::termFilter('status.filter', $public);
+            $filter = SearchRequest::termFilter('status', $public);
 
             //  Et les statuts privés pour les posts dont il est auteur
             if ($private && is_user_logged_in()) {
@@ -185,8 +189,8 @@ class SearchEngine
                 $filter = SearchRequest::shouldFilter(
                     $filter,
                     SearchRequest::mustFilter(
-                        SearchRequest::termFilter('createdby.filter', $user),
-                        SearchRequest::termFilter('status.filter', $private)
+                        SearchRequest::termFilter('createdby', $user),
+                        SearchRequest::termFilter('status', $private)
                     )
                 );
             }
@@ -408,98 +412,5 @@ class SearchEngine
         }, 10, 2);
 
         return $query;
-    }
-
-    /**
-     * Recherche dans un champ tous les termes qui commencent par un préfixe
-     * donné.
-     *
-     * @param string $source nom du champ index.
-     * @param string $search préfixe recherché.
-     *
-     * @return string|array En cas de succès, retourne un tableau de termes.
-     * Chaque terme est un objet contenant les clés "term" et "count". Par
-     * exemple la recherche "NOT" sur un champ "auteur" pourrait retourner :
-     * [
-     *     {"term": "NOTAT (Nicole)", "score": 1 },
-     *     {"term": "NOTHOMB (AMELIE)", "score": 3},
-     * ]
-     *
-     * Si aucun terme ne commence par le préfixe indiqué, la méthode retourne
-     * un tableau vide.
-     */
-    public function lookup($source, $search)
-    {
-        // Remarques :
-        // 1. Pour le moment, le "completion suggester" ne permet pas de filtrer
-        //    par type. Ce sera possible plus tard avec le "ContextSuggester".
-        //    cf. https://github.com/elasticsearch/elasticsearch/issues/3958
-        //    Les lookups faits sur un champ portent donc sur toutes les bases
-        //    de données qui contiennent ce champ.
-        // 2. Il n'est pas possible de lancer une recherche avec search='', ça
-        //    retourne zéro réponses.
-        // 3. Le mode "recherche par code" (avec search entre crochets) n'est
-        //    pas supporté (les crochets sont supprimés).
-
-        // On ne gère pas la recherche par code, ignore les crochets
-        if (strlen($search) >= 2 && $search[0] === '[' && substr($search, -1) === ']') {
-            $search = substr($search, 1, -1);
-        }
-
-        // Construit la requête Elastic Search
-
-        if ($search === '') {
-            $query = [
-                'aggs' => [
-                    'lookup' => [
-                        'terms' => [
-                            'field' => "$source.filter",
-                            'size' => 100,
-                            'order' => ['_term' => 'asc'],
-                        ],
-                    ],
-                ],
-            ];
-
-            // Exécute la requête
-            $result = docalist('elastic-search')->post('/{index}/_search?search_type=count', $query);
-            if (! isset($result->aggregations->lookup->buckets)) {
-                return [];
-            }
-
-            $result = $result->aggregations->lookup->buckets;
-            foreach ($result as $bucket) {
-                $bucket->text = $bucket->key;
-                unset($bucket->key);
-
-                $bucket->score = $bucket->doc_count;
-                unset($bucket->doc_count);
-            }
-
-            return $result;
-        }
-
-        // @see http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-suggesters-completion.html
-        $query = [
-            'lookup' => [
-                'text' => $search,
-                'completion' => [
-                    'field' => "$source.suggest",
-                    'size' => 100,
-                    // 'fuzzy' => true
-                    'prefix_len' => 1,
-                ],
-            ],
-        ];
-
-        // Exécute la requête
-        $result = docalist('elastic-search')->post('/{index}/_suggest', $query);
-
-        // Récupère les suggestions
-        if (! isset($result->lookup[0]->options)) {
-            return [];
-        }
-
-        return $result->lookup[0]->options;
     }
 }

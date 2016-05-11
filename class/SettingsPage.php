@@ -15,6 +15,7 @@ namespace Docalist\Search;
 
 use Docalist\AdminPage;
 use Docalist\Http\CallbackResponse;
+use InvalidArgumentException;
 use Exception;
 
 /**
@@ -23,12 +24,14 @@ use Exception;
 class SettingsPage extends AdminPage
 {
     /**
+     * Paramètres de docalist-search.
+     *
      * @var Settings
      */
     protected $settings;
 
     /**
-     * @param Settings $settings
+     * @param Settings $settings Paramètres de docalist-search.
      */
     public function __construct(Settings $settings)
     {
@@ -57,6 +60,11 @@ class SettingsPage extends AdminPage
         });
     }
 
+    /**
+     * Page d'accueil (menu) des réglages Docalist-Search.
+     *
+     * @return ViewResponse
+     */
     public function actionIndex()
     {
         return $this->view('docalist-search:settings/index');
@@ -64,36 +72,67 @@ class SettingsPage extends AdminPage
 
     /**
      * Paramètres du serveur ElasticSearch.
+     *
+     * @return ViewResponse
      */
     public function actionServerSettings()
     {
-        $settings = $this->settings->server;
+        $settings = $this->settings;
 
-        $error = '';
         if ($this->isPost()) {
             try {
                 $_POST = wp_unslash($_POST);
                 $settings->url = rtrim($_POST['url'], '/');
                 $settings->index = $_POST['index'];
-                $settings->connecttimeout = $_POST['connecttimeout'];
-                $settings->timeout = $_POST['timeout'];
+                $settings->shards = (int) $_POST['shards'];
+                $settings->replicas = (int) $_POST['replicas'];
+                $settings->connecttimeout = (int) $_POST['connecttimeout'];
+                $settings->timeout = (int) $_POST['timeout'];
                 $settings->compressrequest = (bool) $_POST['compressrequest'];
                 $settings->compressresponse = (bool) $_POST['compressresponse'];
+                $settings->bulkMaxSize = (int) $_POST['bulkMaxSize'];
+                $settings->bulkMaxCount = (int) $_POST['bulkMaxCount'];
+                if (isset($_POST['realtime']) && $_POST['realtime'] === '') {
+                    $settings->realtime = false;
+                }
 
-                // $settings->validate();
+                $this->validateSettings();
+
                 $this->settings->save();
 
                 return $this->redirect($this->url('Index'), 303);
             } catch (Exception $e) {
-                $error = $e->getMessage();
+                docalist('admin-notices')->error($e->getMessage(), __('Erreur dans vos paramètres', 'docalist-search'));
             }
         }
 
-        return $this->view('docalist-search:settings/server', [
-            'settings' => $settings,
-            'error' => $error,
-        ]);
+        return $this->view('docalist-search:settings/server', ['settings' => $settings]);
     }
+
+    /**
+     * Valide les settings.
+     *
+     * @throws InvalidArgumentException en cas d'erreur.
+     */
+     protected function validateSettings()
+     {
+         // Vérifie qu'on a une url
+         $url = $this->settings->url();
+         if (empty($url)) {
+             throw new InvalidArgumentException(
+                 __("Vous devez indiquer l'url du cluster elasticsearch.", 'docalist-search')
+             );
+         }
+
+        // Stocke le numéro de version de elasticsearch
+         $version = docalist('elastic-search')->getVersion();
+         if (is_null($version)) {
+             throw new InvalidArgumentException(
+                 __("Impossible d'obtenir la version de elasticsearch, verifiez l'url indiquée.", 'docalist-search')
+             );
+        }
+        $this->settings->esversion = $version;
+     }
 
     /**
      * Est-ce que le serveur ES répond ?
@@ -102,29 +141,29 @@ class SettingsPage extends AdminPage
      */
     public function actionServerStatus()
     {
-        /* @var $indexer Indexer */
-        $indexer = docalist('docalist-search-indexer');
+        /* @var $indexManager IndexManager */
+        $indexManager = docalist('docalist-search-index-manager');
 
-        switch ($indexer->ping()) {
+        switch ($indexManager->ping()) {
             case 0:
                 $msg = __("L'url %s ne répond pas.", 'docalist-search');
 
                 return printf($msg,
-                    $this->settings->server->url()
+                    $this->settings->url()
                 );
             case 1:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s n'existe pas.", 'docalist-search');
 
                 return printf($msg,
-                    $this->settings->server->url(),
-                    $this->settings->server->index()
+                    $this->settings->url(),
+                    $this->settings->index()
                 );
             case 2:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s existe.", 'docalist-search');
 
                 return printf($msg,
-                    $this->settings->server->url(),
-                    $this->settings->server->index()
+                    $this->settings->url(),
+                    $this->settings->index()
                 );
         }
 
@@ -141,39 +180,56 @@ class SettingsPage extends AdminPage
     }
 
     /**
-     * Paramètres de l'indexeur.
+     * Crée (ou recrée) l'index.
+     *
+     * @param array $types Liste des contenus à indexer.
+     *
+     * @return CallbackResponse
      */
-    public function actionIndexerSettings()
+    public function actionCreateIndex($types = null)
     {
-        $settings = $this->settings->indexer;
-
+        $settings = $this->settings;
         $error = '';
-        if ($this->isPost()) {
-            try {
-                $_POST = wp_unslash($_POST);
-                $settings->types = isset($_POST['types']) ? $_POST['types'] : [];
-                $settings->bulkMaxSize = $_POST['bulkMaxSize'];
-                $settings->bulkMaxCount = $_POST['bulkMaxCount'];
-                $settings->realtime = (bool) $_POST['realtime'];
 
-                // $settings->validate();
-                $this->settings->save();
+        // Permet à l'utilisateur de choisir les types à indexer
+        if (is_null($types)) {
+            $this->isPost() && $error = __(
+                'Vous devez sélectionner au moins un type de contenu à indexer.',
+                'docalist-search'
+            );
 
-                // crée l'index, les mappings, etc.
-                $indexer = docalist('docalist-search-indexer'); /* @var $indexer Indexer */
-                $indexer->setup();
-
-                return $this->redirect($this->url('Index'), 303);
-            } catch (Exception $e) {
-                $error = $e->getMessage();
-            }
+            return $this->view('docalist-search:settings/create-index', [
+                'settings' => $settings,
+                'error' => $error,
+                'indexers' => docalist('docalist-search-index-manager')->getAvailableIndexers(),
+            ]);
         }
 
-        return $this->view('docalist-search:settings/indexer', [
-            'settings' => $settings,
-            'error' => $error,
-            'types' => docalist('docalist-search-indexer')->availableTypes(true),
-        ]);
+        // Enregistre les types choisis dans les settings
+        $settings->types = $types;
+        $this->settings->save();
+
+        // On retourne une réponse de type "callback" qui va lancer la création de l'index et l'indexation
+        $response = new CallbackResponse(function () {
+            // Supprime la bufferisation pour voir le suivi en temps réel
+            while (ob_get_level()) {
+                ob_end_flush();
+            }
+
+            // Pour suivre le déroulement de l'indexation, on affiche une vue qui installe différents filtres sur les
+            // événements déclenchés par l'indexeur.
+            $this->view('docalist-search:settings/reindex')->sendContent();
+
+            // Lance la réindexation
+            $indexManager = docalist('docalist-search-index-manager'); /* @var $indexManager IndexManager */
+            $indexManager->createIndex();
+        });
+
+        // Indique que notre réponse doit s'afficher dans le back-office wp
+        $response->adminPage(true);
+
+        // Terminé
+        return $response;
     }
 
     /**
@@ -181,17 +237,16 @@ class SettingsPage extends AdminPage
      *
      * Permet entres autres d'activer la recherche.
      *
-     * @return bool
+     * @return ViewResponse
      */
     public function actionSearchSettings()
     {
-
         // Teste si la recherche peut être activée
         $error = '';
         if (! $this->settings->enabled()) {
-            /* @var $indexer Indexer */
-            $indexer = docalist('docalist-search-indexer');
-            $ping = $indexer->ping();
+            /* @var $indexManager IndexManager */
+            $indexManager = docalist('docalist-search-index-manager');
+            $ping = $indexManager->ping();
 
             // 0. ES ne répond pas
             if ($ping === 0) {
@@ -248,107 +303,50 @@ class SettingsPage extends AdminPage
         ]);
     }
 
-    /**
-     * Gestion des synonymes.
-     *
-     * todo : pouvoir définir les synonymes qu'on veut utiliser pour les champs
-     *
-     * autre p
-     */
-    // public function actionSynonyms() {}
-
-    /**
-     * Fichiers logs.
-     *
-     * todo : logs des recherches, lors des indexations, slowlog...
-     */
-    // public function actionLogs() {}
-
-    /**
-     * Avancé.
-     * Paramétrage des mappings.
-     *
-     * todo : édition du json des mappings d'un type donné. Utile ?
-     */
-    // public function actionMappings() {}
-
-    /**
-     * Avancé.
-     * Paramétrage des mots vides.
-     *
-     * todo : à voir. Dernière version de ES, plus besoin de mots vides.
-     */
-    // public function actionStopwords() {}
-
-    /**
-     * Réindexer la base.
-     *
-     * Permet de lancer une réindexation complète des collections en
-     * choisissant les types de documents à réindexer.
-     *
-     * @param array $types Les types à réindexer
-     */
-    public function actionReindex($selected = null)
+    protected function getAllFields()
     {
-        // Permet à l'utilisateur de choisir les types à réindexer
-        if (empty($selected)) {
-            return $this->view('docalist-search:settings/reindex-choose', [
-                'types' => docalist('docalist-search-indexer')->indexedTypes(true),
-            ]);
+        // On fait une recherche * en demandant une aggrégation sur le champ spécial _field_names
+        // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-field-names-field.html
+        $response = docalist('elastic-search')->get('/{index}/_search', [
+            'size' => 0,
+            'aggs' => [
+                'fields' => [ // Nom de l'aggrégation générée
+                    'terms' => [
+                        'field' => '_field_names',
+                        'size' => 0, // 0 = pas de limit (INT_MAX)
+                        'order' => [ '_term' => 'asc' ],
+                    ],
+                ],
+            ]
+        ]);
+
+        $fields = [];
+        foreach($response->aggregations->fields->buckets as $bucket) {
+            $field = $bucket->key;
+            // On ne peut avoir de "field data" pour le champ source, ni pour un champ de type "completion"
+            if ($field === '_source' || substr($field, -8) === '.suggest') {
+                continue;
+            }
+            $fields[] = $field;
         }
 
-        // On va retourner une réponse de type "callback" qui va lancer la
-        // réindexation à proprement parler lorsqu'elle sera générée.
-        $response = new CallbackResponse(function () use ($selected) {
-
-            // Supprime la bufferisation pour voir le suivi en temps réel
-            while (ob_get_level()) {
-                ob_end_flush();
-            }
-
-            // Pour suivre le déroulement de la réindexation, on affiche
-            // une vue qui installe différents filtres sur les événements
-            // déclenchés par l'indexeur.
-            $this->view('docalist-search:settings/reindex')->sendContent();
-
-            // Lance la réindexation
-            docalist('docalist-search-indexer')->reindex($selected);
-        });
-
-        // Indique que notre réponse doit s'afficher dans le back-office wp
-        $response->adminPage(true);
-
-        // Terminé
-        return $response;
+        return $fields;
     }
 
-    /*
-     * Valide les options saisies.
-     *
-     * @return string Message en cas d'erreur.
-     */
+    public function actionFieldData($query = '*')
+    {
+        $response = docalist('elastic-search')->get('/{index}/_search', [
+            'query' => [
+                'query_string' => [
+                    'query' => $query,
+                ],
+            ],
+            'fielddata_fields' => $this->getAllFields(),
+        ]);
 
-    /*
-     * protected function validateSettings() { }
-     *  todo : - tester si l'url indiquée pour le server est correcte / répond
-     *  - faire une action ajax qui prend en paramètre l'url et
-     *    répond true ou un message d'erreur
-     *
-     *  - ajouter un javascript qui fait enabled.onchange = appeller l'url et
-     *    mettre un message à coté de la zone de texte (ok, pas ok).
-     *
-     *  - faire la même chose dès le chargement de la page (comme ça quand on
-     *    va sur la page, on sait tout de suite si le serveur est ok ou pas).
-     *
-     *  - tester si l'index indiqué existe déjà ou pas - ne fait quelque chose
-     *    que si on sait que le serveur répond
-     *
-     *  - faire une action ajax qui teste si l'index existe
-     *
-     *  - le javascript ajoute un message qui signale simplement si l'index
-     *    existe ou non. Lorsqu'on installe docalist search, ça fait office de
-     *    warning (attention, vous allez mettre vos données dans un index qui
-     *    existe déjà). Après en routine, c'est une simple confirmation (ok,
-     *    l'index que j'ai choisit existe toujours).
-     */
+        return $this->view('docalist-search:debug/field-data', [
+            'query' => $query,
+            'response' => $response
+        ]);
+    }
 }

@@ -20,17 +20,40 @@
 return [
 
     /* --------------------------------------------------------------
+     * char_filter : traitement des caractères
+     * -------------------------------------------------------------- */
+    'char_filter' => [
+        'url_remove_protocol' => [
+            'type' => 'pattern_replace',
+            'pattern' => '^[a-zA-Z]+:/*',
+            'replacement' => '',
+        ],
+        'url_remove_www' => [
+            'type' => 'pattern_replace',
+            'pattern' => '^www\.?',
+            'replacement' => '',
+        ],
+        'url_normalize_sep' => [
+            'type' => 'pattern_replace',
+            'pattern' => '[/\\\\#@:]+',
+            'replacement' => '/',
+        ],
+    ],
+
+    /* --------------------------------------------------------------
+     * tokenizers : découpage du texte en tokens
+     * -------------------------------------------------------------- */
+    'tokenizer' => [
+        'url_tokenizer' => [
+            'type' => 'keyword',
+        ],
+    ],
+
+    /* --------------------------------------------------------------
      * filter : traitement des tokens
      * -------------------------------------------------------------- */
     'filter' => [
 
-        /*
-         * url-stopwords : supprime les mots-vides dans les urls.
-         */
-        'url-stopwords' => [
-            'type' => 'stop',
-            'stopwords' => ['http', 'https', 'ftp', 'www'],
-        ],
     ],
 
     /* --------------------------------------------------------------
@@ -71,9 +94,16 @@ return [
          * @see http://stackoverflow.com/a/18980048
          */
         'url' => [
-            'type' => 'custom',
-            'tokenizer' => 'lowercase', // = Letter Tokenizer + Lowercase Filter
-            'filter' => ['url-stopwords'],
+            'char_filter' => [
+                'url_remove_protocol',
+                'url_remove_www',
+                'url_normalize_sep',
+            ],
+            'filter' => [
+                'lowercase',    // Convertit le texte en minuscules
+                'asciifolding', // Supprime les accents
+            ],
+            'tokenizer' => 'url_tokenizer',
         ],
     ],
 ];

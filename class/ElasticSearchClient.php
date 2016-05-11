@@ -21,9 +21,9 @@ use Exception;
 class ElasticSearchClient
 {
     /**
-     * Les paramètres du serveur.
+     * Les paramètres de docalist-search.
      *
-     * @var ServerSettings
+     * @var Settings
      */
     protected $settings;
 
@@ -38,9 +38,9 @@ class ElasticSearchClient
      * Construit un nouveau client ElasticSearch en utilisant les options de
      * configuration passées en paramètre.
      *
-     * @param ServerSettings $settings Les paramètres du serveur.
+     * @param Settings $settings Les paramètres de docalist-search.
      */
-    public function __construct(ServerSettings $settings)
+    public function __construct(Settings $settings)
     {
         $debug = false;
 
@@ -49,10 +49,12 @@ class ElasticSearchClient
         if ($debug) {
             add_action('elastic-search-request', function ($request, $curl) {
                 $headers = curl_getinfo($curl, CURLINFO_HEADER_OUT);
-                echo '<pre style="background-color:#DDF2FF">';
+                echo '<pre style="background-color:#DDF2FF;text-align:left">';
                 echo rtrim($headers, "\r\n");
                 if ($request) {
-                    echo "\n", htmlspecialchars($this->prettify($request));
+                    $request = $this->prettify($request);
+                    (php_sapi_name() !== 'cli') && $request = htmlspecialchars($request);
+                    echo "\n", $request;
                 }
                 echo '</pre>';
             }, 10, 2);
@@ -64,7 +66,7 @@ class ElasticSearchClient
 
                 $time = curl_getinfo($curl, CURLINFO_TOTAL_TIME) * 1000;
 
-                echo '<pre style="background-color:#E8FFDD">';
+                echo '<pre style="background-color:#E8FFDD;text-align:left">';
                 echo $time, ' ms - ', $header;
                 if ($response) {
                     echo ' ', $this->prettify($response);
@@ -84,6 +86,27 @@ class ElasticSearchClient
     public function __destruct()
     {
         ! is_null($this->curl) && curl_close($this->curl);
+    }
+
+    /**
+     * Interroge le serveur Elasticsearch pour obtenir le numéro de version.
+     *
+     * @return string|null Retourne un numéro de version (exemples : "2.2.1", "5.0.0-alpha1"...) ou null si le
+     * serveur ne répond pas ou retourne une réponse invalide.
+     */
+    public function getVersion()
+    {
+        try {
+            $response = $this->get('/', null, 1);
+        } catch (Exception $e) {
+            return null;
+        }
+
+        if (is_object($response) && isset($response->version->number)) {
+            return $response->version->number;
+        }
+
+        return null;
     }
 
     /**
@@ -261,10 +284,10 @@ class ElasticSearchClient
     /**
      * Retourne le temps d'exécution de la dernière requête exécutée.
      *
-     * @return int Durée en secondes de la dernière transaction ou -1 si aucune
-     * requête n'a encore été exécutée.
+     * @return float Durée en secondes de la dernière transaction (la partie fractionnelle indique les millisecondes)
+     * ou -1 si aucune requête n'a encore été exécutée.
      */
-    public function time()
+    public function getElapsedTime()
     {
         return $this->curl ? curl_getinfo($this->curl, CURLINFO_TOTAL_TIME) : -1;
     }

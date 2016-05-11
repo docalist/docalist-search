@@ -11,9 +11,9 @@
  * @subpackage  Search
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
-namespace Docalist\Search;
+namespace Docalist\Search\MappingBuilder;
 
-use Docalist\MappingBuilder;
+use Docalist\Search\MappingBuilder;
 use InvalidArgumentException;
 
 /**
@@ -34,17 +34,8 @@ use InvalidArgumentException;
  * Le mapping généré peut être obtenu avec <code>$mapping->mapping()</code> qui retourne un tableau
  * contenant le mapping elasticSearch (pour l'exemple ci-dessus, le tableau généré fait plus de 50 lignes en JSON).
  */
-class ElasticSearchMappingBuilder implements MappingBuilder
+class ElasticsearchMappingBuilder implements MappingBuilder
 {
-    /**
-     * Liste des analyseurs disponibles.
-     *
-     * Initialisé lors du premier appel à getAvailableAnalyzers().
-     *
-     * @var string[]
-     */
-    private static $availableAnalyzers;
-
     /**
      * L'analyseur par défaut à utiliser pour les champs de type texte.
      *
@@ -60,22 +51,67 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     protected $mapping;
 
     /**
-     * Une référence vers le dernier champ ou le dernier template ajouté au
-     * mapping.
+     * Une référence vers l'objet en cours.
+     *
+     * Initialement, c'est l'objet mapping, mais si on appelle innerObject() ou nested() l'objet en cours est
+     * initialisé avec le champ en cours et les méthodes addField(), text(), date(), etc. modifieront cet objet
+     * et non le mapping global.
+     *
+     * Une fois qu'on a terminé le paramétrage d'un innerObject ou d'un nested, il faut obligatoirement appeller
+     * la méthode done() pour remonter d'un niveau.
+     *
+     * @var array
+     */
+    protected $currentObject;
+
+    /**
+     * Une référence vers le dernier champ ou le dernier template ajouté.
      *
      * @var array
      */
     protected $last;
 
     /**
+     * Version de elasticsearch.
+     *
+     * @var string
+     */
+    protected $esVersion;
+
+    /**
+     * Code à utiliser pour un champ de type "text".
+     * Avec ES >= 5, c'est "text", avant c'était "string".
+     *
+     * @var string
+     */
+    protected $textType;
+
+    /**
+     * Code à utiliser pour un champ de type "keyword".
+     * Avec ES >= 5, c'est "keyword", avant c'était "string".
+     *
+     * @var string
+     */
+    protected $keywordType;
+
+    /**
      * Construit un générateur de mappings.
      *
-     * @param string $defaultAnalyzer Le nom de l'analyseur par défaut à
-     * utiliser pour les champs de type texte ('text', 'fr-text', 'en-text'...)
+     * @param string $esVersion Version de elasticsearch.
      */
-    public function __construct($defaultAnalyzer = 'text')
+    public function __construct($esVersion)
     {
-        $this->reset()->setDefaultAnalyzer($defaultAnalyzer);
+        $this->esVersion = $esVersion;
+
+        if (version_compare($esVersion, '4.99', '>=')) { // minimum '5.0.0-alpha' (5-alpha < 5)
+            $this->textType = 'text';
+            $this->keywordType = 'keyword';
+        } else {
+            $this->textType = 'string';
+            $this->keywordType = 'string';
+        }
+
+        $this->reset()->setDefaultAnalyzer('text');
     }
 
     // -------------------------------------------------------------------------
@@ -89,41 +125,31 @@ class ElasticSearchMappingBuilder implements MappingBuilder
 
     public function setDefaultAnalyzer($defaultAnalyzer)
     {
-        $this->checkAnalyzer($defaultAnalyzer);
         $this->defaultAnalyzer = $defaultAnalyzer;
 
         return $this;
     }
 
-    public function getAvailableAnalyzers()
-    {
-        // Initialisation au premier appel, charge la liste des analyseurs disponibles dans les settings de l'index
-        if (is_null(self::$availableAnalyzers)) {
-            $settings = apply_filters('docalist_search_get_index_settings', []);
-            if (isset($settings['settings']['analysis']['analyzer'])) {
-                $analyzers = $settings['settings']['analysis']['analyzer'];
-            } else {
-                $analyzers = [];
-            }
-            self::$availableAnalyzers = $analyzers;
-        }
-
-        return self::$availableAnalyzers;
-    }
-
     public function addField($name)
     {
-        if (isset($this->mapping['properties'][$name])) {
+        if (isset($this->currentObject[$name])) {
             throw new InvalidArgumentException("Field '$name' is already defined");
         }
 
-        $this->mapping['properties'][$name] = [];
+        $this->currentObject[$name] = [];
 
-        $this->last = & $this->mapping['properties'][$name];
+        $this->last = & $this->currentObject[$name];
 
         return $this;
     }
+/*
+    public function addProperties($properties)
+    {
+        $this->last += $properties;
 
+        return $this;
+    }
+*/
     public function addTemplate($match)
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-templates.html
@@ -146,10 +172,70 @@ class ElasticSearchMappingBuilder implements MappingBuilder
         return $this;
     }
 
+    /**
+     * Indique que le champ est de type objet imbriqué.
+     *
+     * Tous les appels suivants à la méthode addField() ajouteront des champs à l'objet jusqu'à ce que done() soit
+     * appellée.
+     *
+     * @return self
+     */
+    public function innerObject()
+    {
+        // https://www.elastic.co/guide/en/elasticsearch/reference/master/object.html
+        $this->last['type'] = 'object';
+        $this->last['properties'] = [];
+
+        $this->currentObject = & $this->last['properties'];
+
+        return $this;
+    }
+
+    /**
+     * Indique que le champ est de type nested.
+     *
+     * Tous les appels suivants à la méthode addField() ajouteront des champs à l'objet jusqu'à ce que done() soit
+     * appellée.
+     *
+     * @return self
+     */
+    public function nested()
+    {
+        // https://www.elastic.co/guide/en/elasticsearch/reference/master/nested.html
+        $this->last['type'] = 'nested';
+        $this->last['properties'] = [];
+
+        $this->currentObject = & $this->last['properties'];
+
+        return $this;
+    }
+
+    /**
+     * Indique que la création d'un objet créé via un appel à innerObject() ou nested() est terminée.
+     *
+     * @return self
+     */
+    public function done()
+    {
+        $this->currentObject = & $this->mapping['properties'];
+
+        return $this;
+    }
+
+    public function keyword()
+    {
+        // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
+        // https://github.com/elastic/elasticsearch/issues/12394
+        $this->last['type'] = $this->keywordType;
+        $this->last['index'] = 'not_analyzed';
+
+        return $this;
+    }
+
     public function literal()
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
-        $this->last['type'] = 'string';
+        $this->last['type'] = $this->textType;
         $this->last['analyzer'] = 'text';
 
         return $this;
@@ -158,8 +244,8 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     public function text($analyzer = null)
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
-        is_null($analyzer) ? $analyzer = $this->defaultAnalyzer : $this->checkAnalyzer($analyzer);
-        $this->last['type'] = 'string';
+        is_null($analyzer) && $analyzer = $this->defaultAnalyzer;
+        $this->last['type'] = $this->textType;
         $this->last['analyzer'] = $analyzer;
 
         return $this;
@@ -248,7 +334,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     public function url()
     {
         // Remarque : n'existe pas dans ElasticSearch, on crée simplement un champ "string" avec l'analyseur "url".
-        $this->last['type'] = 'string';
+        $this->last['type'] = $this->textType;
         $this->last['analyzer'] = 'url';
 
         return $this;
@@ -257,7 +343,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
     public function filter()
     {
         $this->last['fields']['filter'] = [
-            'type' => 'string',
+            'type' => $this->keywordType,
             'index' => 'not_analyzed',
         ];
 
@@ -269,7 +355,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters-completion.html
         $this->last['fields']['suggest'] = [
             'type' => 'completion',
-            'index_analyzer' => 'suggest',
+            'analyzer' => 'suggest',
             'search_analyzer' => 'suggest',
         ];
 
@@ -286,11 +372,11 @@ class ElasticSearchMappingBuilder implements MappingBuilder
 
     public function copyFrom($field)
     {
-        if (! isset($this->mapping['properties'][$field])) {
+        if (! isset($this->currentObject[$field])) {
             throw new InvalidArgumentException("Field '$field' not found");
         }
 
-        $this->last = $this->mapping['properties'][$field];
+        $this->last = $this->currentObject[$field];
 
         // La ligne ci-dessus est difficile à comprendre car on voit mal comment ça peut faire une copie du mapping.
         // Cela fonctionne car :
@@ -316,7 +402,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
             // Stocke la version de docalist-search qui a créé ce type
             // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-meta-field.html
             '_meta' => [
-                'docalist-search' => docalist('docalist-search')->version(),
+                'docalist-search' => docalist('docalist-search')->getVersion(),
             ],
 
             // Par défaut le mapping est dynamique
@@ -345,7 +431,7 @@ class ElasticSearchMappingBuilder implements MappingBuilder
             'properties' => [],
         ];
 
-        return $this;
+        return $this->done();
     }
 
     // -------------------------------------------------------------------------
@@ -420,20 +506,5 @@ class ElasticSearchMappingBuilder implements MappingBuilder
         }
 
         return implode('||', $formats);
-    }
-
-    /**
-     * Génère une exception si l'analyseur indiqué n'existe pas.
-     *
-     * @param string $analyzer
-     *
-     * @throws InvalidArgumentException
-     */
-    protected function checkAnalyzer($analyzer)
-    {
-        $analyzers = $this->getAvailableAnalyzers();
-        if (! isset($analyzers[$analyzer])) {
-            throw new InvalidArgumentException("Analyzer '$analyzer' not found");
-        }
     }
 }

@@ -13,7 +13,12 @@
  */
 namespace Docalist\Search;
 
-/* Documentation : doc/search-design.md */
+use Docalist\Search\Indexer\PostIndexer;
+use Docalist\Search\Indexer\PageIndexer;
+use Docalist\Search\Lookup\IndexLookup;
+use Docalist\Search\Lookup\SearchLookup;
+use Docalist\Search\MappingBuilder\ElasticsearchMappingBuilder;
+use Exception;
 
 /**
  * Plugin Docalist Search.
@@ -40,42 +45,44 @@ class Plugin
 
         // Services fournis pas ce plugin
         docalist('services')->add([
-            'elastic-search' => function () {
-                return new ElasticSearchClient($this->settings->server);
+            'elastic-search' => function () { // TODO : enlever le tiret
+                return new ElasticSearchClient($this->settings);
+            },
+            'elasticsearch-query-dsl' => function () {
+                $version = $this->settings->esversion();
+                if ($version >= '5.0.0') {
+                    return new QueryDSL\Version500();
+                } elseif ($version >= '2.0.0') {
+                    return new QueryDSL\Version200();
+                } else {
+                    return new QueryDSL\Version200();
+                }
             },
             'mapping-builder' => function () {
-                return new ElasticSearchMappingBuilder();
+                $version = $this->settings->esversion();
+                if( is_null($version) || $version === '0.0.0') {
+                    throw new Exception('Service mapping-builder is not available, elasticsearch url is not set');
+                }
+                return new ElasticsearchMappingBuilder($version);
             },
-            'docalist-search-indexer' => new Indexer($this->settings),
+            'docalist-search-index-manager' => new IndexManager($this->settings),
             'docalist-search-engine' => new SearchEngine($this->settings),
+
+            'index-lookup' => function() {
+                return new IndexLookup();
+            },
+
+            'search-lookup' => function() {
+                return new SearchLookup();
+            },
         ]);
 
-        // Retourne les settings par défaut à utiliser quand un index est créé
-        // Remarque : priorité 1 pour être le premier
-        add_filter('docalist_search_get_index_settings', function (array $settings) {
-            return require __DIR__ . '/../index-settings/default.php';
-        }, 1);
+        // Liste des indexeurs prédéfinis
+        add_filter('docalist_search_get_indexers', function ($indexers) {
+            $indexers['post'] = new PostIndexer();
+            $indexers['page'] = new PageIndexer();
 
-        // Retourne les types de contenus indexables
-        add_filter('docalist_search_get_types', function (array $types) {
-            $types['post'] = get_post_type_object('post')->labels->name;
-            $types['page'] = get_post_type_object('page')->labels->name;
-
-            return $types;
-        });
-
-        // Retourne l'indexeur à utiliser pour les articles
-        add_filter('docalist_search_get_post_indexer', function (TypeIndexer $indexer = null) {
-            is_null($indexer) && $indexer = new PostIndexer();
-
-            return $indexer;
-        });
-
-        // Retourne l'indexeur à utiliser pour les pages
-        add_filter('docalist_search_get_page_indexer', function (TypeIndexer $indexer = null) {
-            is_null($indexer) && $indexer = new PageIndexer();
-
-            return $indexer;
+            return $indexers;
         });
 
         // Enregistre la liste des facettes disponibles
@@ -92,9 +99,9 @@ class Plugin
         });
 
         // Définit les lookups de type "index"
-        add_filter('docalist_index_lookup', function ($value, $source, $search) {
-            return docalist('docalist-search-engine')->lookup($source, $search);
-        }, 10, 3);
+//         add_filter('docalist_index_lookup', function ($value, $source, $search) {
+//             return docalist('docalist-search-engine')->termLookup($source, $search);
+//         }, 10, 3);
     }
 
     /**
@@ -102,9 +109,15 @@ class Plugin
      *
      * @return string
      */
-    public function version()
+    public function getVersion()
     {
-        return get_plugin_data(__DIR__ . '/../docalist-search.php', false, false)['Version'];
+        static $version = null;
+
+        if (is_null($version)) {
+            $version = get_plugin_data(__DIR__ . '/../docalist-search.php', false, false)['Version'];
+        }
+
+        return $version;
     }
 
     /**

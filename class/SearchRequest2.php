@@ -22,18 +22,32 @@ use InvalidArgumentException;
 class SearchRequest2
 {
     /**
+     * Numéro de la page de résultats par défaut.
+     *
+     * @var int
+     */
+    const DEFAULT_PAGE = 1;
+
+    /**
+     * Nombre de réponses par page par défaut.
+     *
+     * @var int
+     */
+    const DEFAULT_SIZE = 10;
+
+    /**
      * Numéro de la page de résultats à retourner (1-based).
      *
      * @var int
      */
-    protected $page = 1;
+    protected $page = self::DEFAULT_PAGE;
 
     /**
      * Nombre de réponses par page.
      *
      * @var int
      */
-    protected $size = 10;
+    protected $size = self::DEFAULT_SIZE;
 
     /**
      * Liste des requêtes qui composent la recherche.
@@ -807,7 +821,7 @@ class SearchRequest2
     // Exécution
     // -------------------------------------------------------------------------------
 
-    protected function buildRequest() {
+    public function buildRequest() {
         $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
 
         $request = [];
@@ -829,7 +843,14 @@ class SearchRequest2
         }
 
         // Combine les différentes clauses
-        $request['query'] = $dsl->bool($clauses);
+        if (empty($clauses)) {
+            $request['query'] = $dsl->matchAll();
+        } elseif(count($clauses) === 1) {
+            $clauses = reset($clauses); // On obtient une clause de la forme "must" => []
+            $request['query'] = reset($clauses); // On obtient la query qui figure dans la clause
+        } else {
+            $request['query'] = $dsl->bool($clauses);
+        }
 
         // Tri
         if ($this->sort) {
@@ -837,10 +858,10 @@ class SearchRequest2
         }
 
         // Numéro du premier hit
-        $this->page > 1 && $request['from'] = ($this->page - 1) * $this->size;
+        $this->page > self::DEFAULT_PAGE && $request['from'] = ($this->page - 1) * $this->size;
 
         // Nombre de réponses par page
-        $this->size !== 10 && $request['size'] = $this->size;
+        $this->size !== self::DEFAULT_SIZE && $request['size'] = $this->size;
 
         // Champs _source à retourner
         $request['_source'] = $this->sourceFilter;

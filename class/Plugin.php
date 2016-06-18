@@ -18,6 +18,7 @@ use Docalist\Search\Indexer\PageIndexer;
 use Docalist\Search\Lookup\IndexLookup;
 use Docalist\Search\Lookup\SearchLookup;
 use Docalist\Search\MappingBuilder\ElasticsearchMappingBuilder;
+use Docalist\Search\QueryParser\Parser;
 use Exception;
 
 /**
@@ -74,6 +75,10 @@ class Plugin
 
             'search-lookup' => function() {
                 return new SearchLookup();
+            },
+
+            'query-parser' => function() {
+                return new Parser();
             },
         ]);
 

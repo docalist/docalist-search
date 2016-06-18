@@ -290,7 +290,7 @@ class SearchUrl
 
         // Récupère le service DSL et le service QueryParser
         $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
-        $parser = docalist('docalist-search-query-parser'); /* @var Parser $parser */
+        $parser = docalist('query-parser'); /* @var Parser $parser */
 
         // Crée la requête
         $this->request = new SearchRequest();

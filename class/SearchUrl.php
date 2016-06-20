@@ -17,6 +17,7 @@ use Docalist\Search\QueryDSL;
 use Docalist\Search\SearchRequest2 as SearchRequest;
 use InvalidArgumentException;
 use Docalist\Search\QueryParser\Parser;
+use WP_Rewrite;
 
 /**
  * Gère une URL contenant des paramètres de recherche :
@@ -115,14 +116,15 @@ class SearchUrl
     public function setUrl($url)
     {
         $this->url = $url;
-        $this->baseUrl = $url;
 
         $this->parameters = [];
         $pos = strpos($url, '?');
         if ($pos !== false) {
-            $this->baseUrl = substr($url, 0, $pos);
+            $url = substr($url, 0, $pos);
             $this->parameters = $this->parseParameters(substr($url, $pos + 1));
         }
+
+        $this->setBaseUrl($url); // Important : après setParameters() car setBaseUrl() modifie le paramètre 'page'
 
         $this->request = null;
     }
@@ -137,7 +139,41 @@ class SearchUrl
      */
     public function getCleanUrl()
     {
-        return $this->baseUrl . self::buildQueryString($this->parameters);
+        return $this->buildUrl($this->parameters);
+    }
+
+    /**
+     * Retourne le segment d'url utilisé par wordpress pour gérer la pagination ('/page/xxx' -> 'page').
+     *
+     * @return string|false
+     */
+    protected function getPaginationBase()
+    {
+        global $wp_rewrite; /* @var WP_Rewrite $wp_rewrite */
+
+        return $wp_rewrite->using_permalinks() ? $wp_rewrite->pagination_base : false;
+    }
+
+    /**
+     * Modifie l'url de base.
+     *
+     * La méthode gère les paginations propres à wordpress : si l'url est de la forme /page/xxx/, le paramètre 'page'
+     * de l'url en cours est modifié et le segment correspondant est supprimé de l'url de base.
+     *
+     * @param string $url
+     */
+    protected function setBaseUrl($url)
+    {
+        if ($pagination = $this->getPaginationBase()) {
+            unset($this->parameters[self::PAGE]); // Si 'page' est déjà défini (query string), on ignore
+            $match = [];
+            if (preg_match("~$pagination/(\d+)/?$~", $url, $match)) {
+                $page = (int) $match[1];
+                $page > 1 && $this->parameters[self::PAGE] = $page;
+                $url = substr($url, 0, -strlen($match[0]));
+            }
+        }
+        $this->baseUrl = $url;
     }
 
     /**
@@ -232,7 +268,7 @@ class SearchUrl
      *
      * @return string
      */
-    public static function buildQueryString(array $parameters) {
+    protected function buildQueryString(array $parameters) {
         // "/" may appear unencoded as data within the query :
         // https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax
         //
@@ -255,11 +291,28 @@ class SearchUrl
                 $query .= '&' . rawurlencode($key) . '=' . rawurlencode($value);
             }
         }
+
         // Change le premier "&" généré en "?"
         $query[0] = '?';
 
         // Ok
         return $query;
+    }
+
+    /**
+     * Construit une url de recherche avec les paramètres indiqués.
+     *
+     * @param array $parameters
+     */
+    protected function buildUrl(array $parameters)
+    {
+        $url = $this->baseUrl;
+        if (isset($parameters[self::PAGE]) && $pagination = $this->getPaginationBase()) {
+            $url .= $pagination . '/' . $parameters[self::PAGE] . '/';
+            unset($parameters[self::PAGE]);
+        }
+
+        return $url . $this->buildQueryString($parameters);
     }
 
     /**
@@ -457,8 +510,11 @@ class SearchUrl
             $args[$name] = $value;
         }
 
+        // Réinitialise le numéro de page
+        unset($args[self::PAGE]);
+
         // Construit l'url résultat
-        return $this->baseUrl . self::buildQueryString($args);
+        return $this->buildUrl($args);
     }
 
     /**
@@ -487,7 +543,7 @@ class SearchUrl
         }
 
         // Construit l'url résultat
-        return $this->baseUrl . self::buildQueryString($args);
+        return $this->buildUrl($args);
     }
 
     /**
@@ -521,7 +577,7 @@ class SearchUrl
         unset($args[self::PAGE]);
 
         // Construit l'url résultat
-        return $this->baseUrl . self::buildQueryString($args);
+        return $this->buildUrl($args);
     }
 
     /**
@@ -551,7 +607,7 @@ class SearchUrl
         unset($args[self::PAGE]);
 
         // Construit l'url résultat
-        return $this->baseUrl . self::buildQueryString($args);
+        return $this->buildUrl($args);
     }
 
     /*

@@ -14,7 +14,7 @@
 namespace Docalist\Search\Indexer;
 
 use Docalist\Search\IndexManager;
-use Docalist\Search\SearchRequest;
+use Docalist\Search\QueryDSL;
 
 /**
  * Classe de base abstraite pour les indexeurs.
@@ -105,6 +105,8 @@ abstract class AbstractIndexer implements IndexerInterface
 
     public function getSearchFilter()
     {
-        return SearchRequest::termFilter('in', $this->getCollection());
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+
+        return $dsl->term('in', $this->getCollection());
     }
 }

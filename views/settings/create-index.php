@@ -16,7 +16,7 @@ namespace Docalist\Search\Views;
 use Docalist\Search\SettingsPage;
 use Docalist\Search\Settings;
 use Docalist\Forms\Form;
-use Docalist\Search\Indexer\IndexerInterface;
+use Docalist\Search\Indexer;
 
 /**
  * Créer/recréer l'index
@@ -24,12 +24,12 @@ use Docalist\Search\Indexer\IndexerInterface;
  * @var SettingsPage    $this
  * @var Settings        $settings   Les paramètres de docalist-search.
  * @var string          $error      Erreur éventuelle à afficher.
- * @var TypeIndexer[]   $indexers   Liste des indexeurs disponibles.
+ * @var Indexer[]       $indexers   Liste des indexeurs disponibles.
  */
 
 // Crée la liste des types disponibles (options de la checklist)
 $types = [];
-foreach($indexers as $indexer) { /* @var IndexerInterface $indexer */
+foreach($indexers as $indexer) {  /* @var Indexer $indexer */
     $types[$indexer->getCategory()][$indexer->getType()] = $indexer->getLabel();
 }
 ?>

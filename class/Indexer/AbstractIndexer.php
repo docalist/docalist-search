@@ -15,14 +15,15 @@ namespace Docalist\Search\Indexer;
 
 use Docalist\Search\IndexManager;
 use Docalist\Search\QueryDSL;
+use Docalist\Search\Indexer;
 
 /**
  * Classe de base abstraite pour les indexeurs.
  *
- * Cette classe implémente l'interface IndexerInterface et fournit une API interne pour standardiser l'implémentation
+ * Cette classe implémente l'interface Indexer et fournit une API interne pour standardiser l'implémentation
  * des classes descendantes.
  */
-abstract class AbstractIndexer implements IndexerInterface
+abstract class AbstractIndexer implements Indexer
 {
     abstract public function getType();
 

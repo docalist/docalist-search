@@ -11,7 +11,7 @@
  * @subpackage  Search
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
-namespace Docalist\Search\Indexer;
+namespace Docalist\Search;
 
 use Docalist\Search\IndexManager;
 
@@ -24,7 +24,7 @@ use Docalist\Search\IndexManager;
  * Chaque indexeur gère un seul type de contenu et dispose de méthodes permettant de convertir ce contenu en document
  * ElasticSearch, d'indexer / mettre à jour / supprimer un contenu, de réindexer la totalité des contenus de ce type.
  */
-interface IndexerInterface
+interface Indexer
 {
     /**
      * Retourne un code unique permettrant d'identifier les contenus gérés par cet indexeur.

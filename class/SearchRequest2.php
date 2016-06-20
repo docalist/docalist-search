@@ -36,6 +36,13 @@ class SearchRequest2
     const DEFAULT_SIZE = 10;
 
     /**
+     * Liste des contenus sur lesquels portera la recherche.
+     *
+     * @var string[]
+     */
+    protected $types;
+
+    /**
      * Numéro de la page de résultats à retourner (1-based).
      *
      * @var int
@@ -101,6 +108,52 @@ class SearchRequest2
      */
     protected $hasErrors = false;
 
+    // -------------------------------------------------------------------------------
+    // Constructeur
+    // -------------------------------------------------------------------------------
+
+    /**
+     * Construit une nouvelle requête de recherche.
+     *
+     * @param array $types Optionnel, liste des contenus sur lesquels portera la recherche (par défaut, tous).
+     */
+    public function __construct(array $types = [])
+    {
+        $this->setTypes($types);
+    }
+
+    // -------------------------------------------------------------------------------
+    // Types de contenus
+    // -------------------------------------------------------------------------------
+
+    /**
+     * Retourne la liste des types de contenus sur lesquels porte la recherche.
+     *
+     * @return string[]
+     */
+    public function getTypes()
+    {
+        return $this->types;
+    }
+
+    /**
+     * Définit la liste des contenus sur lesquels porte la recherche.
+     *
+     * @param array $types
+     *
+     * @return self
+     */
+    public function setTypes(array $types = [])
+    {
+        if (empty($types)) {
+            $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+            $types = $indexManager->getTypes();
+        }
+
+        $this->types = $types;
+
+        return $this;
+    }
 
     // -------------------------------------------------------------------------------
     // Infos
@@ -870,7 +923,6 @@ class SearchRequest2
     public function buildRequest() {
         $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
 
-        $request = [];
         $clauses = [];
 
         // Queries
@@ -883,23 +935,30 @@ class SearchRequest2
             $clauses[] = $dsl->filter($filter);
         }
 
-        // Global Filters
-        if ($this->globalFilters) {
-            if (count($this->globalFilters) === 1) {
-                $filters = reset($this->globalFilter);
-            } else {
-                $filters = [];
-                foreach($this->globalFilters as $filter) {
-                    $filters[] = $dsl->should($filter);
-                }
-                $filters = $dsl->bool($filters);
+        // Crée le filtre permettant de limiter la recherche aux types de contenus indiqués : type1 OR type2...
+        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+        if (count($this->types) === 1) {
+            $type = reset($this->types);
+            $filter = $indexManager->getIndexer($type)->getSearchFilter();
+        } else {
+            $filters = [];
+            foreach($this->types as $type) {
+                $filter = $indexManager->getIndexer($type)->getSearchFilter();
+                $filters[] = $dsl->should($filter);
             }
-            $clauses[] = $dsl->filter($filters);
+            $filter = $dsl->bool($filters);
+        }
+        $clauses[] = $dsl->filter($filter);
+
+        // Global Filters
+        foreach($this->globalFilters as $filter) {
+            $clauses[] = $dsl->filter($filter);
         }
 
         // Combine les différentes clauses
+        $request = [];
         if (empty($clauses)) {
-            $request['query'] = $dsl->matchAll();
+            // $request['query'] = $dsl->matchAll(); // inutile, c'est ce que fait ES Par défaut
         } elseif(count($clauses) === 1) {
             $clauses = reset($clauses); // On obtient une clause de la forme "must" => []
             $request['query'] = reset($clauses); // On obtient la query qui figure dans la clause

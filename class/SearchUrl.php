@@ -120,8 +120,8 @@ class SearchUrl
         $this->parameters = [];
         $pos = strpos($url, '?');
         if ($pos !== false) {
-            $url = substr($url, 0, $pos);
             $this->parameters = $this->parseParameters(substr($url, $pos + 1));
+            $url = substr($url, 0, $pos);
         }
 
         $this->setBaseUrl($url); // Important : après setParameters() car setBaseUrl() modifie le paramètre 'page'
@@ -388,13 +388,6 @@ class SearchUrl
                         }
                     }
             }
-        }
-
-        // Ajoute les filtres globaux
-        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
-        foreach($indexManager->getActiveIndexers() as $indexer) {
-            $filter = $indexer->getSearchFilter();
-            $filter && $this->request->addGlobalFilter($filter);
         }
 
         // Retourne le résultat

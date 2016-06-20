@@ -253,6 +253,12 @@ class SearchUrl
         // 2. Transforme en tableau les filtres multivalués dont les valeurs sont séparées par des virgules
         $result = [];
         foreach($parameters as $name => $value) {
+            // Les paramètres "privés" de l'url (ceux qui ne concernent pas la recherche) sont stockés tels quels
+            if ($name[0] === '_') {
+                $result[$name] = $value;
+                continue;
+            }
+
             if ($value === '') {
                 continue;
             }
@@ -313,15 +319,20 @@ class SearchUrl
         }
         $query = '' ;
         foreach($parameters as $key => $value) {
-            // $value ne peut pas être null car parseParameters supprime les arguments vides
+            $query .= '&' . rawurlencode($key);
+            if ($value === '' || is_null($value)) {
+                continue;
+            }
+            $query .= '=';
             if (is_array($value)) {
                 foreach($value as &$item) {
                     $item = rawurlencode($item);
                 }
-                $query .= '&' . rawurlencode($key) . '=' . implode(self::SEPARATOR, $value);
+                $value = implode(self::SEPARATOR, $value);
             } else {
-                $query .= '&' . rawurlencode($key) . '=' . rawurlencode($value);
+                $value = rawurlencode($value);
             }
+            $query .= $value;
         }
 
         // Change le premier "&" généré en "?"
@@ -382,6 +393,10 @@ class SearchUrl
 
         // Initialise la requête à partir des arguments de l'url
         foreach($this->parameters as $name => $value) {
+            if ($name[0] === '_') {
+                continue;
+            }
+
             switch($name) {
                 case self::PAGE: // Numéro de la page en cours
                     $this->request->setPage($value);

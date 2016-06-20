@@ -34,7 +34,18 @@ class QueryBuilder implements Builder
 
     public function match($field, array $terms)
     {
-        return $this->dsl->match($field, implode(' ', $terms));
+        // Il faudrait qu'on ait un objet FieldsManager chargé de traduire les champs de recherche manipulés
+        // par l'utilisateur en champs elasticsearch.
+        // - isField($name) : indique si c'est un champ/un filtre ou pas (isField('page') : false)
+        //   (permettrait à SearchUrl de savoir quels paramètres prendre en compte et au QueryParser de savoir si
+        //   ce qui précède un signe ":" est ou nom un champ (exemple : "android / ios: a comparaison")
+        // - getType($name) : type de champ (champ simple, filtre en et, filtre en ou)
+        // - getDestination($name) : retourne les champs ES qui sont interrogés. Exemple : '' => ['title^2', 'content']
+        //   (resolve ?)
+        // - canRange($name) : indique si le champ supporte ou non les requêtes de type range ?
+        // + gestion de "triggers" : by:me -> createdby:login, today -> date en cours, etc.
+        ($field === '') && $field = ['title^2', 'content'];
+        return $this->dsl->multiMatch($field, implode(' ', $terms));
     }
 
     public function phrase($field, array $terms)

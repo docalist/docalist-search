@@ -210,18 +210,13 @@ class IndexManager
     }
 
     /**
-     * Retourne la liste des indexeurs actifs.
+     * Retourne la liste des contenus indexés.
      *
-     * @return Indexer[] Un tableau de la forme type => Indexeur.
+     * @return string[] Les noms des des types de contenus qui sont indexés.
      */
-    public function getActiveIndexers()
+    public function getTypes()
     {
-        $indexers = [];
-        foreach ($this->settings->types() as $type) {
-            $indexers[$type] = $this->getIndexer($type);
-        }
-
-        return $indexers;
+        return $this->settings->types();
     }
 
     /**

@@ -328,14 +328,20 @@ class SearchUrl
 
                     // Champ
                     else {
-                        $name === 'q' && $name = '_all'; // Requête "tous champs"
+                        $name === 'q' && $name = ''; // Requête "tous champs"
                         foreach ((array) $value as $value) {
                             $query = $parser->parse($value, $name);
                             $query && $this->request->addQuery($query);
                         }
-
                     }
             }
+        }
+
+        // Ajoute les filtres globaux
+        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+        foreach($indexManager->getActiveIndexers() as $indexer) {
+            $filter = $indexer->getSearchFilter();
+            $filter && $this->request->addGlobalFilter($filter);
         }
 
         // Retourne le résultat

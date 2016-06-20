@@ -66,6 +66,13 @@ class SearchUrl
     protected $url;
 
     /**
+     * Liste des contenus sur lesquels portera la recherche.
+     *
+     * @var string[]
+     */
+    protected $types;
+
+    /**
      * Url de base (i.e. $url sans la querystring)
      *
      * @var string
@@ -89,11 +96,13 @@ class SearchUrl
     /**
      * Crée un nouvel objet SearchUrl
      *
-     * @param string $url
+     * @param string    $url    Url à analyser.
+     * @param string[]  $types  Liste des types de contenus sur lesquels porte la recherche.
      */
-    public function __construct($url = null)
+    public function __construct($url = null, $types = [])
     {
         $this->setUrl($url);
+        $this->types = $types;
     }
 
     /**
@@ -104,6 +113,30 @@ class SearchUrl
     public function getUrl()
     {
         return $this->url;
+    }
+
+    /**
+     * Retourne la liste des types de contenus sur lesquels porte la recherche.
+     *
+     * @return string[]
+     */
+    public function getTypes()
+    {
+        return $this->types;
+    }
+
+    /**
+     * Définit la liste des contenus sur lesquels porte la recherche.
+     *
+     * @param array $types
+     *
+     * @return self
+     */
+    public function setTypes(array $types = [])
+    {
+        $this->types = $types;
+
+        return $this;
     }
 
     /**
@@ -246,7 +279,6 @@ class SearchUrl
             }
         }
 
-
         // 4. Valide le paramètre size
         if (isset($result[self::SIZE])) {
             $size = filter_var($result[self::SIZE], FILTER_VALIDATE_INT);
@@ -346,7 +378,7 @@ class SearchUrl
         $parser = docalist('query-parser'); /* @var Parser $parser */
 
         // Crée la requête
-        $this->request = new SearchRequest();
+        $this->request = new SearchRequest($this->types);
 
         // Initialise la requête à partir des arguments de l'url
         foreach($this->parameters as $name => $value) {

@@ -198,6 +198,8 @@ class Plugin
      */
     public function theCurrentFilters($format = null, $separator = null, $wrapper = null)
     {
+        return 'TODO / theCurrentFilters';
+
         $request = docalist('docalist-search-engine')->request(); /* @var $request SearchRequest */
 
         // Retourne une chaine vide si on n'a aucun filtre actif

@@ -65,11 +65,11 @@ class SearchRequest2
     protected $filters = [];
 
     /**
-     * Filtre global appliqué à la recherche.
+     * Liste des filtres globaux appliqués à la recherche.
      *
-     * @var array|null
+     * @var array
      */
-    protected $globalFilter = null;
+    protected $globalFilters = [];
 
     /**
      * Liste des clauses de tri.
@@ -121,7 +121,7 @@ class SearchRequest2
      */
     public function isEmptyRequest()
     {
-        return !$this->hasQueries() && !$this->hasFilters() && !$this->hasGlobalFilter();
+        return !$this->hasQueries() && !$this->hasFilters() && !$this->hasGlobalFilters();
     }
 
     // -------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ class SearchRequest2
     /**
      * Retourne le nombre de résultats par page (10 par défaut).
      *
-     * @return int Un entier >= 1
+     * @return int Un entier >= 0
      */
     public function getSize()
     {
@@ -278,6 +278,7 @@ class SearchRequest2
      *
      * @return bool
      */
+/*
     public function hasQuery($query)
     {
         if (is_string($query)) {
@@ -286,6 +287,7 @@ class SearchRequest2
 
         return in_array($query, $this->queries, true);
     }
+*/
 
     /**
      * Retourne la requête nommée dont le nom est indiqué.
@@ -294,10 +296,12 @@ class SearchRequest2
      *
      * @return array|null Retourne la requête demandée ou null si aucune requête n'a le nom indiqué.
      */
+/*
     public function getQuery($name)
     {
         return isset($this->queries[$name]) ? $this->queries[$name] : null;
     }
+*/
 
     /**
      * Supprime la requête passée en paramétre.
@@ -308,6 +312,7 @@ class SearchRequest2
      *
      * @return self
      */
+/*
     public function removeQuery($query)
     {
         if (is_string($query)) {
@@ -320,13 +325,13 @@ class SearchRequest2
 
         return $this;
     }
-
+*/
     // -------------------------------------------------------------------------------
     // Filtres utilisateurs
     // -------------------------------------------------------------------------------
 
     /**
-     * Indique si la recherche contient des fitlres utilisateurs.
+     * Indique si la recherche contient des filtres utilisateurs.
      *
      * @return bool
      */
@@ -411,6 +416,7 @@ class SearchRequest2
      *
      * @return bool
      */
+/*
     public function hasFilter($filter)
     {
         if (is_string($filter)) {
@@ -420,6 +426,7 @@ class SearchRequest2
         return in_array($filter, $this->filters, true);
 
     }
+*/
 
     /**
      * Retourne le filtre nommé dont le nom est indiqué.
@@ -428,10 +435,12 @@ class SearchRequest2
      *
      * @return array|null Retourne le filtre demandé ou null si aucun filtre n'a le nom indiqué.
      */
+/*
     public function getFilter($name)
     {
         return isset($this->filters[$name]) ? $this->filters[$name] : null;
     }
+*/
 
     /**
      * Supprime le filtre utilisateur passé en paramètre.
@@ -447,6 +456,7 @@ class SearchRequest2
      *
      * @return self
      */
+/*
     public function removeFilter($filter)
     {
         if (is_string($filter)) {
@@ -459,6 +469,7 @@ class SearchRequest2
 
         return $this;
     }
+*/
 
     /**
      * Inverse le filtre utilisateur passé en paramètre.
@@ -473,49 +484,84 @@ class SearchRequest2
      *
      * return self
      */
+/*
     public function toggleFilter(array $filter)
     {
         return $this->hasFilter($filter) ? $this->removeFilter($filter) : $this->addFilter($filter);
     }
-
+*/
     // -------------------------------------------------------------------------------
     // Filtre global (caché)
     // -------------------------------------------------------------------------------
 
+// old
     /**
-     * Indique si la recherche contient des fitlres utilisateurs.
+     * Indique si la recherche contient des filtres globaux.
      *
      * @return bool
      */
-    public function hasGlobalFilter()
+    public function hasGlobalFilters()
     {
-        return !is_null($this->globalFilter);
+        return !empty($this->globalFilter);
     }
 
     /**
-     * Retourne le filtre global appliqué à la recherche.
+     * Retourne les filtres globaux appliqués à la recherche.
      *
      * @return array|null
      */
-    public function getGlobalFilter()
+    public function getGlobalFilters()
     {
-        return $this->globalFilter;
+        return $this->globalFilters;
     }
 
     /**
-     * Définit le filtre global appliqué à la recherche.
+     * Définit les filtres globaux appliqués à la recherche.
      *
-     * @param array|null $filter Le filtre global à appliquer.
+     * @param array $filters Un tableau de filtres.
      *
-     * Si la méthode est appelée sans paramétre, avec null ou avec un tableau vide, le filtre global est réinitialisé.
+     * Si la méthode est appelée avec un tableau vide, les filtres globaux sont réinitialisés.
      *
      * @return self
      */
-    public function setGlobalFilter(array $filter = null)
+    public function setGlobalFilters(array $filters = [])
     {
-        $this->globalFilter = $filter ? $filter : null;
+        $this->globalFilters = [];
+        foreach($filters as $filter) {
+            $this->addGlobalFilter($filter);
+        }
 
         return $this;
+    }
+
+    /**
+     * Ajoute un filtre global à la recherche.
+     *
+     * Filtres nommés : si le filtre contient un paramètre "_name", il est indexé par nom (le nom doit être unique)
+     * et peut ensuite être manipulé en appellant hasFilter(), getFilter(), removeFilter().
+     *
+     * @param array $query Un tableau décrivant le filtre, en général créé avec le service QueryDSL. Exemple :
+     *
+     * <code>
+     * $request->addFilter($dsl->term('status', 'publish')
+     * </code>
+     *
+     * @return self
+     */
+    public function addGlobalFilter(array $filter)
+    {
+        $name = $this->getQueryName($filter);
+        if (is_null($name)) {
+            $this->globalFilters[] = $filter;
+        } else {
+            if (isset($this->globalFilters[$name])) {
+                throw new InvalidArgumentException("A global filter named '$name' already exists");
+            }
+            $this->globalFilters[$name] = $filter;
+        }
+
+        return $this;
+
     }
 
     // -------------------------------------------------------------------------------
@@ -810,12 +856,12 @@ class SearchRequest2
      *
      * @return self
      */
-    public function removeAggregation($name)
-    {
-        unset($this->aggregations[$name]);
+//     public function removeAggregation($name)
+//     {
+//         unset($this->aggregations[$name]);
 
-        return $this;
-    }
+//         return $this;
+//     }
 
     // -------------------------------------------------------------------------------
     // Exécution
@@ -837,9 +883,18 @@ class SearchRequest2
             $clauses[] = $dsl->filter($filter);
         }
 
-        // Global Filter
-        if ($this->globalFilter) {
-            $clauses[] = $dsl->filter($this->globalFilter);
+        // Global Filters
+        if ($this->globalFilters) {
+            if (count($this->globalFilters) === 1) {
+                $filters = reset($this->globalFilter);
+            } else {
+                $filters = [];
+                foreach($this->globalFilters as $filter) {
+                    $filters[] = $dsl->should($filter);
+                }
+                $filters = $dsl->bool($filters);
+            }
+            $clauses[] = $dsl->filter($filters);
         }
 
         // Combine les différentes clauses

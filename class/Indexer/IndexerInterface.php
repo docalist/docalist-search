@@ -85,16 +85,16 @@ interface IndexerInterface
     public function indexAll(IndexManager $indexManager);
 
     /**
-     * Retourne les filtres à appliquer pour une recherche portant sur les contenus gérés par cet indexeur.
+     * Retourne le filtre global à appliquer pour une recherche portant sur les contenus gérés par cet indexeur.
      *
-     * Cette méthode permet de filtrer les réponses obtenues pour une recherche en excluant les documents auxquels
-     * l'utilisateur WordPress en cours n'a pas accès.
+     * Cette méthode permet de restreindre la recherche aux contenus gérés par cet indexeur et aux contenus
+     * auxquels l'utilisateur a accès.
      *
      * Le filtre généré doit contenir une clause permettant de sélectionner les contenus gérés par cet indexeur
      * (par exemple "in:collection") mais peut aussi contenir des clauses portant sur le statut des documents
-     * (par exemple "status:public") ou d'autres critères.
+     * (par exemple "status:public") l'auteur du document(par exemple "createdby:login"), ou d'autres critères.
      *
-     * @return array Un tableau contenant un filtre de filtres elastic-search. (par exemple : status:public or user:me)
+     * @return array Un filtre contenant les différentes clauses à appliquer.
      */
     public function getSearchFilter();
 }

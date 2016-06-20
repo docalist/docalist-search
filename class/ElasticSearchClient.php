@@ -42,7 +42,7 @@ class ElasticSearchClient
      */
     public function __construct(Settings $settings)
     {
-        $debug = false;
+        $debug = isset($_REQUEST['_eslog']);
 
         $this->settings = $settings;
 

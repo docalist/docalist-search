@@ -15,9 +15,9 @@ namespace Docalist\Search\Indexer;
 
 use Docalist\Search\IndexManager;
 use Docalist\Search\MappingBuilder;
-use wpdb;
+use Docalist\Search\QueryDSL;
 use WP_Post;
-use Docalist\Search\SearchRequest;
+use wpdb;
 
 /**
  * Un indexeur pour les articles de WordPress.
@@ -206,7 +206,15 @@ class PostIndexer extends AbstractIndexer
         return $document;
     }
 
-    protected function getStatusFilter()
+    /**
+     * Retourne un filtre permettant de limiter la recherche aux contenus auxquels l'utilisateur a accès.
+     *
+     * Le filtre retourné est de la forme "status:public OR createdby:user_login" (ou simplement "status:public" si
+     * l'utilisateur en cours n'est pas connecté).
+     *
+     * @return array|null Retourne un filtre QueryDSL ou null si l'utilisateur dispose du droit "read_private_posts".
+     */
+    protected function getVisibilityFilter()
     {
         // Détermine le nom de la capacité "read_private_posts" pour ce type
         $postType = get_post_type_object($this->getType());
@@ -224,18 +232,13 @@ class PostIndexer extends AbstractIndexer
             $statusObject && $statusObject->public && $public[] = $status;
         }
 
-        // L'utilisateur ne peut voir que les posts publics
-        $filter = SearchRequest::termFilter('status', $public);
-
-        //  Et ceux dont il est auteur
-        if (is_user_logged_in()) {
-            $user = wp_get_current_user()->user_login;
-
-            $filter = SearchRequest::shouldFilter(
-                $filter,
-                SearchRequest::termFilter('createdby', $user)
-            );
-        }
+        // L'utilisateur ne peut voir que les posts publics et ceux dont il est auteur
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        $filter = $dsl->terms('status', $public);
+        is_user_logged_in() && $filter = $dsl->bool([
+            $dsl->should($filter),
+            $dsl->should($dsl->term('createdby', wp_get_current_user()->user_login))
+        ]);
 
         // Ok
         return $filter;
@@ -243,12 +246,12 @@ class PostIndexer extends AbstractIndexer
 
     public function getSearchFilter()
     {
-        $typeFilter = parent::getSearchFilter();
-        $statusFilter = $this->getStatusFilter();
-        if (empty($statusFilter)) {
-            return $typeFilter;
-        }
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
 
-        return SearchRequest::mustFilter($typeFilter, $statusFilter);
+        $type = parent::getSearchFilter();
+        $visibility = $this->getVisibilityFilter();
+
+        // Construit un filtre de la forme "type:post AND (status:public OR createdby:user_login)"
+        return $visibility ? $dsl->bool([$dsl->filter($type), $dsl->filter($visibility)]) : $type;
     }
 }

@@ -13,7 +13,7 @@
  */
 namespace Docalist\Search;
 
-use Docalist\Search\Indexer\IndexerInterface;
+use Docalist\Search\Indexer;
 use Docalist\Search\Indexer\NullIndexer;
 use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
@@ -44,7 +44,7 @@ class IndexManager
      *
      * Initialisé lors du premier appel à getAvailableIndexers().
      *
-     * @var TypeIndexer[]
+     * @var Indexer[]
      */
     protected $indexers;
 
@@ -146,7 +146,7 @@ class IndexManager
         if ($this->settings->realtime()) {
             // On utilise l'action wp_loaded pour être sûr que tous les plugins ont installé leurs filtres.
             add_action('wp_loaded', function () {
-                foreach ($this->settings->types() as $type) {
+                foreach ($this->settings->types() as $type) { // getActiveIndexers()
                     $this->getIndexer($type)->activateRealtime($this);
                 }
             });
@@ -168,7 +168,7 @@ class IndexManager
      * Lors du premier appel, le filtre 'docalist_search_get_indexers' est exécuté.
      * Les indexeurs disponibles doivent intercepter ce filtre et s'ajouter dans le tableau passé en paramètre.
      *
-     * @return TypeIndexer[] Un tableau de la forme type => Indexeur.
+     * @return Indexer[] Un tableau de la forme type => Indexeur.
      */
     public function getAvailableIndexers()
     {
@@ -184,7 +184,7 @@ class IndexManager
      *
      * @param string $type Le type de contenu.
      *
-     * @return IndexerInterface L'indexeur à utiliser pour ce type de contenu.
+     * @return Indexer L'indexeur à utiliser pour ce type de contenu.
      *
      * @throws InvalidArgumentException Si aucun indexeur n'est disponible pour le type indiqué.
      */
@@ -199,14 +199,29 @@ class IndexManager
             $this->indexers[$type] = new NullIndexer();
         }
 
-        // Génère un message d'erreur si ce n'est pas un TypeIndexer
-        if (! $this->indexers[$type] instanceof IndexerInterface) {
+        // Génère un message d'erreur si ce n'est pas un Indexer
+        if (! $this->indexers[$type] instanceof Indexer) {
             docalist('admin-notices')->error("Error: invalid indexer for type '$type'", 'docalist-search');
             $this->indexers[$type] = new NullIndexer();
         }
 
         // Ok
         return $this->indexers[$type];
+    }
+
+    /**
+     * Retourne la liste des indexeurs actifs.
+     *
+     * @return Indexer[] Un tableau de la forme type => Indexeur.
+     */
+    public function getActiveIndexers()
+    {
+        $indexers = [];
+        foreach ($this->settings->types() as $type) {
+            $indexers[$type] = $this->getIndexer($type);
+        }
+
+        return $indexers;
     }
 
     /**

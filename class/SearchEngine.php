@@ -14,7 +14,6 @@
 namespace Docalist\Search;
 
 use Docalist\Search\SearchRequest2 as SearchRequest;
-use Docalist\Search\QueryDSL;
 use WP_Query;
 use Exception;
 

@@ -13,6 +13,8 @@
  */
 namespace Docalist\Search;
 
+use Docalist\Search\SearchRequest2 as SearchRequest;
+use Docalist\Search\QueryDSL;
 use WP_Query;
 use Exception;
 
@@ -61,143 +63,21 @@ class SearchEngine
         add_filter('parse_query', [$this, 'onParseQuery']);
 
         // Crée la requête quand on est sur la page "liste des réponses"
-        add_filter('docalist_search_create_request', function (SearchRequest $request = null, WP_Query $query) {
+        add_filter('docalist_search_create_request', function (SearchRequest $request = null, WP_Query $query, & $display = true) {
             if (is_null($request) && $query->is_page && $query->get_queried_object_id() === $this->searchPage()) {
-                $request = $this->defaultRequest()
-                    ->isSearch(true)
-                    ->searchPageUrl($this->searchPageUrl());
+                $searchUrl = new SearchUrl($_SERVER['REQUEST_URI']);
+                $request = $searchUrl->getSearchRequest();
+             // $display = false; // modèle pour panier, export, etc si on ne voulait pas afficher les résultats.
             }
 
             return $request;
-        }, 10, 2);
-
-        // Crée le filtre par défaut pour les articles
-        add_filter('docalist_search_get_post_filter', function ($filter, $type) {
-            return $this->defaultFilter($type);
-        }, 10, 2);
-
-        // Crée le filtre par défaut pour les pages
-        add_filter('docalist_search_get_page_filter', function ($filter, $type) {
-            return $this->defaultFilter($type);
-        }, 10, 2);
+        }, 10, 3);
 
         // TODO : filtres à virer, utiliser docalist('docalist-search-engine')->xxx()
         add_filter('docalist_search_get_request', [$this, 'request'], 10, 0);
         add_filter('docalist_search_get_results', [$this, 'results'], 10, 0);
         add_filter('docalist_search_get_rank', [$this, 'rank'], 10, 1);
         add_filter('docalist_search_get_hit_link', [$this, 'hitLink'], 10, 1);
-    }
-
-    /**
-     * Construit une requête standard en tenant compte du statut des documents
-     * et des droits de l'utilisateur en cours.
-     *
-     * @param string $types Liste des types interrogés, par défaut tous les
-     * types indexés.
-     * @param bool $ignoreQueryString Par défaut la requête tient compte des
-     * arguments passés en query string. Passez false pour obtenir une requête
-     * vide (match all) ne contenant que les filtres.
-     *
-     * @return SearchRequest
-     */
-    public function defaultRequest($types = null, $ignoreQueryString = false)
-    {
-        // Crée la requête
-        $request = new SearchRequest($ignoreQueryString ? null : wp_unslash($_REQUEST));
-
-        // Détermine les types à prendre en compte
-        if (is_null($types)) {
-            // Si la requête a déjà un filtre sur _type, on filtre uniquement ce type
-            if ($request->hasFilter('_type')) {
-                $types = array_keys($request->filter('_type'));
-            }
-
-            // Sinon on prend tous les types indexés
-            else {
-                $types = $this->settings->types();
-            }
-        } else {
-            $types = (array) $types;
-        }
-
-        // Pour chaque type, construit le filtre de visibilité
-        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
-
-        $filters = [];
-        foreach ($types as $type) {
-            $filter = $indexManager->getIndexer($type)->getSearchFilter();
-            $filter && $filters[] = $filter;
-        }
-
-        // Combine tous les filtres ensemble et les ajoute à la requête
-        if (count($filters) === 1) {
-            $request->addHiddenFilter($filters[0]);
-        } else {
-            $request->addHiddenFilter($request::shouldFilter($filters));
-        }
-
-        // Ok
-        return $request;
-    }
-
-    /**
-     * Construit un filtre par défaut pour le type passé en paramètre en tenant
-     * compte du statut des documents et des droits de l'utilisateur en cours.
-     *
-     * @param string $type
-     */
-    public function defaultFilter($type)
-    {
-        global $wp_post_statuses;
-
-        // Définit des filtres sur le statut des notices en fonction
-        // des droits de l'utilisateur :
-        // - Tout le monde peut lire les statuts publics
-        // - Si l'utilisateur est connecté, il peut voir les status
-        //   privés s'il a le droit "read_private_posts" du type ou
-        //   s'il est l'auteur de la notice ou du post.
-        // Le code est inspiré de ce que fait WordPress quand on appelle
-        // WP_Query::get_posts (cf. wp_includes/query.php:3027)
-
-        $postType = get_post_type_object($type);
-        $readPrivate = $postType->cap->read_private_posts;
-        $canReadPrivate = current_user_can($readPrivate);
-
-        // Détermine la liste des statuts publics et privés/protégés
-        $public = $private = [];
-        foreach ($wp_post_statuses as $status) {
-            if ($status->public) {
-                $public[] = $status->name;
-            } elseif ($status->protected || $status->private) {
-                $private[] = $status->name;
-            }
-        }
-
-        // Si l'utilisateur a le droit "read_private_posts" : tout
-        if ($canReadPrivate) {
-            $filter = SearchRequest::termFilter('status', $public + $private);
-        }
-
-        // Sinon, que le statut "publish"
-        else {
-            $filter = SearchRequest::termFilter('status', $public);
-
-            //  Et les statuts privés pour les posts dont il est auteur
-            if ($private && is_user_logged_in()) {
-                $user = wp_get_current_user()->user_login;
-
-                $filter = SearchRequest::shouldFilter(
-                    $filter,
-                    SearchRequest::mustFilter(
-                        SearchRequest::termFilter('createdby', $user),
-                        SearchRequest::termFilter('status', $private)
-                    )
-                );
-            }
-        }
-
-        // Combine en "et" avec le type
-        return SearchRequest::mustFilter(SearchRequest::typeFilter($type), $filter);
     }
 
     /**
@@ -302,8 +182,10 @@ class SearchEngine
             return $query;
         }
 
-        // Demande aux plugins s'il faut créer une requête
-        $this->request = apply_filters('docalist_search_create_request', null, $query);
+        // Permet aux plugins de créer une requête et d'indiquer s'il faut ou non afficher les résultats
+        // obtenus ($displayResults, troisième paramètre du filtre, passé par référence, à true par défaut)
+        $displayResults = true;
+        $this->request = apply_filters_ref_array('docalist_search_create_request', [null, $query, & $displayResults]);
 
         // Si on n'a pas de requête à exécuter, on ne fait rien
         if (is_null($this->request)) {
@@ -319,15 +201,6 @@ class SearchEngine
 
         $debug && print('docalist_search_create_request a retourné une requête, exécution<br />');
 
-        // Si la requête est une recherche WordPress, on tient compte de "paged"
-        if ($this->request->isSearch()) {
-            if ($page = $query->get('paged')) {
-                $this->request->page($page);
-            } elseif ($page = $query->get('page')) {
-                $this->request->page($page);
-            }
-        }
-
         if ($debug) {
             printf(
                 "<pre>%s</pre>",
@@ -340,29 +213,29 @@ class SearchEngine
 
         $debug && print($this->results->total() . ' réponses obtenues<br />');
 
-        // Si la requête n'est pas une recherche WordPress, on a finit
-        if (! $this->request->isSearch()) {
-            $debug && print('Le flag isSearch de la requête SearchRequest est à false, terminé<br />');
+        // Si on nous a demandé de ne pas afficher les résultats, on a finit
+        if (! $displayResults) {
+            $debug && print('Le flag $displayResults est à false, terminé<br />');
 
             return $query;
         }
 
-        $debug && print('Le flag isSearch est à true, force WP à exécuter comme une recherche<br />');
+        $debug && print('Le flag $displayResults est à true, force WP à exécuter comme une recherche<br />');
 
         // Force WordPress à traiter la requête comme une recherche
         $query->is_search = true;
         $query->is_singular = $query->is_page = false;
 
         // Indique à WordPress les paramètres de la recherche en cours
-        $query->set('posts_per_page', $this->request->size());
-        $query->set('paged', $this->request->page());
+        $query->set('posts_per_page', $this->request->getSize());
+        $query->set('paged', $this->request->getPage());
 
         // Empêche WordPress de faire une 2nde requête "SELECT FOUND_ROWS()"
         // (inutile car on a directement le nombre de réponses obtenues)
         $query->set('no_found_rows', true);
 
         // Permet à get_search_query() de récupérer l'équation de recherche
-        $query->set('s', $this->request->asEquation());
+        // $query->set('s', $this->request->asEquation());
 
         // Construit la liste des ID des réponses obtenues
         $id = [];
@@ -373,7 +246,7 @@ class SearchEngine
         }
 
         // Indique à WordPress la requête SQL à exécuter pour récupérer les posts
-        add_filter('posts_request', function ($sql) use ($id) { // !!! pas appellé si supress_filters=true
+        add_filter('posts_request', function ($sql) use ($id) { // !!! pas appellé si suppress_filters=true
             global $wpdb; /* @var $wpdb Wpdb */
 
             // Aucun hit : retourne sql=null pour que wpdb::query() ne fasse aucune requête
@@ -401,7 +274,7 @@ class SearchEngine
                 // TODO : à améliorer (cf. plugin "simple notices")
             }
             $total = $this->results ? $this->results->total() : 0;
-            $size = $this->request->size();
+            $size = $this->request->getSize();
 
             $query->found_posts = $total;
             $query->max_num_pages = (int) ceil($total / $size);

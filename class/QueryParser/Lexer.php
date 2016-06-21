@@ -112,7 +112,7 @@ class Lexer
      *
      * @var string
      */
-    protected static $field = '~([a-z][a-z0-9._-]+):~A'; // pas de /u : un nom de champ est un ident, pas d'accents
+    protected static $field = '~([a-z_][a-z0-9._-]+):~A'; // pas de /u : un nom de champ est un ident, pas d'accents
 
     /**
      * Expression régulière utilisée pour passer au caractère suivant quand rien n'est reconnu.

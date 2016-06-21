@@ -272,8 +272,12 @@ class Parser
             case Lexer::T_FIELD:
                 $newField = $this->tokenText;
                 $this->read();
-
-                $this->parseCompound($newField, $queries);
+                if ($this->token === Lexer::T_STAR) { // field:*
+                    $this->read();
+                    $queries[] = $this->builder->exists($newField);
+                } else {
+                    $this->parseCompound($newField, $queries);
+                }
                 break;
 
             case Lexer::T_OPEN_PARENTHESIS:

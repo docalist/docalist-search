@@ -42,6 +42,11 @@ class ExplainBuilder implements Builder
         return '*';
     }
 
+    public function exists($field)
+    {
+        return "$field:*";
+    }
+
     public function bool(array $should = [], array $must = [], array $not = [])
     {
         $result = '';

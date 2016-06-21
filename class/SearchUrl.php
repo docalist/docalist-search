@@ -452,7 +452,7 @@ class SearchUrl
     protected function getEquation()
     {
         // TODO: à améliorer. Quels paramètres prendre ? tout ? tout sauf les filtres ?
-        $q = $this->parameters['q'];
+        $q = isset($this->parameters['q']) ? $this->parameters['q'] : '*';
         is_array($q) && $q = '(' . implode(') AND (', $q) . ')';
 
         return $q;

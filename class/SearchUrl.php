@@ -437,8 +437,25 @@ class SearchUrl
             }
         }
 
+        // Définit la représentation sous forme d'équation de la requête
+        $this->request->setEquation($this->getEquation());
+
         // Retourne le résultat
         return $this->request;
+    }
+
+    /**
+     * Retourne une représentation de la requête sous forme d'équation de recherche.
+     *
+     * @return string
+     */
+    protected function getEquation()
+    {
+        // TODO: à améliorer. Quels paramètres prendre ? tout ? tout sauf les filtres ?
+        $q = $this->parameters['q'];
+        is_array($q) && $q = '(' . implode(') AND (', $q) . ')';
+
+        return $q;
     }
 
     /**

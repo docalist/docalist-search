@@ -153,7 +153,9 @@ class SearchUrl
         $this->parameters = [];
         $pos = strpos($url, '?');
         if ($pos !== false) {
-            $this->parameters = $this->parseParameters(substr($url, $pos + 1));
+            $parameters = [];
+            parse_str(substr($url, $pos + 1), $parameters);
+            $this->setParameters($parameters);
             $url = substr($url, 0, $pos);
         }
 
@@ -220,13 +222,23 @@ class SearchUrl
     }
 
     /**
-     * Analyse les paramètres qui figure dans la querystring indiquée et construit un tableau.
-     *
-     * @param string $querystring
+     * Retourne un tableau contenant les paramètres de la recherche.
      *
      * @return array
      */
-    protected function parseParameters($querystring)
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
+
+    /**
+     * Modifier les paramètres de la recherche.
+     *
+     * @param array $parameters
+     *
+     * @return self
+     */
+    public function setParameters(array $parameters)
     {
         // Dans la querystring, les paramètres ayant plusieurs valeurs peuvent être encodées de différentes façons :
         // 1. url générée depuis un formulaire php standard (exemple : recherche avancée)
@@ -246,16 +258,12 @@ class SearchUrl
         // - On utilise notre propre encodage pour éviter ça
         // - on obtient une url de la forme topic.filter=aaa,bbb
 
-        // 1. Utilise la fonction parse_str() standard de php
-        $parameters = [];
-        parse_str($querystring, $parameters);
-
-        // 2. Transforme en tableau les filtres multivalués dont les valeurs sont séparées par des virgules
-        $result = [];
+        // Transforme en tableau les filtres multivalués dont les valeurs sont séparées par des virgules
+        $this->parameters = [];
         foreach($parameters as $name => $value) {
             // Les paramètres "privés" de l'url (ceux qui ne concernent pas la recherche) sont stockés tels quels
             if ($name[0] === '_') {
-                $result[$name] = $value;
+                $this->parameters[$name] = $value;
                 continue;
             }
 
@@ -268,35 +276,35 @@ class SearchUrl
 
             if (is_string($value) && ($this->isFilter($name) || $this->isSpecialFilter($name))) {
                 $value = explode(self::SEPARATOR, $value);
-                $result[$name] = count($value) === 1 ? reset($value) : $value;
+                $this->parameters[$name] = count($value) === 1 ? reset($value) : $value;
                 continue;
             }
 
-            $result[$name] = $value;
+            $this->parameters[$name] = $value;
         }
 
-        // 3. Valide le paramètre "page"
-        if (isset($result[self::PAGE])) {
-            $page = filter_var($result[self::PAGE], FILTER_VALIDATE_INT);
+        // Valide le paramètre "page"
+        if (isset($this->parameters[self::PAGE])) {
+            $page = filter_var($this->parameters[self::PAGE], FILTER_VALIDATE_INT);
             if ($page === false || $page <= 1 /* || $page === SearchRequest::DEFAULT_PAGE */) {
-                unset($result[self::PAGE]);
+                unset($this->parameters[self::PAGE]);
             } else {
-                $result[self::PAGE] = $page;
+                $this->parameters[self::PAGE] = $page;
             }
         }
 
-        // 4. Valide le paramètre size
-        if (isset($result[self::SIZE])) {
-            $size = filter_var($result[self::SIZE], FILTER_VALIDATE_INT);
+        // Valide le paramètre size
+        if (isset($this->parameters[self::SIZE])) {
+            $size = filter_var($this->parameters[self::SIZE], FILTER_VALIDATE_INT);
             if ($size === false || $size < 0 || $size === SearchRequest::DEFAULT_SIZE) { // 0 = no limit
-                unset($result[self::SIZE]);
+                unset($this->parameters[self::SIZE]);
             } else {
-                $result[self::SIZE] = $size;
+                $this->parameters[self::SIZE] = $size;
             }
         }
 
         // Done
-        return $result;
+        return $this;
     }
 
     /**
@@ -356,16 +364,6 @@ class SearchUrl
         }
 
         return $url . $this->buildQueryString($parameters);
-    }
-
-    /**
-     * Retourne un tableau contenant les paramètres qui figure dans la query-string de l'url.
-     *
-     * @return array
-     */
-    public function getParameters()
-    {
-        return $this->parameters;
     }
 
     /**

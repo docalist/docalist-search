@@ -108,6 +108,13 @@ class SearchRequest2
      */
     protected $hasErrors = false;
 
+    /**
+     * Représentation de la requête sous forme d'équation de recherche.
+     *
+     * @var string
+     */
+    protected $equation;
+
     // -------------------------------------------------------------------------------
     // Constructeur
     // -------------------------------------------------------------------------------
@@ -151,6 +158,34 @@ class SearchRequest2
         }
 
         $this->types = $types;
+
+        return $this;
+    }
+
+    // -------------------------------------------------------------------------------
+    // Equation
+    // -------------------------------------------------------------------------------
+
+    /**
+     * Retourne une représentation de la recherche en cours sous la forme d'une équation de recherche.
+     *
+     * @return string
+     */
+    public function getEquation()
+    {
+        return $this->equation;
+    }
+
+    /**
+     * Définit la représentation de la recherche en cours sous la forme d'une équation de recherche.
+     *
+     * @param string $equation
+     *
+     * @return self
+     */
+    public function setEquation($equation)
+    {
+        $this->equation = $equation;
 
         return $this;
     }

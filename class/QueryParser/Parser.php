@@ -281,8 +281,6 @@ class Parser
                 $this->parseExpression($field, $queries);
                 if ($this->token === Lexer::T_CLOSE_PARENTHESIS) {
                     $this->read(); // else ignore parenthèse fermante qui manque
-                } else {
-                    echo "il manque une parenthèse fermante avant ", $this->tokenText, "<br />";
                 }
                 break;
 

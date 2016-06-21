@@ -67,6 +67,13 @@ interface Builder
     public function all();
 
     /**
+     * Construit une requête "exists"
+     *
+     * @return array
+     */
+    public function exists($field);
+
+    /**
      * Construit une requête booléenne.
      *
      * @param array $should

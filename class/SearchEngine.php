@@ -234,7 +234,7 @@ class SearchEngine
         $query->set('no_found_rows', true);
 
         // Permet à get_search_query() de récupérer l'équation de recherche
-        // $query->set('s', $this->request->asEquation());
+        $query->set('s', $this->request->getEquation());
 
         // Construit la liste des ID des réponses obtenues
         $id = [];

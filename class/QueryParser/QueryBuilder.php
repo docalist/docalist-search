@@ -63,6 +63,11 @@ class QueryBuilder implements Builder
         return $this->dsl->matchAll();
     }
 
+    public function exists($field)
+    {
+        return $this->dsl->exists($field);
+    }
+
     public function bool(array $should = [], array $must = [], array $not = [])
     {
         $queries = [];

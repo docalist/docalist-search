@@ -368,6 +368,30 @@ class Version200 implements QueryDSL
     }
 
     // -------------------------------------------------------------------------------
+    // Joining queries
+    // -------------------------------------------------------------------------------
+
+    public function nested($path, array $query, array $parameters = [])
+    {
+        // Vérifie les paramètres autorisés (déterminés en regardant le code source de NestedQueryParser.java)
+        $this->checkParameters(__FUNCTION__, $parameters, [
+            // 'path', 'query', // fixés par nous, pas autorisés dans $parameters
+            'score_mode', // avg (par défaut), sum, min, max ou none.
+            'inner_hits',
+            'boost', '_name',
+
+            // 'filter' : existait en 1.x mais plus maintenant
+            // scoreMode : deprecated
+        ]);
+
+        // Construit les arguments de la requête
+        $args = ['path' => $path, 'query' => $query]  + $parameters;
+
+        // Ok
+        return ['nested' => $args];
+    }
+
+    // -------------------------------------------------------------------------------
     // Méthodes protégées (vérification des paramètres)
     // -------------------------------------------------------------------------------
 

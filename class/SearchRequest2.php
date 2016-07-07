@@ -1030,21 +1030,50 @@ class SearchRequest2
     /**
      * Envoie la requête au serveur elasticsearch passé en paramètre et retourne les résultats obtenus.
      *
-     * @param string Mode d'exécution de la requête sur les différents shards du cluster elasticsearch.
+     * @param array $options Options de la recherche. Les valeurs possibles sont les suivantes :
      *
-     * cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-search-type.html
+     * - search_type : mode d'exécution de la requête sur les différents shards du cluster elasticsearch.
+     *   ('query_then_fetch' ou 'dfs_query_then_fetch').
+     *   cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-search-type.html
      *
-     * @return SearchResults|null Un objet SearchResults décrivant les résultats de la recherche ou null
-     * si elasticsearch a généré une erreur.
+     * - filter_path : filtres sur les informations à retourner dans la réponse.
+     *   cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/common-options.html#_response_filtering
+     *
+     * @return SearchResults|null Un objet SearchResults décrivant les résultats de la recherche ou null si
+     * elasticsearch a généré une erreur.
      */
-    public function execute($searchType = 'query_then_fetch')
+    public function execute(array $options = [])
     {
-        if (!in_array($searchType, ['query_then_fetch', 'dfs_query_then_fetch'])) {
-            throw new InvalidArgumentException("Invalid search type, expected query_then_fetch or dfs_query_then_fetch");
+        // Construit les paramètres de la recherche à partir des options indiquées
+        $queryString = '';
+
+        // https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-search-type.html
+        if (isset($options['search_type'])) {
+            $option = $options['search_type'];
+            if (!in_array($option, ['query_then_fetch', 'dfs_query_then_fetch'])) {
+                throw new InvalidArgumentException("Invalid search type, expected query_then_fetch or dfs_query_then_fetch");
+            }
+            $queryString .= "&search_type=$option";
         }
 
+        // https://www.elastic.co/guide/en/elasticsearch/reference/master/common-options.html#_response_filtering
+        if (isset($options['filter_path'])) {
+            $option = $options['filter_path'];
+            $queryString .= '&filter_path=' . urlencode($option);
+        }
+
+        // scroll : https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-scroll.html
+        // preference : https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-preference.html
+
+        // explain : pas en querystring https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-explain.html
+        // version : pas en querystring https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-version.html
+
+        // Finalise la querystring
+        $queryString && $queryString[0] = '?';
+
+        // Exécute la requête
         $es = docalist('elastic-search');
-        $response = $es->get("/{index}/_search?search_type=$searchType", $this->buildRequest());
+        $response = $es->get("/{index}/_search$queryString", $this->buildRequest());
         if (isset($response->error)) {
             $this->hasErrors = true;
 
@@ -1053,6 +1082,7 @@ class SearchRequest2
 
         $this->hasErrors = false;
 
+        // Retourne les résultats
         return new SearchResults($response, $es->getElapsedTime());
     }
 

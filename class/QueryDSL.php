@@ -342,7 +342,19 @@ interface QueryDSL
     // Joining queries
     // -------------------------------------------------------------------------------
 
-    // public function nested();
+    /**
+     * Crée une requête qui retourne les documents ayant des objets imbriqués qui correspondent à la requête indiquée.
+     *
+     * @param string $path Nom du champ qui contient les objets imbriqués (nested).
+     * @param array $query La requête à exécuter sur les objets imbriqués.
+     * @param array $parameters Paramètres additionnels de la requête.
+     *
+     * @return array Un tableau décrivant une requête de type "Nested".
+     *
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/master/query-dsl-nested-query.html
+     */
+    public function nested($path, array $query, array $parameters = []);
+
     // public function hasChild();
     // public function hasParent();
     // public function parentId();

@@ -44,7 +44,7 @@ class QueryBuilder implements Builder
         //   (resolve ?)
         // - canRange($name) : indique si le champ supporte ou non les requêtes de type range ?
         // + gestion de "triggers" : by:me -> createdby:login, today -> date en cours, etc.
-        ($field === '') && $field = ['title^2', 'content'];
+        ($field === '') && $field = ['title^2', 'content', 'name'];
         return $this->dsl->multiMatch($field, implode(' ', $terms));
     }
 

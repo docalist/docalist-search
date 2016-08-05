@@ -864,7 +864,9 @@ class SearchRequest2
     /**
      * Retourne les agrégations qui composent la recherche.
      *
-     * @return array[] Un tableau de la forme nom => agrégation.
+     * @return Aggregation[]|array[] Un tableau de la forme nom => agrégation.
+     *
+     * Chaque élément du tableau est un objet Aggregation ou un tableau.
      */
     public function getAggregations()
     {
@@ -874,9 +876,9 @@ class SearchRequest2
     /**
      * Définit les agrégations qui composent la recherche.
      *
-     * @param array[] $aggregations Un tableau d'agrégations de la forme nom => aggrégation.
+     * @param Aggregation[]|array[] $aggregations Un tableau d'agrégations de la forme nom => aggrégation.
      *
-     * Chaque aggregation est elle-même un tableau.
+     * Chaque élément du tableau est un objet Aggregation ou un tableau.
      *
      * Si la méthode est appelée sans arguments ou avec un tableau vide, la liste des agrégations est réinitialisée.
      *
@@ -896,14 +898,18 @@ class SearchRequest2
      * Ajoute une agrégation à la liste des agrégations qui composent la recherche.
      *
      * @param string $name Nom de l'agrégation.
-     * @param array  $aggregation Un tableau décrivant l'agrégation.
+     * @param Aggregation|array $aggregation Un objet Aggregation ou un tableau décrivant l'agrégation.
      *
      * @return self
      */
-    public function addAggregation($name, array $aggregation)
+    public function addAggregation($name, $aggregation)
     {
         if (isset($this->aggregations[$name])) {
             throw new InvalidArgumentException("An aggregation named '$name' already exists");
+        }
+
+        if (! is_array($aggregation) && ! $aggregation instanceof Aggregation) {
+            throw new InvalidArgumentException("Invalid aggregation '$name': expected array or Aggregation object");
         }
 
         $this->aggregations[$name] = $aggregation;
@@ -928,7 +934,8 @@ class SearchRequest2
      *
      * @param string $name Le nom de l'agrégation à retourner.
      *
-     * @return array|null Retourne l'agrégation demandée ou null si aucune agrégation n'a le nom indiqué.
+     * @return Agregation|array|null Retourne l'agrégation demandée (sous la forme d'un objet Aggregation ou
+     * d'un tableau) ou null si aucune agrégation n'a le nom indiqué.
      */
     public function getAggregation($name)
     {
@@ -1020,7 +1027,11 @@ class SearchRequest2
 
         // Agrégrations
         if ($this->aggregations) {
-            $request['aggs'] = $this->aggregations;
+            $request['aggregations'] = [];
+            foreach($this->aggregations as $name => $aggregation) {
+                ($aggregation instanceof Aggregation) && $aggregation = $aggregation->getDefinition();
+                $request['aggregations'][$name] = $aggregation;
+            }
         }
 
         // Ok
@@ -1082,8 +1093,17 @@ class SearchRequest2
 
         $this->hasErrors = false;
 
+        // Fournit le résultat obtenu aux aggrégations qui ont été définies comme objets
+        if (isset($response->aggregations)) {
+            foreach($response->aggregations as $name => & $aggResult) {
+                if (isset($this->aggregations[$name]) && $this->aggregations[$name] instanceof Aggregation) {
+                    $aggResult = $this->aggregations[$name]->setResults($aggResult);
+                }
+            }
+        }
+
         // Retourne les résultats
-        return new SearchResults($response, $es->getElapsedTime());
+        return new SearchResults($this, $response);
     }
 
     /**

@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013 Daniel Ménard
+ * Copyright (C) 2013-2016 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -13,8 +13,8 @@
  */
 namespace Docalist\Search;
 
-use Docalist;
 use stdClass;
+use Docalist\Search\SearchRequest2 as SearchRequest;
 
 /**
  * Le résultat d'une requête de recherche adressée à ElasticSearch.
@@ -22,37 +22,83 @@ use stdClass;
 class SearchResults
 {
     /**
+     * La requête qui a généré les résultats.
+     *
+     * @var SearchRequest
+     */
+    protected $request;
+
+    /**
      * La réponse brute retournée par ElasticSearch.
      *
      * @var stdClass
      */
-    protected $response;
-
-    /**
-     * Durée d'exécution de la requête qui a généré ces résultats.
-     *
-     * @var float Durée en secondes (la partie fractionnelle indique les millisecondes).
-     */
-    protected $elapsedTime;
+    protected $data;
 
     /**
      * Initialise l'objet à partir de la réponse retournée par Elastic Search.
      *
-     * @param stdClass $response
-     * @param float $elapsedTime Optionnel, durée totale en secondes et millisecondes de la requête qui a généré
-     * ce résultat.
+     * @param SearchRequest $request    L'objet SearchRequest qui a généré ces résultats.
+     * @param stdClass      $data       La réponse brute retournée par ElasticSearch.
      */
-    public function __construct(stdClass $response, $elapsedTime = null)
+    public function __construct(SearchRequest $request, stdClass $data)
     {
-        $this->response = $response;
-        $this->elapsedTime = $elapsedTime;
+        $this->request = $request;
+        $this->data = $data;
     }
 
     /**
-     * Retourne le temps mis par ElasticSearch pour exécuter la requête.
+     * Retourne la requête qui a généré cet objet résultat.
      *
-     * Ce temps correspond au temps d'exécution de la requête sur les différents
-     * shards. Il ne comprend les temps passé au cours des étape suivantes :
+     * @return SearchRequest
+     */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    /**
+     * Retourne les données brutes retournées par elasticsearch.
+     *
+     * @return stdClass
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    /**
+     * Indique si la requête a généré un time out.
+     *
+     * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-body.html#_parameters_4
+     *
+     * @return bool
+     */
+    public function isTimedOut()
+    {
+        return isset($this->data->timed_out) ? $this->data->timed_out : false;
+    }
+
+    /**
+     * Indique si la recherche a été arrêtée avant d'avoir collecté toutes les réponses.
+     *
+     * Ce flag n'existe que si la requête exécutée contenant un paramètre "terminate_after".
+     *
+     * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-body.html#_parameters_4
+     *
+     * @return bool
+     */
+    public function isTerminatedEarly()
+    {
+        return isset($this->data->terminated_early) ? $this->data->terminated_early : false;
+    }
+
+    /**
+     * Retourne le temps (en millisecondes) mis par ElasticSearch pour exécuter la requête.
+     *
+     * Ce temps correspond au temps d'exécution de la requête sur les différents shards.
+     *
+     * Il ne comprend le temps passé au cours des étape suivantes :
      *
      * - sérialisation de la requête (nous)
      * - envoi de la requête à Elastic Search (réseau)
@@ -63,54 +109,52 @@ class SearchResults
      * - désérialisation de la réponse
      *
      * @return int durée en millisecondes
-     */
-    public function took()
-    {
-        // @see http://elasticsearch-users.115913.n3.nabble.com/query-timing-took-value-and-what-I-m-measuring-tp4026185p4026226.html
-        return $this->response->took;
-    }
-
-    /**
-     * Retourne le temps total d'exécution de la requête qui a généré ces résultats.
      *
-     * @return float Durée en secondes (la partie fractionnelle indique les millisecondes).
+     * @link @see http://elasticsearch-users.115913.n3.nabble.com/query-timing-took-value-and-what-I-m-measuring-tp4026185p4026226.html
      */
-    public function getElapsedTime()
+    public function getTook()
     {
-        return $this->elapsedTime;
+        return isset($this->data->took) ? $this->data->took : 0;
     }
 
     /**
-     * Indique si la requête a généré un time out.
-     *
-     * @return bool
-     */
-    public function timedOut()
-    {
-        return $this->response->timed_out;
-    }
-
-    /**
-     * Informations sur les shards qui ont exécuté la requête.
-     *
-     * @return stdClass un objet contenant les propriétés :
-     * - total
-     * - successful
-     * - failed
-     */
-    public function shards()
-    {
-        return $this->response->shards();
-    }
-
-    /**
-     * Retourne le nombre total de réponses obtenues.
+     * Retourne le nombre total de shards qui ont exécuté la requête.
      *
      * @return int
      */
-    public function total()
+    public function getTotalShards()
     {
-        return $this->response->hits->total;
+        return isset($this->data->_shards->total) ? $this->data->_shards->total : 0;
+    }
+
+    /**
+     * Retourne le nombre de shards qui ont réussi à exécuter la requête.
+     *
+     * @return int
+     */
+    public function getSuccessfulShards()
+    {
+        return isset($this->data->_shards->successful) ? $this->data->_shards->successful : 0;
+    }
+
+    /**
+     * Retourne le nombre de shards qui ont échoué à exécuter la requête.
+     *
+     * @return int
+     */
+    public function getFailedShards()
+    {
+        return isset($this->data->_shards->failed) ? $this->data->_shards->failed : 0;
+    }
+
+    /**
+     * Retourne le nombre total de documents qui répondent à la requête exécutée.
+     *
+     * @return int
+     */
+    public function getHitsCount()
+    {
+        return isset($this->data->hits->total) ? $this->data->hits->total : 0;
     }
 
     /**
@@ -118,153 +162,57 @@ class SearchResults
      *
      * @return float
      */
-    public function maxScore()
+    public function getMaxScore()
     {
-        return $this->response->hits->max_score;
+        return isset($this->data->hits->max_score) ? $this->data->hits->max_score : 0.0;
     }
 
     /**
      * Retourne la liste des réponses obtenues.
      *
-     * @return array Chaque réponse est un objet contenant les propriétés
-     * suivantes :
+     * @return array Chaque réponse est un objet contenant les propriétés suivantes :
      *
      * _id : numéro de référence de l'enregistrement
      * _score : score obtenu
      * _index : nom de l'index ElasticSearch d'où provient le hit
      * _type : type du hit
      */
-    public function hits()
+    public function getHits()
     {
-        return $this->response->hits->hits;
+        return isset($this->data->hits->hits) ? $this->data->hits->hits : [];
     }
 
     /**
-     * Retourne la liste des facettes.
+     * Retourne les agrégations obtenues.
      *
-     * @return array Chaque réponse est un objet contenant les propriétés
-     * suivantes :
-     *
-     * _id : numéro de référence de l'enregistrement
-     * _score : score obtenu
-     * _index : nom de l'index ElasticSearch d'où provient le hit
-     * _type : type du hit
+     * @return array
      */
-    public function facets()
-    {
-        return isset($this->response->facets) ? $this->response->facets : [];
-    }
     public function getAggregations()
     {
-        return isset($this->response->aggregations) ? $this->response->aggregations : [];
+        return isset($this->data->aggregations) ? (array) $this->data->aggregations : [];
     }
 
     /**
-     * Indique si les résultats contiennent la facette dont le nom est indiqué.
+     * Indique si l'agrégation indiquée existe.
      *
      * @param string $name
+     *
+     * @return bool
      */
-    public function hasFacet($name)
-    {
-        return isset($this->response->facets->$name);
-    }
     public function hasAggregation($name)
     {
-        return isset($this->response->aggregations->$name);
+        return isset($this->data->aggregations->$name);
     }
 
     /**
-     * Retourne la facette dont le nom est indiqué.
+     * Retourne une agrégation.
      *
      * @param string $name
      *
-     * @return stdClass un objet contenant les clés :
-     * _type
-     * missing
-     * total
-     * other
-     * terms : un tableau d'objets contenant term et count
+     * @return Aggregation|array|null
      */
-    public function facet($name)
-    {
-        return isset($this->response->facets->$name) ? $this->response->facets->$name : null;
-    }
     public function getAggregation($name)
     {
-        return isset($this->response->aggregations->$name) ? $this->response->aggregations->$name : null;
-    }
-
-    /**
-     * Ajoute dans nos résultats les facettes qui figure dans le résultat passé
-     * en paramètre.
-     *
-     * @param SearchResults $results
-     */
-    public function mergeFacets(SearchResults $results)
-    {
-        $facets = $results->facets();
-        if (empty($facets)) {
-            return;
-        }
-        if (! isset($this->response->facets)) {
-            $this->response->facets = new stdClass();
-        }
-        foreach ($results->facets() as $name => $facet) {
-            $this->response->facets->$name = $facet;
-        }
-    }
-
-    /**
-     * Retourne une explication technique indiquant la manière dont le score
-     * a été calculé pour la réponse dont l'ID est passé en paramètre.
-     *
-     * La recherche doit avoir été lancée avec l'option "explain-hits" à true.
-     *
-     * @param int $id
-     *
-     * @return string|array
-     *
-     * La méthode retourne 'n/a' si l'explication n'est pas disponible pour le
-     * hit demandé (explain-hits non activé)et elle retourne 'not a hit'
-     * si l'id passé en paramètre ne figure pas dans la liste des réponses.
-     *
-     * Dans le cas contraire, elle retourne un tableau contenant l'explication
-     * fournie par Elastic Search.
-     *
-     * @see http://www.elasticsearch.org/guide/reference/api/search/explain/
-     */
-    public function explainHit($id)
-    {
-        // Remarque : l'ID retourné par wordpress (get_the_id) est un entier
-        // alors que pour ES les ID sont des chaines. Pour cette raison, on
-        // utilise "==" plutôt qu'une égalité stricte dans le test ci-dessous.
-
-        foreach ($this->response->hits->hits as $hit) {
-            if ($hit->_id == $id) {
-                return isset($hit->_explanation) ? $hit->_explanation : 'n/a';
-            }
-        }
-
-        // Le hit demandé ne fait pas partie des réponses
-        return 'not a hit';
-    }
-
-    /**
-     * Retourne la position d'un hit au sein de la page de résultat (0-based).
-     *
-     * @param int $id
-     *
-     * @eturn int|null
-     */
-    public function position($id)
-    {
-        foreach ($this->response->hits->hits as $i => $hit) {
-            if ($hit->_id == $id) {
-                return $i;
-            }
-        }
-
-        // Le hit demandé ne fait pas partie des réponses
-        return 0; // // @todo null ? zéro ? exception ?
+        return isset($this->data->aggregations->$name) ? $this->data->aggregations->$name : null;
     }
 }

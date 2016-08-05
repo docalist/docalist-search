@@ -210,7 +210,7 @@ class SearchEngine
         // Exécute la recherche
         $this->results = $this->request->execute();
 
-        $debug && print($this->results->total() . ' réponses obtenues<br />');
+        $debug && print($this->results->getHitsCount() . ' réponses obtenues<br />');
 
         // Si on nous a demandé de ne pas afficher les résultats, on a finit
         if (! $displayResults) {
@@ -272,7 +272,7 @@ class SearchEngine
                 echo "<p>WARNING : L'index docalist-search est désynchronisé.</p>";
                 // TODO : à améliorer (cf. plugin "simple notices")
             }
-            $total = $this->results ? $this->results->total() : 0;
+            $total = $this->results ? $this->results->getHitsCount() : 0;
             $size = $this->request->getSize();
 
             $query->found_posts = $total;

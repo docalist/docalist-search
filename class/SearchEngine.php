@@ -239,7 +239,7 @@ class SearchEngine
         // Construit la liste des ID des réponses obtenues
         $id = [];
         if ($this->results) {
-            foreach ($this->results->hits() as $hit) {
+            foreach ($this->results->getHits() as $hit) {
                 $id[] = $hit->_id;
             }
         }

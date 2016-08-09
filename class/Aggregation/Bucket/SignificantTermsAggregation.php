@@ -28,10 +28,11 @@ class SignificantTermsAggregation extends MultiBucketsAggregation
     /**
      * Constructeur
      *
-     * @param string $field champ sur lequel porte l'agrégation.
+     * @param string    $field      Champ sur lequel porte l'agrégation.
+     * @param array     $parameters Autres paramètres de l'agrégation.
      */
-    public function __construct($field)
+    public function __construct($field, array $parameters = [])
     {
-        parent::__construct(['field' => $field]);
+        parent::__construct(['field' => $field] + $parameters);
     }
 }

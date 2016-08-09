@@ -35,9 +35,10 @@ class RangeAggregation extends MultiBucketsAggregation
      *     ['from' => 50, 'to' => 100],
      *     ['from' => 100]
      * ]
+     * @param array $parameters Autres paramètres de l'agrégation.
      */
-    public function __construct($field, array $ranges)
+    public function __construct($field, array $ranges, array $parameters = [])
     {
-        parent::__construct(['field' => $field, 'ranges' => $ranges]);
+        parent::__construct(['field' => $field, 'ranges' => $ranges] + $parameters);
     }
 }

@@ -31,6 +31,20 @@ abstract class BaseAggregation implements Aggregation
     const TYPE = null;
 
     /**
+     * Vue par défaut pour render() et display()
+     *
+     * @var string
+     */
+    const DEFAULT_VIEW = 'docalist-search:aggregations/base';
+
+    /**
+     * Nom de l'agrégation.
+     *
+     * @var string
+     */
+    protected $name;
+
+    /**
      * Paramètres de l'agrégation.
      *
      * @var array
@@ -43,6 +57,20 @@ abstract class BaseAggregation implements Aggregation
      * @var array
      */
     protected $results;
+
+    /**
+     * Nom de la vue à utiliser pour afficher cette agrégation.
+     *
+     * @var string
+     */
+    protected $view;
+
+    /**
+     * Données à transmettre à la vue lors de l'affichage..
+     *
+     * @var array
+     */
+    protected $viewData;
 
     /**
      * Constructeur : initialise l'agrégation avec les paramètres indiqués.
@@ -62,6 +90,18 @@ abstract class BaseAggregation implements Aggregation
         }
 
         return static::TYPE;
+    }
+
+    public function setName($name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     public function setParameters(array $parameters)
@@ -124,5 +164,39 @@ abstract class BaseAggregation implements Aggregation
     protected function getResult($name)
     {
         return isset($this->results->$name) ? $this->results->$name : null;
+    }
+
+    public function setView($view)
+    {
+        $this->view = $view;
+
+        return $this;
+    }
+
+    public function getView()
+    {
+        return $this->view ?: static::DEFAULT_VIEW;
+    }
+
+    public function setViewData(array $data)
+    {
+        $this->viewData = $data;
+
+        return $this;
+    }
+
+    public function getViewData()
+    {
+        return $this->viewData;
+    }
+
+    public function display()
+    {
+        return docalist('views')->display($this->getView(), ['this' => $this] + $this->getViewData());
+    }
+
+    public function render()
+    {
+        return docalist('views')->render($this->getView(), ['this' => $this] + $this->getViewData());
     }
 }

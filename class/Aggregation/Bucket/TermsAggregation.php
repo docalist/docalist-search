@@ -23,6 +23,7 @@ use Docalist\Search\Aggregation\MultiBucketsAggregation;
 class TermsAggregation extends MultiBucketsAggregation
 {
     const TYPE = 'terms';
+    const DEFAULT_VIEW = 'docalist-search:aggregations/bucket/terms';
 
     /**
      * Constructeur

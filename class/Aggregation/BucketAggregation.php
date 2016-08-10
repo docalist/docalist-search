@@ -20,4 +20,13 @@ namespace Docalist\Search\Aggregation;
  */
 abstract class BucketAggregation extends BaseAggregation
 {
+    /**
+     * Retourne la liste des buckets générés par l'agrégation.
+     *
+     * @return array
+     */
+    public function getBuckets()
+    {
+        return $this->getResult('buckets') ?: [];
+    }
 }

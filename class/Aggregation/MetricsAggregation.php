@@ -30,4 +30,16 @@ abstract class MetricsAggregation extends BaseAggregation
     {
         parent::__construct(['field' => $field] + $parameters);
     }
+
+    /**
+     * Format la valeur passée en paramètre.
+     *
+     * @param int|float $value
+     *
+     * @return string
+     */
+    public function formatValue($value)
+    {
+        return (string) $value;
+    }
 }

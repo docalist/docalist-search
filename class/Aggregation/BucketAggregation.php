@@ -29,4 +29,16 @@ abstract class BucketAggregation extends BaseAggregation
     {
         return $this->getResult('buckets') ?: [];
     }
+
+    /**
+     * Retourne le libellé à afficher pour le bucket passé en paramètre.
+     *
+     * @param object $bucket Les données du bucket : un objet avec des champs comme 'key', 'doc_count', 'from', etc.
+     *
+     * @return string Le libellé à afficher pour ce bucket.
+     */
+    public function getBucketLabel($bucket)
+    {
+        return $bucket->key;
+    }
 }

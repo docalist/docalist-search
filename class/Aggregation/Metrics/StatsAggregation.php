@@ -23,6 +23,7 @@ use Docalist\Search\Aggregation\MultiMetricsAggregation;
 class StatsAggregation extends MultiMetricsAggregation
 {
     const TYPE = 'stats';
+    const DEFAULT_VIEW = 'docalist-search:aggregations/metrics/stats';
 
     /**
      * Retourne la valeur minimale calculée par l'aggrégation.

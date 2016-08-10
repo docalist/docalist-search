@@ -23,6 +23,7 @@ use Docalist\Search\Aggregation\MultiBucketsAggregation;
 class RangeAggregation extends MultiBucketsAggregation
 {
     const TYPE = 'range';
+    const DEFAULT_VIEW = 'docalist-search:aggregations/bucket/range';
 
     /**
      * Constructeur
@@ -31,9 +32,9 @@ class RangeAggregation extends MultiBucketsAggregation
      * @param array  $ranges Un tableau indiquant la liste des intervalles à générer. Chaque intervalle est lui-même
      * un tableau contenant les clés 'from' et/ou 'to'. Exemple :
      * [
-     *     ['to' => 50],
-     *     ['from' => 50, 'to' => 100],
-     *     ['from' => 100]
+     *     [ 'key' => 'moins de 50', 'to'   =>  50              ],
+     *     [ 'key' => 'de 50 à 100', 'from' =>  50, 'to' => 100 ],
+     *     [ 'key' => '100 et plus', 'from' => 100              ]
      * ]
      * @param array $parameters Autres paramètres de l'agrégation.
      */

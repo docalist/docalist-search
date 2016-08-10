@@ -26,6 +26,22 @@ interface Aggregation
     public function getType();
 
     /**
+     * Définit le nom de l'agrégation.
+     *
+     * @param string $name Nom de l'agrégation.
+     *
+     * @return self
+     */
+    public function setName($name);
+
+    /**
+     * Retourne le nom de l'agrégation.
+     *
+     * @return string|null Le nom de l'agrégation ou null si l'agrégation n'a pas de nom.
+     */
+    public function getName();
+
+    /**
      * Définit les paramètres de l'agrégation.
      *
      * @param array $parameters
@@ -91,4 +107,54 @@ interface Aggregation
      * @return object
      */
     public function getResults();
+
+    /**
+     * Définit la vue utilisée pour afficher l'aggrégation.
+     *
+     * @param string $view
+     *
+     * @return self
+     */
+    public function setView($view);
+
+    /**
+     * Retourne la vue utilisée pour afficher l'aggrégation.
+     *
+     * @return string La vue indiquée lors du dernier appel à setView() ou la vue par défaut de l'agrégation si
+     * aucune vue n'a été définie.
+     */
+    public function getView();
+
+    /**
+     * Définit les données à transmettre à la vue lors de l'affichage.
+     *
+     * @param array $data Les données qui seront transmises à la vue lorsque display() ou render() seront appelées.
+     *
+     * @return self
+     */
+    public function setViewData(array $data);
+
+    /**
+     * Retourne les données à transmettre à la vue lors de l'affichage.
+     *
+     * @return array|null
+     */
+    public function getViewData();
+
+    /**
+     * Affiche le résultat de l'aggrégation.
+     *
+     * L'affichage est effectué en appelant le service 'views' de docalist avec la vue retournée par getView() et les
+     * paramètres fournis par getViewData().
+     *
+     * @return mixed La méthode retourne ce que retourne la vue (rien en général).
+     */
+    public function display();
+
+    /**
+     * Identique à display() mais retourne le résultat au lieu de l'afficher.
+     *
+     * @return string
+     */
+    public function render();
 }

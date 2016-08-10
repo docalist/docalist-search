@@ -26,6 +26,13 @@ class TermsAggregation extends MultiBucketsAggregation
     const DEFAULT_VIEW = 'docalist-search:aggregations/bucket/terms';
 
     /**
+     * Valeur utilisée pour indiquer "non disponible" (Not Available)
+     *
+     * @var string
+     */
+    const MISSING = 'n-a';
+
+    /**
      * Constructeur
      *
      * @param string    $field      Champ sur lequel porte l'agrégation.
@@ -34,5 +41,14 @@ class TermsAggregation extends MultiBucketsAggregation
     public function __construct($field, array $parameters = [])
     {
         parent::__construct(['field' => $field] + $parameters);
+    }
+
+    public function getBucketLabel($bucket)
+    {
+        return ($bucket->key === static::MISSING) ? $this->getLabelForMissing() : $bucket->key;
+    }
+
+    protected function getLabelForMissing() {
+        return 'Non disponible';
     }
 }

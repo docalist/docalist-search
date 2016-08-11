@@ -13,6 +13,8 @@
  */
 namespace Docalist\Search\QueryParser;
 
+use Docalist\Search\QueryParser\Builder;
+
 /**
  * Builder utilisé par le QueryParser pour expliquer comment la requête a été analysée.
  */

@@ -33,7 +33,7 @@ class TableRangeAggregation extends RangeAggregation
      */
     public function __construct($field, $table, array $parameters = [])
     {
-        $this->setTableName($table);
+        $this->setTableName($table); // important : avant l'appel à getRanges()
         parent::__construct($field, $this->getRanges(), $parameters);
     }
 
@@ -50,22 +50,5 @@ class TableRangeAggregation extends RangeAggregation
         // en JSON, ça donne la même chose (à condition que les clés commencent à zéro, d'où le array_values).
         // Remarque : si start ou end est vide, ça génère la valeur 'null', mais ça ne gène pas ES.
         return array_values($this->getTable()->search('ROWID,label as key,start as `from`,end as `to`'));
-
-        /*
-        // Version précédente :
-        $data = $this->getTable()->search('ROWID,label,start,end');
-        var_dump($data);
-        $ranges = [];
-        foreach ($data as $row) {
-            $range = [];
-            $row->label && $range['key' ] = $row->label;
-            $row->start && $range['from'] = $row->start;
-            $row->end   && $range['to'  ] = $row->end;
-            $ranges[] = $range;
-        }
-        var_dump($ranges);
-
-        return $ranges;
-        */
     }
 }

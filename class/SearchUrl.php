@@ -13,10 +13,9 @@
  */
 namespace Docalist\Search;
 
-use Docalist\Search\QueryDSL;
+use Docalist\Search\QueryParser\Parser;
 use Docalist\Search\SearchRequest2 as SearchRequest;
 use InvalidArgumentException;
-use Docalist\Search\QueryParser\Parser;
 use WP_Rewrite;
 
 /**
@@ -97,11 +96,16 @@ class SearchUrl
      * Crée un nouvel objet SearchUrl
      *
      * @param string    $url    Url à analyser.
-     * @param string[]  $types  Liste des types de contenus sur lesquels porte la recherche.
+     * @param string[]  $types  Liste des types de contenus sur lesquels porte la recherche
+     *                          (par défaut : tous les types indexés)
      */
-    public function __construct($url = null, $types = [])
+    public function __construct($url = null, $types = null)
     {
         $this->setUrl($url);
+        if (empty($types)) {
+            $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+            $types = $indexManager->getTypes();
+        }
         $this->types = $types;
     }
 
@@ -367,6 +371,24 @@ class SearchUrl
     }
 
     /**
+     * Retourne la liste des collections indexées.
+     *
+     * @return string[] Un tableau de la forme collection (in) => type
+     */
+    protected function getCollections()
+    {
+        $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
+        $collections = [];
+        foreach($indexManager->getTypes() as $type) {
+            $indexer = $indexManager->getIndexer($type);
+            $collection = $indexer->getCollection();
+            $collections[$collection] = $type;
+        }
+
+        return $collections;
+    }
+
+    /**
      * Retourne un objet SearchRequest initialisé à partir des paramètres qui figure dans l'url.
      *
      * Remarque : l'objet SearchRequest est créé lors du premier appel, les appels successifs retournent le même objet.
@@ -386,8 +408,12 @@ class SearchUrl
         $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
         $parser = docalist('query-parser'); /* @var Parser $parser */
 
-        // Crée la requête
-        $this->request = new SearchRequest($this->types);
+        // Par défaut, la requête portera sur tous les types qui ont été indiqués dans le constructeur
+        // Si l'url contient des paramètres 'in', cela restreint la liste
+        $in = [];
+
+        // Crée la requête. Les types interrogés seront définis plus tard.
+        $this->request = new SearchRequest();
 
         // Initialise la requête à partir des arguments de l'url
         foreach($this->parameters as $name => $value) {
@@ -407,6 +433,19 @@ class SearchUrl
                 case self::SORT: // Critères de tri
                     $sortClause = []; // TODO : getSortClause($value);
                     $this->request->setSort($sortClause);
+                    break;
+
+                case 'in':
+                    // 'in' contient des collections ('posts', 'pages', 'event'...) qu'il faut convertir en types (CPT)
+                    $collections = $this->getCollections();
+                    foreach ((array) $value as $value) {
+                        if (!isset($collections[$value])) {
+                            // echo "WARNING: la collection'$value' indiquée dans 'in' n'existe pas, ignorée<br />";
+                            // ignore en silence
+                            continue;
+                        }
+                        $in[] = $collections[$value];
+                    }
                     break;
 
                 default:
@@ -434,6 +473,10 @@ class SearchUrl
                     }
             }
         }
+
+        // Définit la liste des types interrogés
+        $types = $in ? array_intersect($this->types, $in) : $this->types;
+        $this->request->setTypes($types);
 
         // Définit la représentation sous forme d'équation de la requête
         $this->request->setEquation($this->getEquation());
@@ -507,9 +550,9 @@ class SearchUrl
     public function toggleFilter($name, $value = null)
     {
         // Vérifie que le nom de champ indiqué est un filtre
-        if (! $this->isFilter($name) && !$this->isSpecialFilter($name)) {
-            throw new InvalidArgumentException("'$name' is not a filter");
-        }
+//         if (! $this->isFilter($name) && !$this->isSpecialFilter($name)) {
+//             throw new InvalidArgumentException("'$name' is not a filter");
+//         }
 
         // Fait une copie des paramètres pour pouvoir les modifier
         $args = $this->parameters;

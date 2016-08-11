@@ -21,5 +21,8 @@ use Docalist\Search\Aggregation;
  * @var Aggregation $this   L'agrégation à afficher.
  * @var string      $title  Optionnel, le titre de l'agrégation.
  */
-echo isset($title) ? $title : $this->getName();
-var_dump($this->getBuckets());
+printf(
+    '<h3>%s</h3><pre>%s</pre>',
+    isset($title) ? $title : $this->getName(),
+    json_encode($this->getResults(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+);

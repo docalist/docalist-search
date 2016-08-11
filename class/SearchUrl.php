@@ -103,7 +103,7 @@ class SearchUrl
     {
         $this->setUrl($url);
         if (empty($types)) {
-            $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+            $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
             $types = $indexManager->getTypes();
         }
         $this->types = $types;
@@ -188,7 +188,7 @@ class SearchUrl
      */
     protected function getPaginationBase()
     {
-        global $wp_rewrite; /* @var WP_Rewrite $wp_rewrite */
+        global $wp_rewrite; /** @var WP_Rewrite $wp_rewrite */
 
         return $wp_rewrite->using_permalinks() ? $wp_rewrite->pagination_base : false;
     }
@@ -405,8 +405,8 @@ class SearchUrl
         // Sinon on initialise
 
         // Récupère le service DSL et le service QueryParser
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
-        $parser = docalist('query-parser'); /* @var Parser $parser */
+        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
+        $parser = docalist('query-parser'); /** @var Parser $parser */
 
         // Par défaut, la requête portera sur tous les types qui ont été indiqués dans le constructeur
         // Si l'url contient des paramètres 'in', cela restreint la liste

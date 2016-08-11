@@ -106,7 +106,7 @@ abstract class AbstractIndexer implements Indexer
 
     public function getSearchFilter()
     {
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
 
         return $dsl->term('in', $this->getCollection());
     }

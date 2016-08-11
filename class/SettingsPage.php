@@ -141,7 +141,7 @@ class SettingsPage extends AdminPage
      */
     public function actionServerStatus()
     {
-        /* @var $indexManager IndexManager */
+        /** @var IndexManager $indexManager */
         $indexManager = docalist('docalist-search-index-manager');
 
         switch ($indexManager->ping()) {
@@ -221,7 +221,7 @@ class SettingsPage extends AdminPage
             $this->view('docalist-search:settings/reindex')->sendContent();
 
             // Lance la réindexation
-            $indexManager = docalist('docalist-search-index-manager'); /* @var $indexManager IndexManager */
+            $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
             $indexManager->createIndex();
         });
 
@@ -244,7 +244,7 @@ class SettingsPage extends AdminPage
         // Teste si la recherche peut être activée
         $error = '';
         if (! $this->settings->enabled()) {
-            /* @var $indexManager IndexManager */
+            /** @var IndexManager $indexManager */
             $indexManager = docalist('docalist-search-index-manager');
             $ping = $indexManager->ping();
 

@@ -46,7 +46,7 @@ class PostIndexer extends AbstractIndexer
 
     public function buildIndexSettings(array $settings)
     {
-        $mapping = docalist('mapping-builder'); /* @var MappingBuilder $mapping */
+        $mapping = docalist('mapping-builder'); /** @var MappingBuilder $mapping */
         $mapping->reset()->setDefaultAnalyzer('fr-text'); // todo : rendre configurable
 
         $mapping->addField('in')->keyword();
@@ -115,7 +115,7 @@ class PostIndexer extends AbstractIndexer
 
     public function indexAll(IndexManager $indexManager)
     {
-        $wpdb = docalist('wordpress-database'); /* @var wpdb $wpdb */
+        $wpdb = docalist('wordpress-database'); /** @var wpdb $wpdb */
         $offset = 0;
         $limit = 1000;
 
@@ -152,12 +152,12 @@ class PostIndexer extends AbstractIndexer
         }
     }
 
-    protected function getID($post) /* @var $post WP_Post */
+    protected function getID($post) /** @var WP_Post $post */
     {
         return $post->ID;
     }
 
-    protected function map($post) /* @var $post WP_Post */
+    protected function map($post) /** @var WP_Post $post */
     {
         $document = [];
 
@@ -233,7 +233,7 @@ class PostIndexer extends AbstractIndexer
         }
 
         // L'utilisateur ne peut voir que les posts publics et ceux dont il est auteur
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
         $filter = $dsl->terms('status', $public);
         is_user_logged_in() && $filter = $dsl->bool([
             $dsl->should($filter),
@@ -246,7 +246,7 @@ class PostIndexer extends AbstractIndexer
 
     public function getSearchFilter()
     {
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
 
         $type = parent::getSearchFilter();
         $visibility = $this->getVisibilityFilter();

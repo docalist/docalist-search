@@ -475,7 +475,7 @@ class SearchUrlTest extends WP_UnitTestCase
 
     public function requestProvider()
     {
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
         return [
 
             // Requêtes vides

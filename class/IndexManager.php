@@ -261,7 +261,7 @@ class IndexManager
     public function createIndex()
     {
         // Récupère la connexion elastic search
-        $es = docalist('elastic-search'); /* @var $es ElasticSearchClient */
+        $es = docalist('elastic-search'); /** @var ElasticSearchClient $es */
 
         // Récupère le nom de base de l'index
         $base = $this->settings->index();
@@ -345,7 +345,7 @@ class IndexManager
     protected function createAlias($alias, $index)
     {
         // Récupère la connexion elastic search
-        $es = docalist('elastic-search'); /* @var $es ElasticSearchClient */
+        $es = docalist('elastic-search'); /** @var ElasticSearchClient $es */
 
         $request = [
             'actions' => [
@@ -791,7 +791,7 @@ class IndexManager
     public function ping()
     {
         // Récupère la connexion elastic search
-        $es = docalist('elastic-search'); /* @var $es ElasticSearchClient */
+        $es = docalist('elastic-search'); /** @var ElasticSearchClient $es */
 
         try {
             $status = $es->head('/{index}');

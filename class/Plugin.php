@@ -200,7 +200,7 @@ class Plugin
     {
         return 'TODO / theCurrentFilters';
 
-        $request = docalist('docalist-search-engine')->getSearchRequest(); /* @var $request SearchRequest */
+        $request = docalist('docalist-search-engine')->getSearchRequest(); /** @var SearchRequest $request */
 
         // Retourne une chaine vide si on n'a aucun filtre actif
         $request && $filters = $request->filters();

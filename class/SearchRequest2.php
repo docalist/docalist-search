@@ -153,7 +153,7 @@ class SearchRequest2
     public function setTypes(array $types = [])
     {
         if (empty($types)) {
-            $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+            $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
             $types = $indexManager->getTypes();
         }
 
@@ -965,7 +965,7 @@ class SearchRequest2
     // -------------------------------------------------------------------------------
 
     public function buildRequest() {
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
 
         $clauses = [];
 
@@ -980,7 +980,7 @@ class SearchRequest2
         }
 
         // Crée le filtre permettant de limiter la recherche aux types de contenus indiqués : type1 OR type2...
-        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+        $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
         if (count($this->types) === 1) {
             $type = reset($this->types);
             $filter = $indexManager->getIndexer($type)->getSearchFilter();

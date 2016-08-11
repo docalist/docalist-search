@@ -188,7 +188,7 @@ class SearchUrl
      */
     protected function getPaginationBase()
     {
-        global $wp_rewrite; /** @var WP_Rewrite $wp_rewrite */
+        $wp_rewrite = docalist('wordpress-rewrite'); /** @var WP_Rewrite $wp_rewrite */
 
         return $wp_rewrite->using_permalinks() ? $wp_rewrite->pagination_base : false;
     }

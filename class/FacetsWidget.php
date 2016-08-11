@@ -333,10 +333,7 @@ class FacetsWidget extends WP_Widget
         // - get_editable_roles (dans user.php) : liste des rôles
         // - wp_dropdown_roles (template.php) : traduction des noms
 
-        /*
-         * @var WP_Roles;
-         */
-        global $wp_roles;
+        $wp_roles = docalist('wordpress-roles'); /** @var WP_Roles $wp_roles */
 
         // Récupère la liste de tous les rôles existants
         $roles = $wp_roles->get_names();

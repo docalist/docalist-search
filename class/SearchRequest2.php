@@ -908,7 +908,9 @@ class SearchRequest2
             throw new InvalidArgumentException("An aggregation named '$name' already exists");
         }
 
-        if (! is_array($aggregation) && ! $aggregation instanceof Aggregation) {
+        if ($aggregation instanceof Aggregation) {
+            $aggregation->setName($name);
+        } elseif (! is_array($aggregation)) {
             throw new InvalidArgumentException("Invalid aggregation '$name': expected array or Aggregation object");
         }
 

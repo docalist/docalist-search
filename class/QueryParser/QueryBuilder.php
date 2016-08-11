@@ -13,6 +13,7 @@
  */
 namespace Docalist\Search\QueryParser;
 
+use Docalist\Search\QueryParser\Builder;
 use Docalist\Search\QueryDSL;
 
 /**

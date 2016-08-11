@@ -13,6 +13,8 @@
  */
 namespace Docalist\Search\QueryParser;
 
+use Docalist\Search\QueryParser\Builder;
+
 /**
  * Analyseur syntaxique pour les requêtes docalist-search.
  */

@@ -220,6 +220,24 @@ class IndexManager
     }
 
     /**
+     * Retourne la liste des indexeurs disponibles indexés par nom de collection.
+     *
+     * Similaire à getAvailableIndexers() sauf que les clés du tableau contiennent la nom de la collection indexée
+     * au lieu du type.
+     *
+     * @return Indexer[] Un tableau de la forme collection collection => Indexer
+     */
+    public function getCollections()
+    {
+        $collections = [];
+        foreach ($this->getAvailableIndexers() as $indexer) {
+            $collections[$indexer->getCollection()] = $indexer;
+        }
+
+        return $collections;
+    }
+
+    /**
      * Construit les settings complets de l'index.
      *
      * Les settings contiennent tous les paramètres de l'index : option de configuration, analyseurs, mappings

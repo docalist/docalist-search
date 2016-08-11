@@ -106,7 +106,7 @@ class SearchEngine
      *
      * @return SearchRequest
      */
-    public function request()
+    public function getSearchRequest()
     {
         return $this->request;
     }
@@ -116,7 +116,7 @@ class SearchEngine
      *
      * @return SearchResults
      */
-    public function results()
+    public function getSearchResults()
     {
         return $this->results;
     }

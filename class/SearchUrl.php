@@ -371,24 +371,6 @@ class SearchUrl
     }
 
     /**
-     * Retourne la liste des collections indexées.
-     *
-     * @return string[] Un tableau de la forme collection (in) => type
-     */
-    protected function getCollections()
-    {
-        $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
-        $collections = [];
-        foreach($indexManager->getTypes() as $type) {
-            $indexer = $indexManager->getIndexer($type);
-            $collection = $indexer->getCollection();
-            $collections[$collection] = $type;
-        }
-
-        return $collections;
-    }
-
-    /**
      * Retourne un objet SearchRequest initialisé à partir des paramètres qui figure dans l'url.
      *
      * Remarque : l'objet SearchRequest est créé lors du premier appel, les appels successifs retournent le même objet.
@@ -437,14 +419,12 @@ class SearchUrl
 
                 case 'in':
                     // 'in' contient des collections ('posts', 'pages', 'event'...) qu'il faut convertir en types (CPT)
-                    $collections = $this->getCollections();
+                    $collections = docalist('docalist-search-index-manager')->getCollections();
                     foreach ((array) $value as $value) {
-                        if (!isset($collections[$value])) {
-                            // echo "WARNING: la collection'$value' indiquée dans 'in' n'existe pas, ignorée<br />";
-                            // ignore en silence
+                        if (!isset($collections[$value])) { // la collection n'existe pas, ignore en silence
                             continue;
                         }
-                        $in[] = $collections[$value];
+                        $in[] = $collections[$value]->getType();
                     }
                     break;
 

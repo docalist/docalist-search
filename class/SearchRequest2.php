@@ -115,6 +115,13 @@ class SearchRequest2
      */
     protected $equation;
 
+    /**
+     * L'objet SearchUrl qui a généré cette requête.
+     *
+     * @var SearchUrl
+     */
+    protected $searchUrl;
+
     // -------------------------------------------------------------------------------
     // Constructeur
     // -------------------------------------------------------------------------------
@@ -158,6 +165,34 @@ class SearchRequest2
         }
 
         $this->types = $types;
+
+        return $this;
+    }
+
+    // -------------------------------------------------------------------------------
+    // SearchUrl
+    // -------------------------------------------------------------------------------
+
+    /**
+     * Retourne l'objet SearchUrl qui a créé cette requête.
+     *
+     * @return SearchUrl Retourne null si setSearchUrl() n'a jamais été appellée.
+     */
+    public function getSearchUrl()
+    {
+        return $this->searchUrl;
+    }
+
+    /**
+     * Définit l'objet SearchUrl qui a créé cette requête.
+     *
+     * @param SearchUrl $searchUrl
+     *
+     * @return self
+     */
+    public function setSearchUrl(SearchUrl $searchUrl)
+    {
+        $this->searchUrl = $searchUrl;
 
         return $this;
     }
@@ -909,7 +944,7 @@ class SearchRequest2
         }
 
         if ($aggregation instanceof Aggregation) {
-            $aggregation->setName($name);
+            $aggregation->setName($name)->setSearchRequest($this);
         } elseif (! is_array($aggregation)) {
             throw new InvalidArgumentException("Invalid aggregation '$name': expected array or Aggregation object");
         }

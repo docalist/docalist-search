@@ -38,7 +38,7 @@ if ($buckets = $this->getBuckets()) {
             isset($bucket->from) ? $bucket->from : 'less-than',
             isset($bucket->to) ? $bucket->to : 'and-more'
         );
-        $url = '#';
+        $url = 'javascript:alert("Pas encore implémenté");';
 
         $items .= sprintf(
             '<li class="%s"><a href="%s"><span>%s</span> <em>%d</em></a></li>',

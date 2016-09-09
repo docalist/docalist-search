@@ -41,7 +41,7 @@ if ($buckets = $this->getBuckets()) {
         $url = '#';
 
         $items .= sprintf(
-            '<li class="%s"><a href="%s"><strong>%s</strong> <em>%d</em></a></li>',
+            '<li class="%s"><a href="%s"><span>%s</span> <em>%d</em></a></li>',
             esc_attr($class), esc_attr($url), $label, $count
         );
     }

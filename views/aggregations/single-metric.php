@@ -23,7 +23,7 @@ use Docalist\Search\Aggregation\SingleMetricAggregation;
  */
 if ($value = $this->getValue()) {
     printf(
-        '<strong>%s</strong> <em>%s</em>',
+        '<span>%s</span> <em>%s</em>',
         $this->formatValue($value),
         isset($title) ? $title : $this->getName()
     );

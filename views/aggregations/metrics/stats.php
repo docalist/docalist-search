@@ -30,7 +30,7 @@ if ($count = $this->getCount()) {
     );
 
     printf(
-        '<strong title="%s">%s</strong> <em>%s</em>',
+        '<span title="%s">%s</span> <em>%s</em>',
         esc_attr($details),
         $this->formatValue($this->getSum()),
         isset($title) ? $title : $this->getName()

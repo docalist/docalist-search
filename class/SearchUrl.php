@@ -149,6 +149,8 @@ class SearchUrl
      * Remarque : toutes les autres propriétés de l'objet (baseUrl, parameters, request) sont réinitialisées.
      *
      * @param string $url
+     *
+     * @return self
      */
     public function setUrl($url)
     {
@@ -166,6 +168,8 @@ class SearchUrl
         $this->setBaseUrl($url); // Important : après setParameters() car setBaseUrl() modifie le paramètre 'page'
 
         $this->request = null;
+
+        return $this;
     }
 
     /**
@@ -200,6 +204,8 @@ class SearchUrl
      * de l'url en cours est modifié et le segment correspondant est supprimé de l'url de base.
      *
      * @param string $url
+     *
+     * @return self
      */
     protected function setBaseUrl($url)
     {
@@ -213,12 +219,14 @@ class SearchUrl
             }
         }
         $this->baseUrl = $url;
+
+        return $this;
     }
 
     /**
      * Retourne l'url de base (i.e. l'url en cours sans la query-string éventuelle).
      *
-     * @eturn string
+     * @return string
      */
     public function getBaseUrl()
     {
@@ -358,6 +366,8 @@ class SearchUrl
      * Construit une url de recherche avec les paramètres indiqués.
      *
      * @param array $parameters
+     *
+     * @return string
      */
     protected function buildUrl(array $parameters)
     {

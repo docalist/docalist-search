@@ -15,6 +15,7 @@ namespace Docalist\Search\Aggregation;
 
 use Docalist\Search\Aggregation;
 use LogicException;
+use Docalist\Search\SearchRequest2 as SearchRequest;
 
 /**
  * Classe de base pour les agrégations.
@@ -57,6 +58,13 @@ abstract class BaseAggregation implements Aggregation
      * @var array
      */
     protected $results;
+
+    /**
+     * L'objet SearchRequest qui a créé cette agrégation.
+     *
+     * @var SearchRequest
+     */
+    protected $searchRequest;
 
     /**
      * Nom de la vue à utiliser pour afficher cette agrégation.
@@ -152,6 +160,16 @@ abstract class BaseAggregation implements Aggregation
     public function getResults()
     {
         return $this->results;
+    }
+
+    public function setSearchRequest(SearchRequest $searchRequest)
+    {
+        $this->searchRequest = $searchRequest;
+    }
+
+    public function getSearchRequest()
+    {
+        return $this->searchRequest;
     }
 
     /**

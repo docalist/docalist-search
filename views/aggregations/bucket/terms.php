@@ -22,13 +22,16 @@ use Docalist\Search\Aggregation\Bucket\TermsAggregation;
  * @var string              $title  Optionnel, le titre de l'agrégation.
  */
 if ($buckets = $this->getBuckets()) {
+    $field = $this->getParameter('field');
+    $searchUrl = $this->getSearchRequest()->getSearchUrl();
     printf('<h3>%s</h3>', isset($title) ? $title : $this->getName());
     printf('<ul class="%s">', $this->getType());
     foreach ($buckets as $bucket) {
         $count = $bucket->doc_count;
+        $term = $bucket->key;
         $label = $this->getBucketLabel($bucket);
-        $class = $bucket->key;
-        $url = '#';
+        $class = $term;
+        $url = $searchUrl->toggleFilter($field, $term);
 
         printf(
             '<li class="%s"><a href="%s"><strong>%s</strong> <em>%d</em></a></li>',

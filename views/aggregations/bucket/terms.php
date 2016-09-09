@@ -24,17 +24,25 @@ use Docalist\Search\Aggregation\Bucket\TermsAggregation;
 if ($buckets = $this->getBuckets()) {
     $field = $this->getParameter('field');
     $searchUrl = $this->getSearchRequest()->getSearchUrl();
-    printf('<h3>%s</h3>', isset($title) ? $title : $this->getName());
+
+    // Titre de la facette
+    printf('<h3%s>%s</h3>',
+        $searchUrl->hasFilter($field) ? ' class="filter-active"' : '',
+        isset($title) ? $title : $this->getName()
+    );
+
+    // Liste des termes
     printf('<ul class="%s">', $this->getType());
     foreach ($buckets as $bucket) {
         $count = $bucket->doc_count;
         $term = $bucket->key;
         $label = $this->getBucketLabel($bucket);
         $class = $term;
+        $searchUrl->hasFilter($field, $term) && $class .= ' filter-active';
         $url = $searchUrl->toggleFilter($field, $term);
 
         printf(
-            '<li class="%s"><a href="%s"><strong>%s</strong> <em>%d</em></a></li>',
+            '<li class="%s"><a href="%s"><span>%s</span> <em>%d</em></a></li>',
             esc_attr($class), esc_attr($url), $label, $count
         );
     }

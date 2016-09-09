@@ -13,6 +13,8 @@
  */
 namespace Docalist\Search;
 
+use Docalist\Search\SearchRequest2 as SearchRequest;
+
 /**
  * Interface commune à toutes les agrégations.
  */
@@ -107,6 +109,22 @@ interface Aggregation
      * @return object
      */
     public function getResults();
+
+    /**
+     * Stocke l'objet SearchRequest qui a créé cette aggrégation.
+     *
+     * @param SearchRequest $searchRequest
+     *
+     * @eturn self
+     */
+    public function setSearchRequest(SearchRequest $searchRequest);
+
+    /**
+     * Retourne l'objet SearchRequest qui a créé cette aggrégation.
+     *
+     * @return SearchRequest
+     */
+    public function getSearchRequest();
 
     /**
      * Définit la vue utilisée pour afficher l'aggrégation.

@@ -471,6 +471,9 @@ class SearchUrl
         // Définit la représentation sous forme d'équation de la requête
         $this->request->setEquation($this->getEquation());
 
+        // Stocke la SearchUrl dans la requête
+        $this->request->setSearchUrl($this);
+
         // Retourne le résultat
         return $this->request;
     }

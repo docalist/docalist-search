@@ -534,9 +534,38 @@ class SearchUrl
     }
 
     /**
+     * Indique si l'url contient le filtre indiqué.
      *
-     * @param string $name
-     * @param string|null $value
+     * @param string $name Nom du filtre.
+     * @param string $value Optionnel, valeur recherchée.
+     *
+     * @return bool
+     */
+    public function hasFilter($name, $value = null)
+    {
+        // Le filtre n'existe pas
+        if (!isset($this->parameters[$name])) {
+            return false;
+        }
+
+        // La valeur recherchée n'a pas été précisée
+        if (is_null($value)) {
+            return true;
+        }
+
+        // Le filtre ne contient qu'une seule valeur
+        if (is_scalar($this->parameters[$name])) {
+            return $this->parameters[$name] === $value;
+        }
+
+        // Teste si la valeur recherchée figure dans le filtre
+        return in_array($value, $this->parameters[$name], true);
+    }
+    /**
+     * Inverse un filtre.
+     *
+     * @param string $name Nom du filtre.
+     * @param string $value Optionnel, valeur à inverser.
      *
      * @return string La nouvelle URL
      */

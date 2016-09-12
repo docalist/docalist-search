@@ -27,13 +27,13 @@ class TableEntriesAggregation extends TermsAggregation
      * Constructeur
      *
      * @param string    $field      Champ sur lequel porte l'agrégation.
-     * @param string    $table      Nom de la table d'autorité utilisée pour convertir les termes en libellés.
+     * @param string    $tables     Nom des tables d'autorité utilisées pour convertir les termes en libellés.
      * @param array     $parameters Autres paramètres de l'agrégation.
      */
-    public function __construct($field, $table, array $parameters = [])
+    public function __construct($field, $tables, array $parameters = [])
     {
         parent::__construct($field, $parameters);
-        $this->setTableName($table);
+        $this->setTables($tables);
     }
 
     public function getBucketLabel($bucket)
@@ -42,9 +42,13 @@ class TableEntriesAggregation extends TermsAggregation
             return $this->getLabelForMissing();
         }
 
-        $table = $this->getTable();
-        $label = $table->find('label', 'code=' . $table->quote($bucket->key));
+        foreach($this->getTables() as $table) {
+            $label = $table->find('label', 'code=' . $table->quote($bucket->key));
+            if ($label !== false) {
+                return $label;
+            }
+        }
 
-        return $label === false ? $bucket->key : $label;
+        return $bucket->key;
     }
 }

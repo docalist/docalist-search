@@ -14,6 +14,7 @@
 namespace Docalist\Search\Aggregation\Bucket;
 
 use Docalist\Search\Aggregation\TableBasedTrait;
+use InvalidArgumentException;
 
 /**
  * Une agrégation de type "range" qui utilise une table d'autorité pour définir les intervalles.
@@ -33,7 +34,7 @@ class TableRangeAggregation extends RangeAggregation
      */
     public function __construct($field, $table, array $parameters = [])
     {
-        $this->setTableName($table); // important : avant l'appel à getRanges()
+        $this->setTables($table); // important : avant l'appel à getRanges()
         parent::__construct($field, $this->getRanges(), $parameters);
     }
 
@@ -49,6 +50,8 @@ class TableRangeAggregation extends RangeAggregation
         // Au final, on obtient un tableau de stdClass (au lieu d'un tableau de tableaux) mais une fois sérialisé
         // en JSON, ça donne la même chose (à condition que les clés commencent à zéro, d'où le array_values).
         // Remarque : si start ou end est vide, ça génère la valeur 'null', mais ça ne gène pas ES.
-        return array_values($this->getTable()->search('ROWID,label as key,start as `from`,end as `to`'));
+        foreach($this->getTables() as $table) { // On n'utilise que la première
+            return array_values($table->search('ROWID,label as key,start as `from`,end as `to`'));
+        }
     }
 }

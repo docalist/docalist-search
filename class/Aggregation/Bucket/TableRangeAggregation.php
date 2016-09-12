@@ -14,7 +14,6 @@
 namespace Docalist\Search\Aggregation\Bucket;
 
 use Docalist\Search\Aggregation\TableBasedTrait;
-use InvalidArgumentException;
 
 /**
  * Une agrégation de type "range" qui utilise une table d'autorité pour définir les intervalles.

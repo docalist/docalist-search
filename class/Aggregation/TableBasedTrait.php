@@ -16,57 +16,41 @@ namespace Docalist\Search\Aggregation;
 use Docalist\Table\TableInterface;
 
 /**
- * Un "trait" utilisé par les agrégations qui utilisent une table d'autorité docalist.
+ * Un "trait" utilisé par les agrégations qui utilisent des tables d'autorité docalist.
  */
 trait TableBasedTrait
 {
     /**
-     * Nom de la table d'autorité.
+     * Tables d'autorité.
      *
-     * @var string
+     * @var TableInterface[] Un tableau de la forme nom de la table => objet Table.
      */
-    protected $tableName;
+    protected $tables;
 
     /**
-     * Objet table d'autorité, initialisée lors du premier appel à getTable().
+     * Définit les tables d'autorité utilisées.
      *
-     * @var TableInterface
-     */
-    protected $table;
-
-    /**
-     * Définit le nom de la table d'autorité utilisée.
-     *
-     * @param string $table
+     * @param string|array $tables Un ou plusieurs noms de tables d'autorité.
      *
      * @return self
      */
-    public function setTableName($table)
+    public function setTables($tables)
     {
-        $this->tableName = $table;
+        $this->tables = [];
+        foreach((array) $tables as $table) {
+            $this->tables[$table] = docalist('table-manager')->get($table);
+        }
 
         return $this;
     }
 
     /**
-     * Retourne le nom de la table d'autorité utilisée.
+     * Retourne les tables d'autorité utilisées.
      *
-     * @return string
+     * @return TableInterface[] Un tableau de la forme nom de la table => objet Table.
      */
-    public function getTableName()
+    public function getTables()
     {
-        return $this->tableName;
-    }
-
-    /**
-     * Retourne la table d'autorité utilisée.
-     *
-     * @return TableInterface
-     */
-    public function getTable()
-    {
-        is_null($this->table) && $this->table = docalist('table-manager')->get($this->getTableName());
-
-        return $this->table;
+        return $this->tables;
     }
 }

@@ -49,6 +49,6 @@ class TermsAggregation extends MultiBucketsAggregation
     }
 
     protected function getLabelForMissing() {
-        return 'Non disponible';
+        return __('Non disponible', 'docalist-search');
     }
 }

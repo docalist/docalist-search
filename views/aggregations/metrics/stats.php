@@ -18,8 +18,7 @@ use Docalist\Search\Aggregation\Metrics\StatsAggregation;
 /**
  * Vue par défaut pour les agrégations "stats".
  *
- * @var StatsAggregation    $this   L'agrégation à afficher.
- * @var string              $title  Optionnel, le titre de l'agrégation.
+ * @var StatsAggregation $this L'agrégation à afficher.
  */
 if ($count = $this->getCount()) {
     $details = sprintf('%s fiche(s), min %s, max %s, moyenne %s',
@@ -33,6 +32,6 @@ if ($count = $this->getCount()) {
         '<span title="%s">%s</span> <em>%s</em>',
         esc_attr($details),
         $this->formatValue($this->getSum()),
-        isset($title) ? $title : $this->getName()
+        $this->getTitle() ?: $this->getName()
     );
 }

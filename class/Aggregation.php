@@ -21,9 +21,9 @@ use Docalist\Search\SearchRequest2 as SearchRequest;
 interface Aggregation
 {
     /**
-     * Retourne le type d'agrégation.
+     * Retourne le type de l'agrégation.
      *
-     * @return string Le type de l'agrégation (identifiant elasticsearch)
+     * @return string Le type de l'agrégation (identifiant elasticsearch).
      */
     public function getType();
 
@@ -44,9 +44,25 @@ interface Aggregation
     public function getName();
 
     /**
+     * Définit le titre de l'agrégation.
+     *
+     * @param string $title Le titre de l'agrégation.
+     *
+     * @return self
+     */
+    public function setTitle($title);
+
+    /**
+     * Retourne le titre de l'agrégation.
+     *
+     * @return string Le titre de l'agrégation ou null si l'agrégation n'a pas de titre.
+     */
+    public function getTitle();
+
+    /**
      * Définit les paramètres de l'agrégation.
      *
-     * @param array $parameters
+     * @param array $parameters Un tableau contenant les paramètres elasticsearch de l'agrégation.
      *
      * @return self
      */
@@ -62,8 +78,8 @@ interface Aggregation
     /**
      * Définit un paramètre de l'agrégation.
      *
-     * @param string $name Nom du paramètre à modifier.
-     * @param mixed $value Valeur à associer.
+     * @param string $name  Nom du paramètre à modifier.
+     * @param mixed  $value Valeur à associer.
      *
      * @return self
      */
@@ -95,7 +111,7 @@ interface Aggregation
     public function getDefinition();
 
     /**
-     * Stocke les résultats de l'agrégation.
+     * Stocke les résultats bruts de l'agrégation.
      *
      * @param object $results
      *
@@ -111,7 +127,7 @@ interface Aggregation
     public function getResults();
 
     /**
-     * Stocke l'objet SearchRequest qui a créé cette aggrégation.
+     * Stocke l'objet SearchRequest qui a créé cette agrégation.
      *
      * @param SearchRequest $searchRequest
      *
@@ -120,59 +136,44 @@ interface Aggregation
     public function setSearchRequest(SearchRequest $searchRequest);
 
     /**
-     * Retourne l'objet SearchRequest qui a créé cette aggrégation.
+     * Retourne l'objet SearchRequest qui a créé cette agrégation.
      *
      * @return SearchRequest
      */
     public function getSearchRequest();
 
     /**
-     * Définit la vue utilisée pour afficher l'aggrégation.
+     * Retourne le nom de la vue par défaut utilisée pour afficher les résultats de cette agrégation.
      *
-     * @param string $view
-     *
-     * @return self
+     * @return string
      */
-    public function setView($view);
+    public function getDefaultView();
 
     /**
-     * Retourne la vue utilisée pour afficher l'aggrégation.
+     * Affiche le résultat de l'agrégation.
      *
-     * @return string La vue indiquée lors du dernier appel à setView() ou la vue par défaut de l'agrégation si
-     * aucune vue n'a été définie.
-     */
-    public function getView();
-
-    /**
-     * Définit les données à transmettre à la vue lors de l'affichage.
+     * La méthode peut être appellée avec 0, 1 ou 2 paramètres :
      *
-     * @param array $data Les données qui seront transmises à la vue lorsque display() ou render() seront appelées.
+     * - display() : affichage par défaut.
+     * - display([...]) ou display(null, [...]) : affichage par défaut avec les paramètres fournis.
+     * - display('ma-vue') : affichage avec la vue indiquée.
+     * - display('ma-vue', [...]) : affichage avec la vue indiquée et les paramètres fournis.
+     * - display(null, [...]) : exécute la vue indiquée en lui fournissant les paramètres indiqués.
      *
-     * @return self
-     */
-    public function setViewData(array $data);
-
-    /**
-     * Retourne les données à transmettre à la vue lors de l'affichage.
-     *
-     * @return array|null
-     */
-    public function getViewData();
-
-    /**
-     * Affiche le résultat de l'aggrégation.
-     *
-     * L'affichage est effectué en appelant le service 'views' de docalist avec la vue retournée par getView() et les
-     * paramètres fournis par getViewData().
+     * @param string $view Optionnel, le nom de la vue à exécuter (vue par défaut de l'agrégation sinon).
+     * @param array  $data Optionnel, un tableau contenant les données à transmettre à la vue.
      *
      * @return mixed La méthode retourne ce que retourne la vue (rien en général).
      */
-    public function display();
+    public function display($view = null, array $data = []);
 
     /**
      * Identique à display() mais retourne le résultat au lieu de l'afficher.
      *
+     * @param string $view Optionnel, le nom de la vue à exécuter (vue par défaut de l'agrégation sinon).
+     * @param array  $data Optionnel, un tableau contenant les données à transmettre à la vue.
+     *
      * @return string
      */
-    public function render();
+    public function render($view = null, array $data = []);
 }

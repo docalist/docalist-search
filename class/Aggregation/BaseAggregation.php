@@ -14,7 +14,6 @@
 namespace Docalist\Search\Aggregation;
 
 use Docalist\Search\Aggregation;
-use LogicException;
 use Docalist\Search\SearchRequest2 as SearchRequest;
 
 /**
@@ -25,14 +24,14 @@ use Docalist\Search\SearchRequest2 as SearchRequest;
 abstract class BaseAggregation implements Aggregation
 {
     /**
-     * Type d'aggrégation.
+     * Type d'agrégation.
      *
      * @var string
      */
     const TYPE = null;
 
     /**
-     * Vue par défaut pour render() et display()
+     * Vue par défaut pour render() et display().
      *
      * @var string
      */
@@ -46,6 +45,13 @@ abstract class BaseAggregation implements Aggregation
     protected $name;
 
     /**
+     * Titre de l'agrégation.
+     *
+     * @var string
+     */
+    protected $title;
+
+    /**
      * Paramètres de l'agrégation.
      *
      * @var array
@@ -53,9 +59,9 @@ abstract class BaseAggregation implements Aggregation
     protected $parameters;
 
     /**
-     * Résultats de l'agrégation.
+     * Résultats bruts de l'agrégation.
      *
-     * @var array
+     * @var object
      */
     protected $results;
 
@@ -65,20 +71,6 @@ abstract class BaseAggregation implements Aggregation
      * @var SearchRequest
      */
     protected $searchRequest;
-
-    /**
-     * Nom de la vue à utiliser pour afficher cette agrégation.
-     *
-     * @var string
-     */
-    protected $view;
-
-    /**
-     * Données à transmettre à la vue lors de l'affichage..
-     *
-     * @var array
-     */
-    protected $viewData;
 
     /**
      * Constructeur : initialise l'agrégation avec les paramètres indiqués.
@@ -92,11 +84,6 @@ abstract class BaseAggregation implements Aggregation
 
     public function getType()
     {
-        // Sanity check : vérifie que la constante TYPE a été surchargée dans les classes descendantes concrêtes.
-        if (empty(static::TYPE)) {
-            throw new LogicException(get_class($this) . '::TYPE is not defined');
-        }
-
         return static::TYPE;
     }
 
@@ -110,6 +97,18 @@ abstract class BaseAggregation implements Aggregation
     public function getName()
     {
         return $this->name;
+    }
+
+    public function setTitle($title)
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getTitle()
+    {
+        return $this->title;
     }
 
     public function setParameters(array $parameters)
@@ -184,37 +183,24 @@ abstract class BaseAggregation implements Aggregation
         return isset($this->results->$name) ? $this->results->$name : null;
     }
 
-    public function setView($view)
+    public function getDefaultView()
     {
-        $this->view = $view;
-
-        return $this;
+        return static::DEFAULT_VIEW;
     }
 
-    public function getView()
+    public function display($view = null, array $data = [])
     {
-        return $this->view ?: static::DEFAULT_VIEW;
+        is_array($view) && $data = $view;
+        !is_string($view) && $view = $this->getDefaultView();
+
+        return docalist('views')->display($view, ['this' => $this] + $data);
     }
 
-    public function setViewData(array $data)
+    public function render($view = null, array $data = [])
     {
-        $this->viewData = $data;
+        ob_start();
+        $this->display($view, $data);
 
-        return $this;
-    }
-
-    public function getViewData()
-    {
-        return $this->viewData;
-    }
-
-    public function display()
-    {
-        return docalist('views')->display($this->getView(), ['this' => $this] + $this->getViewData());
-    }
-
-    public function render()
-    {
-        return docalist('views')->render($this->getView(), ['this' => $this] + $this->getViewData());
+        return ob_get_clean();
     }
 }

@@ -18,8 +18,7 @@ use Docalist\Search\Aggregation\Bucket\RangeAggregation;
 /**
  * Vue par défaut pour les agrégations "range".
  *
- * @var RangeAggregation    $this   L'agrégation à afficher.
- * @var string              $title  Optionnel, le titre de l'agrégation.
+ * @var RangeAggregation $this L'agrégation à afficher.
  */
 if ($buckets = $this->getBuckets()) {
     // ES génère les buckets même si le doc_count obtenu est à zéro.
@@ -47,7 +46,7 @@ if ($buckets = $this->getBuckets()) {
     }
 
     if ($items) {
-        printf('<h3>%s</h3>', isset($title) ? $title : $this->getName());
+        printf('<h3>%s</h3>', $this->getTitle() ?: $this->getName());
         printf('<ul class="%s">%s</ul>', $this->getType(), $items);
     }
 }

@@ -26,7 +26,7 @@ class StatsAggregation extends MultiMetricsAggregation
     const DEFAULT_VIEW = 'docalist-search:aggregations/metrics/stats';
 
     /**
-     * Retourne la valeur minimale calculée par l'aggrégation.
+     * Retourne la valeur minimale calculée par l'agrégation.
      *
      * @return integer|float|null
      */
@@ -36,7 +36,7 @@ class StatsAggregation extends MultiMetricsAggregation
     }
 
     /**
-     * Retourne la valeur maximale calculée par l'aggrégation.
+     * Retourne la valeur maximale calculée par l'agrégation.
      *
      * @return integer|float|null
      */
@@ -46,7 +46,7 @@ class StatsAggregation extends MultiMetricsAggregation
     }
 
     /**
-     * Retourne la somme calculée par l'aggrégation.
+     * Retourne la somme calculée par l'agrégation.
      *
      * @return integer|float|null
      */
@@ -56,7 +56,7 @@ class StatsAggregation extends MultiMetricsAggregation
     }
 
     /**
-     * Retourne le nombre de valeurs trouvées par l'aggrégation.
+     * Retourne le nombre de valeurs trouvées par l'agrégation.
      *
      * @return integer|null
      */
@@ -66,7 +66,7 @@ class StatsAggregation extends MultiMetricsAggregation
     }
 
     /**
-     * Retourne la moyenne calculée par l'aggrégation.
+     * Retourne la moyenne calculée par l'agrégation.
      *
      * @return float|null
      */

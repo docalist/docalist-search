@@ -26,9 +26,9 @@ class TableEntriesAggregation extends TermsAggregation
     /**
      * Constructeur
      *
-     * @param string    $field      Champ sur lequel porte l'agrégation.
-     * @param string    $tables     Nom des tables d'autorité utilisées pour convertir les termes en libellés.
-     * @param array     $parameters Autres paramètres de l'agrégation.
+     * @param string        $field      Champ sur lequel porte l'agrégation.
+     * @param string|array  $tables     Nom des tables d'autorité utilisées pour convertir les termes en libellés.
+     * @param array         $parameters Autres paramètres de l'agrégation.
      */
     public function __construct($field, $tables, array $parameters = [])
     {

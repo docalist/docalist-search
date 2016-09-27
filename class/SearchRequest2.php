@@ -1087,7 +1087,7 @@ class SearchRequest2
      * - filter_path : filtres sur les informations à retourner dans la réponse.
      *   cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/common-options.html#_response_filtering
      *
-     * @return SearchResults|null Un objet SearchResults décrivant les résultats de la recherche ou null si
+     * @return SearchResponse|null Un objet SearchResponse décrivant les résultats de la recherche ou null si
      * elasticsearch a généré une erreur.
      */
     public function execute(array $options = [])
@@ -1140,7 +1140,7 @@ class SearchRequest2
         }
 
         // Retourne les résultats
-        return new SearchResults($this, $response);
+        return new SearchResponse($this, $response);
     }
 
     /**

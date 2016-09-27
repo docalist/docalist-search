@@ -29,7 +29,7 @@ class TermsIn extends TermsAggregation
     public function __construct()
     {
         parent::__construct('in', ['size' => 1000]);
-        $this->setTitle('Type de contenu');
+        $this->setTitle(__('Type de contenu', 'docalist-search'));
     }
 
     public function getBucketLabel($bucket)

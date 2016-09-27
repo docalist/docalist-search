@@ -19,7 +19,7 @@ use Docalist\Search\SearchRequest2 as SearchRequest;
 /**
  * Le résultat d'une requête de recherche adressée à ElasticSearch.
  */
-class SearchResults
+class SearchResponse
 {
     /**
      * La requête qui a généré les résultats.

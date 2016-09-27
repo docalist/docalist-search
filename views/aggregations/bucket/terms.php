@@ -18,8 +18,7 @@ use Docalist\Search\Aggregation\Bucket\TermsAggregation;
 /**
  * Vue par défaut pour les agrégations "terms".
  *
- * @var TermsAggregation    $this   L'agrégation à afficher.
- * @var string              $title  Optionnel, le titre de l'agrégation.
+ * @var TermsAggregation $this L'agrégation à afficher.
  */
 if ($buckets = $this->getBuckets()) {
     $field = $this->getParameter('field');
@@ -28,7 +27,7 @@ if ($buckets = $this->getBuckets()) {
     // Titre de la facette
     printf('<h3%s>%s</h3>',
         $searchUrl->hasFilter($field) ? ' class="filter-active"' : '',
-        isset($title) ? $title : $this->getName()
+        $this->getTitle() ?: $this->getName()
     );
 
     // Liste des termes

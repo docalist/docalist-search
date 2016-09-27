@@ -18,13 +18,12 @@ use Docalist\Search\Aggregation\SingleMetricAggregation;
 /**
  * Vue par défaut pour les agrégations "single metric".
  *
- * @var SingleMetricAggregation $this   L'agrégation à afficher.
- * @var string                  $title  Optionnel, le titre de l'agrégation.
+ * @var SingleMetricAggregation $this L'agrégation à afficher.
  */
 if ($value = $this->getValue()) {
     printf(
         '<span>%s</span> <em>%s</em>',
         $this->formatValue($value),
-        isset($title) ? $title : $this->getName()
+        $this->getTitle() ?: $this->getName()
     );
 }

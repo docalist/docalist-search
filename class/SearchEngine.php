@@ -31,16 +31,18 @@ class SearchEngine
     protected $settings;
 
     /**
-     * @var SearchRequest la requête adressée à ElasticSearch.
+     * La requête adressée à ElasticSearch.
+     *
+     * @var SearchRequest
      */
-    protected $request;
+    protected $searchRequest;
 
     /**
-     * Les résultats de la recherche.
+     * La réponse retournée par ElasticSearch.
      *
-     * @var SearchResults
+     * @var SearchResponse
      */
-    protected $results;
+    protected $searchResponse;
 
     /**
      * Construit le moteur de recherche.
@@ -108,17 +110,17 @@ class SearchEngine
      */
     public function getSearchRequest()
     {
-        return $this->request;
+        return $this->searchRequest;
     }
 
     /**
      * Retourne les résultats de la requête en cours.
      *
-     * @return SearchResults
+     * @return SearchResponse
      */
-    public function getSearchResults()
+    public function getSearchResponse()
     {
-        return $this->results;
+        return $this->searchResponse;
     }
 
     /**
@@ -133,8 +135,8 @@ class SearchEngine
      */
     public function rank($id)
     {
-        if ($this->results) {
-            return $this->results->position($id) + 1 + ($this->request->page() - 1) * $this->request->size();
+        if ($this->searchResponse) {
+            return $this->searchResponse->position($id) + 1 + ($this->searchRequest->page() - 1) * $this->searchRequest->size();
         }
 
         // Le hit demandé ne fait pas partie des réponses
@@ -184,17 +186,17 @@ class SearchEngine
         // Permet aux plugins de créer une requête et d'indiquer s'il faut ou non afficher les résultats
         // obtenus ($displayResults, troisième paramètre du filtre, passé par référence, à true par défaut)
         $displayResults = true;
-        $this->request = apply_filters_ref_array('docalist_search_create_request', [null, $query, & $displayResults]);
+        $this->searchRequest = apply_filters_ref_array('docalist_search_create_request', [null, $query, & $displayResults]);
 
         // Si on n'a pas de requête à exécuter, on ne fait rien
-        if (is_null($this->request)) {
+        if (is_null($this->searchRequest)) {
             $debug && print('docalist_search_create_request a retourné null, rien à faire<br />');
 
             return $query;
         }
 
         // Sanity check
-        if (! $this->request instanceof SearchRequest) {
+        if (! $this->searchRequest instanceof SearchRequest) {
             throw new Exception('Filter docalist_search_create_request did not return a SearchRequest');
         }
 
@@ -203,14 +205,14 @@ class SearchEngine
         if ($debug) {
             printf(
                 "<pre>%s</pre>",
-                strtr(json_encode((array)($this->request), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), ['\u0000*' => '', '\u0000' => ''])
+                strtr(json_encode((array)($this->searchRequest), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), ['\u0000*' => '', '\u0000' => ''])
             );
         }
 
         // Exécute la recherche
-        $this->results = $this->request->execute();
+        $this->searchResponse = $this->searchRequest->execute();
 
-        $debug && print($this->results->getHitsCount() . ' réponses obtenues<br />');
+        $debug && print($this->searchResponse->getHitsCount() . ' réponses obtenues<br />');
 
         // Si on nous a demandé de ne pas afficher les résultats, on a finit
         if (! $displayResults) {
@@ -226,20 +228,20 @@ class SearchEngine
         $query->is_singular = $query->is_page = false;
 
         // Indique à WordPress les paramètres de la recherche en cours
-        $query->set('posts_per_page', $this->request->getSize());
-        $query->set('paged', $this->request->getPage());
+        $query->set('posts_per_page', $this->searchRequest->getSize());
+        $query->set('paged', $this->searchRequest->getPage());
 
         // Empêche WordPress de faire une 2nde requête "SELECT FOUND_ROWS()"
         // (inutile car on a directement le nombre de réponses obtenues)
         $query->set('no_found_rows', true);
 
         // Permet à get_search_query() de récupérer l'équation de recherche
-        $query->set('s', $this->request->getEquation());
+        $query->set('s', $this->searchRequest->getEquation());
 
         // Construit la liste des ID des réponses obtenues
         $id = [];
-        if ($this->results) {
-            foreach ($this->results->getHits() as $hit) {
+        if ($this->searchResponse) {
+            foreach ($this->searchResponse->getHits() as $hit) {
                 $id[] = $hit->_id;
             }
         }
@@ -272,8 +274,8 @@ class SearchEngine
                 echo "<p>WARNING : L'index docalist-search est désynchronisé.</p>";
                 // TODO : à améliorer (cf. plugin "simple notices")
             }
-            $total = $this->results ? $this->results->getHitsCount() : 0;
-            $size = $this->request->getSize();
+            $total = $this->searchResponse ? $this->searchResponse->getHitsCount() : 0;
+            $size = $this->searchRequest->getSize();
 
             $query->found_posts = $total;
             $query->max_num_pages = (int) ceil($total / $size);

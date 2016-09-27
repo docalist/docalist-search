@@ -911,7 +911,7 @@ class SearchRequest2
     /**
      * Définit les agrégations qui composent la recherche.
      *
-     * @param Aggregation[]|array[] $aggregations Un tableau d'agrégations de la forme nom => aggrégation.
+     * @param Aggregation[]|array[] $aggregations Un tableau d'agrégations de la forme nom => agrégation.
      *
      * Chaque élément du tableau est un objet Aggregation ou un tableau.
      *
@@ -1130,7 +1130,7 @@ class SearchRequest2
 
         $this->hasErrors = false;
 
-        // Fournit le résultat obtenu aux aggrégations qui ont été définies comme objets
+        // Fournit le résultat obtenu aux agrégations qui ont été définies comme objets
         if (isset($response->aggregations)) {
             foreach($response->aggregations as $name => & $aggResult) {
                 if (isset($this->aggregations[$name]) && $this->aggregations[$name] instanceof Aggregation) {

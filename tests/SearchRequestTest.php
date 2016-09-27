@@ -472,7 +472,7 @@ class SearchRequestTest extends WP_UnitTestCase
         $search->setSort(['creation' => ['order' => 'asc'], 'lastupdate' => ['order' => 'asc']]);
 
         $results = $search->execute();
-        $this->assertInstanceOf('Docalist\Search\SearchResults', $results);
+        $this->assertInstanceOf('Docalist\Search\SearchResponse', $results);
         $this->assertFalse($search->hasErrors());
 
         $search = new SearchRequest();

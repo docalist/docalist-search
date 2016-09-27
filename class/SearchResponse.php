@@ -26,7 +26,7 @@ class SearchResponse
      *
      * @var SearchRequest
      */
-    protected $request;
+    protected $searchRequest;
 
     /**
      * La réponse brute retournée par ElasticSearch.
@@ -43,7 +43,7 @@ class SearchResponse
      */
     public function __construct(SearchRequest $request, stdClass $data)
     {
-        $this->request = $request;
+        $this->searchRequest = $request;
         $this->data = $data;
     }
 
@@ -52,9 +52,9 @@ class SearchResponse
      *
      * @return SearchRequest
      */
-    public function getRequest()
+    public function getSearchRequest()
     {
-        return $this->request;
+        return $this->searchRequest;
     }
 
     /**

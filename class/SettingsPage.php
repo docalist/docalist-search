@@ -305,12 +305,12 @@ class SettingsPage extends AdminPage
 
     protected function getAllFields()
     {
-        // On fait une recherche * en demandant une aggrégation sur le champ spécial _field_names
+        // On fait une recherche * en demandant une agrégation sur le champ spécial _field_names
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-field-names-field.html
         $response = docalist('elastic-search')->get('/{index}/_search', [
             'size' => 0,
             'aggs' => [
-                'fields' => [ // Nom de l'aggrégation générée
+                'fields' => [ // Nom de l'agrégation générée
                     'terms' => [
                         'field' => '_field_names',
                         'size' => 0, // 0 = pas de limit (INT_MAX)

@@ -18,11 +18,10 @@ use Docalist\Search\Aggregation;
 /**
  * Vue par défaut pour les agrégations.
  *
- * @var Aggregation $this   L'agrégation à afficher.
- * @var string      $title  Optionnel, le titre de l'agrégation.
+ * @var Aggregation $this L'agrégation à afficher.
  */
 printf(
     '<h3>%s</h3><pre>%s</pre>',
-    isset($title) ? $title : $this->getName(),
+    $this->getTitle() ?: $this->getName(),
     json_encode($this->getResults(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
 );

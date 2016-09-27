@@ -29,7 +29,7 @@ class TermsIn extends TermsAggregation
     public function __construct()
     {
         parent::__construct('in', ['size' => 1000]);
-        $this->setViewData(['title' => 'Type de contenu']);
+        $this->setTitle('Type de contenu');
     }
 
     public function getBucketLabel($bucket)

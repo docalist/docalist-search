@@ -14,6 +14,7 @@
 namespace Docalist\Search;
 
 use Docalist\Search\SearchRequest2 as SearchRequest;
+use stdClass;
 
 /**
  * Interface commune à toutes les agrégations.
@@ -111,23 +112,32 @@ interface Aggregation
     public function getDefinition();
 
     /**
-     * Stocke les résultats bruts de l'agrégation.
+     * Définit le résultat de l'agrégation.
      *
-     * @param object $results
+     * @param stdClass $result Le résultat généré par elasticsearch pour cette agrégation.
      *
-     * @return self
+     * @eturn self
      */
-    public function setResults($results);
+    public function setResult(stdClass $result);
 
     /**
-     * Retourne les résultats bruts de l'agrégation.
+     * Retourne le résultat de l'agrégation.
      *
-     * @return object
+     * Par défaut, la méthode retourne le résultat de l'agrégation tel qu'il a été définit lors du dernier appel
+     * à setResult().  Si un champ est indiqué en paramètre et que ce champ figure dans les résultats, la méthode
+     * retourne le contenu de ce champ.
+     *
+     * Par exemple : si le résultat de l'agrégation est un objet de la forme "{count: 44, min: 1, max:40, etc.}",
+     * getResult() retournera cet objet complet et getResult('count') retournera 44.
+     *
+     * @param string $name Optionnel, nom du champ de résultat à retourner.
+     *
+     * @return mixed|null Le résultat demandé ou null s'il n'est pas disponible.
      */
-    public function getResults();
+    public function getResult($name = null);
 
     /**
-     * Stocke l'objet SearchRequest qui a créé cette agrégation.
+     * Définit l'objet SearchRequest dans lequel figure cette agrégation.
      *
      * @param SearchRequest $searchRequest
      *
@@ -136,11 +146,27 @@ interface Aggregation
     public function setSearchRequest(SearchRequest $searchRequest);
 
     /**
-     * Retourne l'objet SearchRequest qui a créé cette agrégation.
+     * Retourne l'objet SearchRequest dans lequel figure cette agrégation.
      *
      * @return SearchRequest
      */
     public function getSearchRequest();
+
+    /**
+     * Définit l'objet SearchResponse qui contient les résultats de cette agrégation.
+     *
+     * @param SearchResponse $searchResponse
+     *
+     * @return self
+     */
+    public function setSearchResponse(SearchResponse $searchResponse);
+
+    /**
+     * Retourne l'objet SearchResponse qui contient les résultats de cette agrégation.
+     *
+     * @return SearchResponse
+     */
+    public function getSearchResponse();
 
     /**
      * Retourne le nom de la vue par défaut utilisée pour afficher les résultats de cette agrégation.

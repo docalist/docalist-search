@@ -36,15 +36,27 @@ class SearchResponse
     protected $data;
 
     /**
-     * Initialise l'objet à partir de la réponse retournée par Elastic Search.
+     * Initialise l'objet à partir de la réponse retournée par elasticsearch.
      *
      * @param SearchRequest $request    L'objet SearchRequest qui a généré ces résultats.
      * @param stdClass      $data       La réponse brute retournée par ElasticSearch.
      */
-    public function __construct(SearchRequest $request, stdClass $data)
+    public function __construct(SearchRequest $request = null, stdClass $data = null)
     {
         $this->searchRequest = $request;
         $this->data = $data;
+    }
+
+    /**
+     * Définit la requête qui a généré cet objet résultat.
+     *
+     * @return SearchRequest
+     */
+    public function setSearchRequest(SearchRequest $request)
+    {
+        $this->searchRequest = $request;
+
+        return $this;
     }
 
     /**
@@ -55,6 +67,20 @@ class SearchResponse
     public function getSearchRequest()
     {
         return $this->searchRequest;
+    }
+
+    /**
+     * Définit les données brutes retournées par elasticsearch.
+     *
+     * @param stdClass $data La réponse brute générée par ElasticSearch.
+     *
+     * @return self
+     */
+    public function setData(stdClass $data)
+    {
+        $this->data = $data;
+
+        return $this;
     }
 
     /**

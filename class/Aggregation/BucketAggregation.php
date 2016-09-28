@@ -13,6 +13,8 @@
  */
 namespace Docalist\Search\Aggregation;
 
+use stdClass;
+
 /**
  * Classe de base pour les agrégations de type "bucket".
  *
@@ -40,5 +42,23 @@ abstract class BucketAggregation extends BaseAggregation
     public function getBucketLabel($bucket)
     {
         return $bucket->key;
+    }
+
+    /**
+     * Retourne le bucket qui a la clé indiquée.
+     *
+     * @param string $key La clé recherchée.
+     *
+     * @return stdClass|null Le bucket correspondant ou null si la clé indiquée n'existe pas.
+     */
+    public function getBucket($key)
+    {
+        foreach ($this->getBuckets() as $bucket) {
+            if ($key === $bucket->key) {
+                return $bucket;
+            }
+        }
+
+        return null;
     }
 }

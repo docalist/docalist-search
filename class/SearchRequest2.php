@@ -1121,8 +1121,8 @@ class SearchRequest2
 
         // Exécute la requête
         $es = docalist('elastic-search');
-        $response = $es->get("/{index}/_search$queryString", $this->buildRequest());
-        if (isset($response->error)) {
+        $data = $es->get("/{index}/_search$queryString", $this->buildRequest());
+        if (isset($data->error)) {
             $this->hasErrors = true;
 
             return null;
@@ -1130,17 +1130,22 @@ class SearchRequest2
 
         $this->hasErrors = false;
 
-        // Fournit le résultat obtenu aux agrégations qui ont été définies comme objets
-        if (isset($response->aggregations)) {
-            foreach($response->aggregations as $name => & $aggResult) {
-                if (isset($this->aggregations[$name]) && $this->aggregations[$name] instanceof Aggregation) {
-                    $aggResult = $this->aggregations[$name]->setResults($aggResult);
-                }
+        // Crée l'objet SearchResponse (sans données pour le moment)
+        $searchResponse = new SearchResponse($this);
+
+        // Fournit le résultat obtenu à chaque agrégation et remplace le résultat brut par l'objet Aggregation
+        foreach($this->aggregations as $name => $aggregation) {
+            if ($aggregation instanceof Aggregation) {
+                $result = isset($data->aggregations->$name) ? $data->aggregations->$name : null;
+                $data->aggregations->$name = $aggregation->setSearchResponse($searchResponse)->setResult($result);
             }
         }
 
+        // Fournit les données finales à l'objet SearchResponse
+        $searchResponse->setData($data);
+
         // Retourne les résultats
-        return new SearchResponse($this, $response);
+        return $searchResponse;
     }
 
     /**

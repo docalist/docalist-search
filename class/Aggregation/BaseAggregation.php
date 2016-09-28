@@ -15,6 +15,8 @@ namespace Docalist\Search\Aggregation;
 
 use Docalist\Search\Aggregation;
 use Docalist\Search\SearchRequest2 as SearchRequest;
+use Docalist\Search\SearchResponse;
+use stdClass;
 
 /**
  * Classe de base pour les agrégations.
@@ -59,11 +61,11 @@ abstract class BaseAggregation implements Aggregation
     protected $parameters;
 
     /**
-     * Résultats bruts de l'agrégation.
+     * Résultat de l'agrégation (objet contenant les données retournées par elasticsearch).
      *
      * @var object
      */
-    protected $results;
+    protected $result;
 
     /**
      * L'objet SearchRequest qui a créé cette agrégation.
@@ -71,6 +73,13 @@ abstract class BaseAggregation implements Aggregation
      * @var SearchRequest
      */
     protected $searchRequest;
+
+    /**
+     * L'objet SearchResponse qui a généré les résultats de cette agrégation.
+     *
+     * @var SearchResponse
+     */
+    protected $searchResponse;
 
     /**
      * Constructeur : initialise l'agrégation avec les paramètres indiqués.
@@ -149,16 +158,16 @@ abstract class BaseAggregation implements Aggregation
         return [$this->getType() => $this->getParameters()];
     }
 
-    public function setResults($results)
+    public function setResult(stdClass $result)
     {
-        $this->results = $results;
+        $this->result = $result;
 
         return $this;
     }
 
-    public function getResults()
+    public function getResult($name = null)
     {
-        return $this->results;
+        return is_null($name) ? $this->result : (isset($this->result->$name) ? $this->result->$name : null);
     }
 
     public function setSearchRequest(SearchRequest $searchRequest)
@@ -171,16 +180,16 @@ abstract class BaseAggregation implements Aggregation
         return $this->searchRequest;
     }
 
-    /**
-     * Retourne le résultat dont le nom est indiqué ou null s'il ne figure pas dans les résultats de l'agrégation.
-     *
-     * @param string $name Nom du champ à retourner.
-     *
-     * @return mixed|null
-     */
-    protected function getResult($name)
+    public function setSearchResponse(SearchResponse $searchResponse)
     {
-        return isset($this->results->$name) ? $this->results->$name : null;
+        $this->searchResponse = $searchResponse;
+
+        return $this;
+    }
+
+    public function getSearchResponse()
+    {
+        return $this->searchResponse;
     }
 
     public function getDefaultView()

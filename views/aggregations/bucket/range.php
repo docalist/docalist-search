@@ -18,35 +18,76 @@ use Docalist\Search\Aggregation\Bucket\RangeAggregation;
 /**
  * Vue par défaut pour les agrégations "range".
  *
- * @var RangeAggregation $this L'agrégation à afficher.
+ * @var RangeAggregation    $this       L'agrégation à afficher.
+ * @var string|false        $container  Optionnel, tag à générer pour le container (div par défaut), ou false.
  */
-if ($buckets = $this->getBuckets()) {
-    // ES génère les buckets même si le doc_count obtenu est à zéro.
-    // Comme on ne veut que les buckets pas "vides", il faut qu'on teste.
-    // Potentiellement, tous les buckets peuvent être vides, et dans ce cas, on ne veut pas générer le titre et le ul.
-    // Du coup, on génère les buckets dans une chaine et on n'affiche la facette que si on a quelque chose.
-    $items = '';
-    foreach ($buckets as $bucket) {
-        $count = $bucket->doc_count;
-        if ($count === 0) {
-            continue;
-        }
-        $label = $this->getBucketLabel($bucket);
-        $class = sprintf(
-            'range-%s-%s',
-            isset($bucket->from) ? $bucket->from : 'less-than',
-            isset($bucket->to) ? $bucket->to : 'and-more'
-        );
-        $url = 'javascript:alert("Pas encore implémenté");';
 
-        $items .= sprintf(
-            '<li class="%s"><a href="%s"><span>%s</span> <em>%d</em></a></li>',
-            esc_attr($class), esc_attr($url), $label, $count
-        );
-    }
-
-    if ($items) {
-        printf('<h3>%s</h3>', $this->getTitle() ?: $this->getName());
-        printf('<ul class="%s">%s</ul>', $this->getType(), $items);
-    }
+// On ne génère rien si on n'a pas de buckets
+$buckets = $this->getBuckets();
+if (empty($buckets)) {
+    return;
 }
+
+// Valeur par défaut des paramètres de la vue
+!isset($container) && $container = 'div';
+
+// Initialisation
+$field = $this->getParameter('field');
+$searchUrl = $this->getSearchRequest()->getSearchUrl();
+
+// ES génère les buckets même si le doc_count obtenu est à zéro.
+// Comme on ne veut que les buckets pas "vides", il faut qu'on teste.
+// Potentiellement, tous les buckets peuvent être vides, et dans ce cas, on ne veut pas générer le titre et le ul.
+// Du coup, on génère les buckets dans une chaine et on n'affiche la facette que si on a quelque chose.
+$items = '';
+foreach ($buckets as $bucket) {
+    $count = $bucket->doc_count;
+    if ($count === 0) {
+        continue;
+    }
+    $label = $this->getBucketLabel($bucket);
+
+    $from = isset($bucket->from) ? $bucket->from : '';
+    $to = isset($bucket->to) ? $bucket->to : '';
+
+    $class = sprintf('range-%s-%s', $from ?: 'less-than', $to ?: 'and-more');
+
+    $term = $from . '..' . $to;
+
+    $searchUrl->hasFilter($field, $term) && $class .= ' filter-active';
+    $url = $searchUrl->toggleFilter($field, $term);
+
+    $items .= sprintf(
+        '<li class="%s" data-from="%s" data-to="%s" data-count="%d"><a href="%s"><span>%s</span> <em>%d</em></a></li>',
+        esc_attr($class), $from, $to, $count, esc_attr($url), $label, $count
+    );
+}
+
+if (empty($items)) {
+    return;
+}
+
+// Début du container
+if ($container) {
+    // Détermine les classes css à appliquer au container
+    $class = sprintf('facet %s %s%s',                           // "facet"
+        $this->getType(),                                       // type de la facette (e.g. "facet-terms")
+        $this->getName(),                                       // nom de la facette (e.g. "facet-category")
+        $searchUrl->hasFilter($field) ? ' facet-active' : ''    // "facet-active" si l'une des valeurs est filtrée
+    );
+
+    // Calcule les stats sur la facette
+    $hits = $this->getSearchResponse()->getHitsCount();         // Nb total de hits pour la requête
+
+    // Génère le tag ouvrant du container
+    printf('<%s class="%s" data-hits="%d">', $container, $class, $hits);
+}
+
+// Titre de la facette
+printf('<h3>%s</h3>', $this->getTitle() ?: $this->getName());
+
+// Liste des termes
+echo '<ul>', $items, '</ul>';
+
+// Fin du container
+$container && printf('</%s>', $container);

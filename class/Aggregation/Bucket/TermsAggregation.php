@@ -51,4 +51,14 @@ class TermsAggregation extends MultiBucketsAggregation
     protected function getLabelForMissing() {
         return __('Non disponible', 'docalist-search');
     }
+
+    /**
+     * Retourne le bucket "missing".
+     *
+     * @return stdClass|null Retourne le bucket "missing" s'il figure dans la liste des buckets, null sinon.
+     */
+    public function getMissingBucket()
+    {
+        return $this->getBucket(static::MISSING);
+    }
 }

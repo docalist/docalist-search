@@ -23,5 +23,5 @@ use Docalist\Search\Aggregation;
 printf(
     '<h3>%s</h3><pre>%s</pre>',
     $this->getTitle() ?: $this->getName(),
-    json_encode($this->getResults(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+    json_encode($this->getResult(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
 );

@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2016 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -24,9 +24,47 @@ use wpdb;
  */
 class CustomPostTypeIndexer extends AbstractIndexer
 {
+    /**
+     * Le type de posts gérés par cet indexeur (nom du custom post type).
+     *
+     * @var string
+     */
+    protected $type;
+
+    /**
+     * Le nom utilisé pour rechercher ces posts dans le moteur de recherche (champ "in:").
+     *
+     * @var string
+     */
+    protected $collection;
+
+    /**
+     * Un libellé indiquant la catégorie à laquelle appartient cet indexeur.
+     *
+     * @var string
+     */
+    protected $category;
+
+    /**
+     * Initialise l'indexeur.
+     *
+     * @var string $type        Le type de posts gérés par cet indexeur (nom du custom post type).
+     * @var string $collection  Le nom utilisé pour rechercher ces posts dans le moteur de recherche (champ "in:")
+     *                          Par défaut, identique à $type.
+     * @var string $category    Un libellé indiquant la catégorie à laquelle appartient cet indexeur. Cette catégorie
+     *                          est utilisée dans l'administration de docalist-search pour classer les différents
+     *                          types d'indexeurs. Par défaut (ou null), c'est "Custom posts types".
+     */
+    public function __construct($type, $collection = null, $category = null)
+    {
+        $this->type = $type;
+        $this->collection = $collection ?: $type;
+        $this->category = $category;
+    }
+
     public function getType()
     {
-        return 'post';
+        return $this->type;
     }
 
     public function getLabel()
@@ -36,12 +74,12 @@ class CustomPostTypeIndexer extends AbstractIndexer
 
     public function getCategory()
     {
-        return __('Contenus WordPress', 'docalist-search');
+        return $this->category ?: __('Custom posts types', 'docalist-search');
     }
 
     public function getCollection()
     {
-        return 'posts';
+        return $this->collection;
     }
 
     public function buildIndexSettings(array $settings)

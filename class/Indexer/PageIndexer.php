@@ -16,15 +16,10 @@ namespace Docalist\Search\Indexer;
 /**
  * Un indexeur pour les pages WordPress.
  */
-class PageIndexer extends PostIndexer
+class PageIndexer extends CustomPostTypeIndexer
 {
-    public function getType()
+    public function __construct()
     {
-        return 'page';
-    }
-
-    public function getCollection()
-    {
-        return 'pages';
+        parent::__construct('page', 'pages', __('Contenus WordPress', 'docalist-search'));
     }
 }

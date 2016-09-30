@@ -18,4 +18,8 @@ namespace Docalist\Search\Indexer;
  */
 class PostIndexer extends CustomPostTypeIndexer
 {
+    public function __construct()
+    {
+        parent::__construct('post', 'posts', __('Contenus WordPress', 'docalist-search'));
+    }
 }

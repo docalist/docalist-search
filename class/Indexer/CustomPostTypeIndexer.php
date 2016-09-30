@@ -20,7 +20,7 @@ use WP_Post;
 use wpdb;
 
 /**
- * Un indexeur pour les articles de WordPress.
+ * Classe de base pour les indexeurs qui gèrent des objets WP_Post (posts, pages, custom post types, etc.)
  */
 class CustomPostTypeIndexer extends AbstractIndexer
 {
@@ -44,6 +44,13 @@ class CustomPostTypeIndexer extends AbstractIndexer
      * @var string
      */
     protected $category;
+
+    /**
+     * Liste des status à indexer.
+     *
+     * @var string[]
+     */
+    protected $statuses = ['publish', 'pending', 'private'];
 
     /**
      * Initialise l'indexeur.
@@ -82,6 +89,30 @@ class CustomPostTypeIndexer extends AbstractIndexer
         return $this->collection;
     }
 
+    /**
+     * Retourne la liste des status à indexer.
+     *
+     * @return string
+     */
+    public function getStatuses()
+    {
+        return $this->statuses;
+    }
+
+    /**
+     * Définit la liste des status à indexer.
+     *
+     * @param string[] $statuses
+     *
+     * return self
+     */
+    public function setStatuses(array $statuses)
+    {
+        $this->statuses = $statuses;
+
+        return $this;
+    }
+
     public function buildIndexSettings(array $settings)
     {
         $mapping = docalist('mapping-builder'); /** @var MappingBuilder $mapping */
@@ -104,16 +135,6 @@ class CustomPostTypeIndexer extends AbstractIndexer
         $settings['mappings'][$this->getType()] = $mapping->getMapping();
 
         return $settings;
-    }
-
-    /**
-     * Retourne la liste des status à indexer.
-     *
-     * @return string
-     */
-    protected function getStatuses()
-    {
-        return ['publish', 'pending', 'private'];
     }
 
     public function activateRealtime(IndexManager $indexManager)

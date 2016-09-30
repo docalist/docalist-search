@@ -22,7 +22,7 @@ use wpdb;
 /**
  * Un indexeur pour les articles de WordPress.
  */
-class PostIndexer extends AbstractIndexer
+class CustomPostTypeIndexer extends AbstractIndexer
 {
     public function getType()
     {

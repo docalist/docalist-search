@@ -198,9 +198,9 @@ class Plugin
      */
     public function theCurrentFilters($format = null, $separator = null, $wrapper = null)
     {
-        return 'TODO / theCurrentFilters';
-
-        $request = docalist('docalist-search-engine')->getSearchRequest(); /** @var SearchRequest $request */
+        /** @var SearchRequest $request */
+/*
+        $request = docalist('docalist-search-engine')->getSearchRequest();
 
         // Retourne une chaine vide si on n'a aucun filtre actif
         $request && $filters = $request->filters();
@@ -231,5 +231,7 @@ class Plugin
         $result = implode(is_null($separator) ? ', ' : $separator, $result);
 
         return sprintf($wrapper, $result);
+*/
+        return 'TODO / theCurrentFilters';
     }
 }

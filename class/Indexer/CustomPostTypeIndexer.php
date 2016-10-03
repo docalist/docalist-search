@@ -18,6 +18,8 @@ use Docalist\Search\MappingBuilder;
 use Docalist\Search\QueryDSL;
 use WP_Post;
 use wpdb;
+use WP_Term;
+use stdClass;
 
 /**
  * Classe de base pour les indexeurs qui gèrent des objets WP_Post (posts, pages, custom post types, etc.)
@@ -51,6 +53,15 @@ class CustomPostTypeIndexer extends AbstractIndexer
      * @var string[]
      */
     protected $statuses = ['publish', 'pending', 'private'];
+
+    /**
+     * Liste des taxonomies indexées pour les posts gérés par cet indexeur.
+     *
+     * La propriété est initialisée lors du premier appel à getIndexedTaxonomies().
+     *
+     * @var string[] Un tableau de la forme taxonomie => champ elasticsearch généré (identiques par défaut).
+     */
+    protected $indexedTaxonomies;
 
     /**
      * Initialise l'indexeur.
@@ -132,9 +143,63 @@ class CustomPostTypeIndexer extends AbstractIndexer
             $mapping->addField('parent')->integer();
         }
 
+        // Taxonomies associées à ce post_type
+        foreach($this->getIndexedTaxonomies() as $field) {
+            $mapping->addField($field)->keyword();
+        }
+
         $settings['mappings'][$this->getType()] = $mapping->getMapping();
 
         return $settings;
+    }
+
+    /**
+     * Retourne les taxonomies indexées par cet indexeur et le nom du champ elasticsearch correspondant.
+     *
+     * La méthode retourne le nom des taxonomies qui sont associées à ce type de post et pour lesquelles
+     * la méthode getTaxonomyField() retourne un nom de champ.
+     *
+     * Remarque : lors du premier appel, le résultat est mis en cache dans la propriété $indexedTaxonomies
+     * et c'est cette propriété qui est retournée lors des appels ultérieurs.
+     *
+     * @return string[] Un tableau de la forme taxonomie => champ elasticsearch généré.
+     */
+    final protected function getIndexedTaxonomies()
+    {
+        if (is_null($this->indexedTaxonomies)) {
+            $this->indexedTaxonomies = [];
+            foreach(get_object_taxonomies($this->getType(), 'objects') as $name => $taxonomy) {
+                $field = $this->getTaxonomyField($taxonomy);
+                !empty($field) && $this->indexedTaxonomies[$name] = $field;
+            }
+        }
+
+        return $this->indexedTaxonomies;
+    }
+
+    /**
+     * Retourne le nom du champ elasticsearch à générer pour la taxonomie passée en paramètre.
+     *
+     * Par défaut, la méthode retourne un nom de champ pour les taxonomies qui ont les propriétés "visible"
+     * et "publicly_queryable" à true.
+     *
+     * Par défaut, le nom du champ elasticsearch qui est généré est identique au nom de la  taxonomie
+     * (exemple : "category"), sauf pour la taxonomie "post_tag" qui est renommée "tag".
+     *
+     * Les classes descendantes peuvent surcharger cette méthode pour changer les taxonomies qui sont ou non
+     * indexées et modifier le nom du champ elasticsearch généré.
+     *
+     * @param stdClass $taxonomy Taxonomie à indexer.
+     *
+     * @return string|NULL Retourne un nom de champ ou null si la taxonomie indiquée ne doit pas être indexée.
+     */
+    protected function getTaxonomyField(/* WP_Taxonomy */ $taxonomy)
+    {
+        if ($taxonomy->public && $taxonomy->publicly_queryable) {
+            return ($taxonomy->name === 'post_tag') ? 'tag' : $taxonomy->name;
+        }
+
+        return null;
     }
 
     public function activateRealtime(IndexManager $indexManager)
@@ -260,6 +325,17 @@ class CustomPostTypeIndexer extends AbstractIndexer
         // Parent
         if (is_post_type_hierarchical($this->getType()) && ! empty($post->post_parent)) {
             $document['parent'] = (int) $post->post_parent;
+        }
+
+        // Taxonomies associées à ce post
+        foreach($this->getIndexedTaxonomies() as $taxonomy => $field) {
+            if (is_array($terms = get_the_terms($post, $taxonomy))) {
+                $result = [];
+                foreach($terms as $term) { /** @var WP_Term $term */
+                    $result[] = $term->slug;
+                }
+                $document[$field] = $result;
+            }
         }
 
         return $document;

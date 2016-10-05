@@ -195,6 +195,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
      */
     protected function getTaxonomyField(/* WP_Taxonomy */ $taxonomy)
     {
+        var_dump($taxonomy);
         if ($taxonomy->public && $taxonomy->publicly_queryable) {
             return ($taxonomy->name === 'post_tag') ? 'tag' : $taxonomy->name;
         }

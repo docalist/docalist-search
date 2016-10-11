@@ -14,7 +14,7 @@ namespace Docalist\Search\Aggregation\Standard;
 use Docalist\Search\Aggregation\Bucket\TaxonomyEntriesAggregation;
 
 /**
- * Construit une agrégation de type "terms" sur le champ "section du site" (topic-section.filter).
+ * Construit une agrégation de type "terms" sur la taxonomie "catégorie".
  */
 class TermsCategory extends TaxonomyEntriesAggregation
 {

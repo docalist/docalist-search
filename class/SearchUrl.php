@@ -504,7 +504,9 @@ class SearchUrl
      */
     protected function isFilter($field)
     {
-        return substr($field, -7) === '.filter';
+        return substr($field, -7) === '.filter'
+            || $field === 'category'
+            || $field === 'tag';
     }
 
     /**

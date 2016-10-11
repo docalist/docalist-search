@@ -1,21 +1,24 @@
 <?php
 /**
- * This file is part of the 'SVB Plugin' package.
+ * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2015-2016 Artwaï, Docalist
+ * Copyright (C) 2013-2016 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
  *
- * @author Daniel Ménard <daniel.menard@laposte.net>
+ * @package     Docalist
+ * @subpackage  Search
+ * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
-namespace Docalist\Search\Aggregation;
+namespace Docalist\Search\Aggregation\Standard;
 
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
 use Docalist\Search\Indexer;
 
 /**
- * Construit une agrégation de type "terms" sur le champ "collection indexée" (in).
+ * Une agrégation standard de type "terms" sur le champ "in" qui retourne le nombre de documents pour chacune
+ * des collections docalist-search indexées.
  */
 class TermsIn extends TermsAggregation
 {

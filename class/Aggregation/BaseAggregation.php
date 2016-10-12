@@ -173,6 +173,8 @@ abstract class BaseAggregation implements Aggregation
     public function setSearchRequest(SearchRequest $searchRequest)
     {
         $this->searchRequest = $searchRequest;
+
+        return $this;
     }
 
     public function getSearchRequest()

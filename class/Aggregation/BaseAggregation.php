@@ -155,7 +155,7 @@ abstract class BaseAggregation implements Aggregation
 
     public function getDefinition()
     {
-        return [$this->getType() => $this->getParameters()];
+        return [$this->getType() => $this->getParameters() ?: (object) []];
     }
 
     public function setResult(stdClass $result)

@@ -105,7 +105,7 @@ abstract class BaseAggregation implements Aggregation
 
     public function getName()
     {
-        return $this->name;
+        return $this->name ?: get_class($this);
     }
 
     public function setTitle($title)

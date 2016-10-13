@@ -91,7 +91,7 @@ class SearchRequest2
      *
      * @var array
      */
-    protected $sort = [];
+    protected $sort;
 
     /**
      * Contrôle la liste des champs qui seront retournés pour chaque hit.
@@ -722,35 +722,18 @@ class SearchRequest2
     // -------------------------------------------------------------------------------
 
     /**
-     * Retourne la liste des clauses de tri ou une clause de tri particulière.
+     * Retourne le tri en cours.
      *
-     * @param string $field Optionnel, nom de champ. Si vous n'indiquez aucun champ, la méthode retourne toutes les
-     * clauses de tri. Si vous indiquez un champ, elle retourne la clause de tri pour ce champ (ou null si le champ
-     * n'est pas utilisé comme clé de tri).
-     *
-     * @return array Un tableau (éventuellement vide) contenant les différentes clauses de tri dans l'ordre où elles
-     * ont été ajoutées par addSort(). Exemple :
-     *
-     * <code>
-     * [
-     *     'lastupdate' => ['order' => 'asc'],
-     *     'creation' => ['order' => 'asc', 'missing' => '_first'],
-     * ]
-     * </code>
-     *
-     * Si vous avez indiqué un nom de champ, elle retourne un tableau contenant les options du champ. Exemple :
-     *
-     * <code>
-     * getSort('creation'); // ['order' => 'asc', 'missing' => '_first']
-     * </code>
+     * @return string|array|null Retourne le nom symbolique du tri en cours, un tableau contenant la définition du tri
+     * en cours ou null si aucun tri n'a été défini.
      */
-    public function getSort($field = null)
+    public function getSort()
     {
-        return is_null($field) ? $this->sort : (isset($this->sort[$field]) ? $this->sort[$field] : null);
+        return $this->sort;
     }
 
     /**
-     * Définit la liste des clauses de tri.
+     * Définit le tri en cours.
      *
      * Exemple :
      *
@@ -761,92 +744,18 @@ class SearchRequest2
      * ]);
      * </code>
      *
-     * @param array $sortClauses Un tableau contenant les différentes clauses de tri. Chaque clause du tableau est
-     * ajoutée en appellant addSort(). Si le tableau est vide, les clauses de tri sont réinitialisées (i.e. tri
-     * elasticsearch par défaut : _score desc).
+     * @param array|string|null $sort Le tri peut être définit de plusieurs manières. Vous pouvez indiquer :
+     * - une chaine contenant un nom de tri symbolique. Dans ce cas, lors de l'exécution de la requête, la définition
+     *   du tri sera récupérée en appelant le filtre docalist_search_get_sort().
+     * - un tableau contenant la définition du tri (dans ce cas, elle est utilisée telle quelle).
+     * - null pour supprimer le tri en cours.
      *
      * @return self
      */
-    public function setSort(array $sortClauses)
+    public function setSort($sort)
     {
-        $this->sort = [];
-        foreach($sortClauses as $field => $options) {
-            $order = '';
-            if (isset($options['order'])) {
-                $order = $options['order'];
-                unset($options['order']);
-            }
-            $this->addSort($field, $order, $options);
-        }
+        $this->sort = $sort;
 
-        return $this;
-    }
-
-    /**
-     * Ajoute une clé de tri.
-     *
-     * cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-sort.html
-     *
-     * Exemples : :
-     *
-     * <code>
-     * addSort('lastupdate');                           // tri par date de mise à jour croissante
-     * addSort(['lastupdate' => 'asc']);                // idem
-     * addSort(['lastupdate' => ['order' => 'asc']])    // idem
-     *
-     * addSort('_score');                               // tri par pertinence décroissante
-     *
-     * </code>
-     *
-     * @param string|array $clause Une clause de tri qui sera ajoutée à la liste des clauses existantes.
-     */
-    public function addSort($field, $order = '', array $options = [])
-    {
-        // Vérifie le champ
-        if (! is_string($field)) {
-            throw new InvalidArgumentException('Invalid sort field, expected string');
-        }
-
-        // Vérifie l'ordre de tri
-        if (! is_string($order)) {
-            throw new InvalidArgumentException("Invalid sort order for '$field', expected string");
-        }
-        empty($order) && $order = ($field === '_score') ? 'desc' : 'asc';
-        if ($order !== 'asc' && $order !== 'desc') {
-            throw new InvalidArgumentException("Invalid sort order for '$field', expected 'asc' or 'desc'");
-        }
-
-        // Liste des options autorisées
-        // cf. code source de elasticsearch pour voir les options disponibles pour chaque type de tri :
-        // - tris dispos :  src/main/java/org/elasticsearch/search/sort/SortBuilder.java::Map()
-        // - script sort :  src/main/java/org/elasticsearch/search/sort/ScriptSortBuilder.java::fromXContent()
-        // - geo-distance : src/main/java/org/elasticsearch/search/sort/GeoDistanceSortBuilder.java::fromXContent()
-        // - score sort :   src/main/java/org/elasticsearch/search/sort/ScoreSortBuilder.java::fromXContent()
-        // - field sort :   src/main/java/org/elasticsearch/search/sort/FieldSortBuilder.java::fromXContent()
-        $accept = [
-            'nested_filter',
-            'nested_path',
-            'missing',  // valeurs autorisées : _last, _first ou une valeur
-         // 'reverse',  // deprecated / non documenté
-         // 'order',    // fixé par nous (paramètre), non autorisé comme option
-            'mode',     // valeurs autorisées : min, max, sum, avg ou median
-            'unmapped_type',
-         // 'type', // ?
-            'script'
-        ];
-
-        // Vérifie les options indiquées
-        if ($options && $bad = array_diff(array_keys($options), $accept)) {
-            throw new InvalidArgumentException("Invalid sort options for field '$field': " . implode(', ', $bad));
-        }
-
-        // Stocke la clause de tri
-        if (isset($this->sort[$field])) {
-            unset($this->sort[$field]);
-        }
-        $this->sort[$field] = ['order' => $order] + $options;
-
-        // Ok
         return $this;
     }
 
@@ -1090,11 +999,6 @@ class SearchRequest2
             }
         }
 
-        // Tri
-        if ($this->sort) {
-            $request['sort'] = $this->sort;
-        }
-
         // Numéro du premier hit
         $this->page > self::DEFAULT_PAGE && $request['from'] = ($this->page - 1) * $this->size;
 
@@ -1113,6 +1017,25 @@ class SearchRequest2
             foreach($this->aggregations as $name => $aggregation) {
                 ($aggregation instanceof Aggregation) && $aggregation = $aggregation->getDefinition();
                 $request['aggregations'][$name] = $aggregation;
+            }
+        }
+
+        // Tri (gèré en dernier pour passer un objet SearchRequest quasi complet aux filtres)
+        if ($this->size) { // tri inutile si size===0
+            // Si on n'a aucun critère de tri, on utilise le tri par défaut retourné par le filtre
+            if (is_null($this->sort)) {
+                $this->sort = apply_filters('docalist_search_get_default_sort', null, $this);
+            }
+
+            // Si le tri en cours est un tableau (des clauses de tri elasticsearch), on prend tel quel
+            if (is_array($this->sort)) {
+                $request['sort'] = $this->sort;
+            }
+
+            // Sinon (chaine), il faut traduire le nom de tri en clauses de tri elasticsearch.
+            else {
+                $sort = apply_filters('docalist_search_get_sort', null, $this->sort);
+                $sort ? ($request['sort'] = $sort) : ($this->sort = 'score');
             }
         }
 

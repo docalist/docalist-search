@@ -451,8 +451,8 @@ class SearchUrl
 
                         // Croisés en "ou" : la requête doit matcher l'un des termes indiqués
                         else {
-                            $this->request->addFilter($dsl->terms($name, (array) $value));
-//                          $this->request->addPostFilter($dsl->terms($name, (array) $value));
+//                          $this->request->addFilter($dsl->terms($name, (array) $value));
+                            $this->request->addPostFilter($dsl->terms($name, (array) $value));
                         }
                     }
 

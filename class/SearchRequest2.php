@@ -72,6 +72,14 @@ class SearchRequest2
     protected $filters = [];
 
     /**
+     * Liste des post-filters à appliquer à la requête.
+     *
+     * @var array Un tableau de la forme filters[$name][$value] = true
+     * (i.e. les filtres sont indexés par nom, puis par valeur).
+     */
+    protected $postFilters = [];
+
+    /**
      * Liste des filtres globaux appliqués à la recherche.
      *
      * @var array
@@ -526,6 +534,28 @@ class SearchRequest2
                 throw new InvalidArgumentException("A filter named '$name' already exists");
             }
             $this->filters[$name] = $filter;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Ajoute un post-filter à la recherche.
+     *
+     * @param array $query Un tableau décrivant le filtre, en général créé avec le service QueryDSL. Exemple :
+     *
+     * @return self
+     */
+    public function addPostFilter(array $filter)
+    {
+        $name = $this->getQueryName($filter);
+        if (is_null($name)) {
+            $this->postFilters[] = $filter;
+        } else {
+            if (isset($this->postFilters[$name])) {
+                throw new InvalidArgumentException("A post filter named '$name' already exists");
+            }
+            $this->postFilters[$name] = $filter;
         }
 
         return $this;
@@ -1043,6 +1073,21 @@ class SearchRequest2
             $request['query'] = reset($clauses); // On obtient la query qui figure dans la clause
         } else {
             $request['query'] = $dsl->bool($clauses);
+        }
+
+        // post filters
+        if ($this->postFilters) {
+            $clauses = [];
+            foreach($this->postFilters as $filter) {
+                $clauses[] = $dsl->filter($filter);
+            }
+
+            if(count($clauses) === 1) {
+                $clauses = reset($clauses); // On obtient une clause de la forme "must" => []
+                $request['post_filter'] = reset($clauses); // On obtient la query qui figure dans la clause
+            } else {
+                $request['post_filter'] = $dsl->bool($clauses);
+            }
         }
 
         // Tri

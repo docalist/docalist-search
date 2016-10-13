@@ -23,4 +23,5 @@ use Docalist\Search\Aggregation\SingleBucketAggregation;
 class GlobalAggregation extends SingleBucketAggregation
 {
     const TYPE = 'global';
+    const DEFAULT_VIEW = 'docalist-search:aggregations/bucket/global';
 }

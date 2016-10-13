@@ -19,9 +19,11 @@ use Docalist\Search\Aggregation\Bucket\TermsAggregation;
  * Vue par défaut pour les agrégations "terms".
  *
  * @var TermsAggregation    $this       L'agrégation à afficher.
- * @var string|false        $container  Optionnel, tag à générer pour le container (div par défaut), ou false.
+ * @var string|false        $container  Optionnel, tag à générer pour le container (div par défaut), ou false pour ne
+ *                                      pas générer de tag container.
+ * @var string|false        $title      Optionnel, titre de la facette (celui de l'agrégation par défaut), ou false
+ *                                      pour ne pas générer de titre.
  */
-
 // On ne génère rien si on n'a pas de buckets
 $buckets = $this->getBuckets();
 if (empty($buckets)) {
@@ -30,23 +32,24 @@ if (empty($buckets)) {
 
 // Valeur par défaut des paramètres de la vue
 !isset($container) && $container = 'div';
+!isset($title) && $title = $this->getTitle() ?: $this->getName();
 
 // Initialisation
 $field = $this->getParameter('field');
 $searchUrl = $this->getSearchRequest()->getSearchUrl();
 
+// Détermine les classes css à appliquer au container
+$class = sprintf('facet %s %s%s',                           // "facet"
+    $this->getType(),                                       // type de la facette (e.g. "facet-terms")
+    $this->getName(),                                       // nom de la facette (e.g. "facet-category")
+    $searchUrl->hasFilter($field) ? ' facet-active' : ''    // "facet-active" si l'une des valeurs est filtrée
+);
+
+// Calcule les stats sur la facette
+$hits = $this->getSearchResponse()->getHitsCount();         // Nb total de hits pour la requête
+
 // Début du container
 if ($container) {
-    // Détermine les classes css à appliquer au container
-    $class = sprintf('facet %s %s%s',                           // "facet"
-        $this->getType(),                                       // type de la facette (e.g. "facet-terms")
-        $this->getName(),                                       // nom de la facette (e.g. "facet-category")
-        $searchUrl->hasFilter($field) ? ' facet-active' : ''    // "facet-active" si l'une des valeurs est filtrée
-    );
-
-    // Calcule les stats sur la facette
-    $hits = $this->getSearchResponse()->getHitsCount();         // Nb total de hits pour la requête
-
     // Génère le tag ouvrant du container
     printf('<%s class="%s" data-hits="%d">', $container, $class, $hits);
 
@@ -76,11 +79,16 @@ if ($container) {
 }
 
 // Titre de la facette
-printf('<h3>%s</h3>', $this->getTitle() ?: $this->getName());
+$title && printf('<h3>%s</h3>', $this->getTitle() ?: $this->getName());
 
 // Liste des termes
-echo '<ul>';
+printf($container ? '<ul>' : '<ul class="%s" data-hits="%d">', $class, $hits);
+
 foreach ($buckets as $bucket) {
+    $bucket = $this->prepareBucket($bucket);
+    if (empty($bucket)) {
+        continue;
+    }
     $count = $bucket->doc_count;
     $term = $bucket->key;
     $label = $this->getBucketLabel($bucket);
@@ -94,9 +102,18 @@ foreach ($buckets as $bucket) {
     }
 
     printf(
-        '<li class="%s" data-bucket="%s" data-count="%d"><a href="%s"><span>%s</span> <em>%d</em></a></li>',
+        '<li class="%s" data-bucket="%s" data-count="%d"><a href="%s"><span>%s</span> <em>%d</em></a>',
         esc_attr($class), esc_attr($term), $count, esc_attr($url), $label, $count
     );
+    if ($this->hasAggregations()) {
+        //echo '<ul>'; // Quelles classes css ???
+        foreach($this->getAggregations() as $aggregation) {
+            $aggregation->display(['container' => false, 'title' => false]);
+        }
+        //echo '</ul>';
+    }
+
+    echo '</li>';
 }
 echo '</ul>';
 

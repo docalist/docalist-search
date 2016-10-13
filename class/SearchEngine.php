@@ -73,6 +73,64 @@ class SearchEngine
 
             return $request;
         }, 10, 3);
+
+        // Fournit un tri par défaut
+        add_filter('docalist_search_get_default_sort', function($sort, SearchRequest $request) {
+            // Par défaut, elasticsearch trie par pertinence. Mais si la requête ne comporte aucune clause
+            // de recherche (que des filtres), ça na pas trop de sens. Dans ce cas, on force un tri par date
+            // de creation décroissante si aucun tri n'a été défini.
+
+            empty($sort) && !$request->hasQueries() && $sort = 'creation';
+
+            return $sort;
+        }, 10, 2);
+
+        // Définit les critères de tri standard
+        add_filter('docalist_search_get_sort', function($clauses, $sort) {
+            empty($clauses) && $clauses = $this->getSort($sort);
+
+            return $clauses;
+        }, 10, 2);
+    }
+
+    /**
+     * Retourne la définition du critère de tri passé en paramètre si c'est un tri connu.
+     *
+     * @param string $sort
+     * @return null|string[]|string
+     */
+    protected function getSort($sort)
+    {
+        switch($sort)
+        {
+            // Pertinence
+            case 'score':
+            case null:
+                return null; // inutile de générer une clause, c'est la valeur par défaut de ES.
+
+            // Date de création
+            case 'creation':
+            case 'creation-':
+                return ['creation' => 'desc'];
+            case 'creation+':
+                return 'creation';
+
+            // Date de mise à jour
+            case 'lastupdate':
+            case 'lastupdate-':
+                return ['lastupdate' => 'desc'];
+            case 'lastupdate+':
+                return 'lastupdate';
+
+            // Titre
+            case 'title':
+            case 'title+':
+                return 'title-sort';
+            case 'title-':
+                return ['title-sort' => 'desc'];
+        }
+
+        return null; // tri non reconnu
     }
 
     /**

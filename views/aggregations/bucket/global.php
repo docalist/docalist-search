@@ -25,6 +25,7 @@ use Docalist\Search\Aggregation\Bucket\GlobalAggregation;
  * @var GlobalAggregation   $this       L'agrégation à afficher.
  * @var array               $view       Les paramètres passés à la vue.
  */
+false && $view = $view; // juste pour éviter warning IDE (ne gère pas bien une @var utilisée comme tableau)
 $this->prepareBucket($this->result);
 foreach($this->getAggregations() as $aggregation) {
     $aggregation->display($view['data']);

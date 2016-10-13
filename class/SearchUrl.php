@@ -423,8 +423,7 @@ class SearchUrl
                     break;
 
                 case self::SORT: // Critères de tri
-                    $sortClause = []; // TODO : getSortClause($value);
-                    $this->request->setSort($sortClause);
+                    $this->request->setSort($value);
                     break;
 
                 case 'in':

@@ -105,12 +105,9 @@ foreach ($buckets as $bucket) {
         '<li class="%s" data-bucket="%s" data-count="%d"><a href="%s"><span>%s</span> <em>%d</em></a>',
         esc_attr($class), esc_attr($term), $count, esc_attr($url), $label, $count
     );
-    if ($this->hasAggregations()) {
-        //echo '<ul>'; // Quelles classes css ???
-        foreach($this->getAggregations() as $aggregation) {
-            $aggregation->display(['container' => false, 'title' => false]);
-        }
-        //echo '</ul>';
+
+    foreach($this->getAggregations() as $aggregation) {
+        $aggregation->display(['container' => false, 'title' => false]);
     }
 
     echo '</li>';

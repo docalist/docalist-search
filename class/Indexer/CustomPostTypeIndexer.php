@@ -20,6 +20,7 @@ use WP_Post;
 use wpdb;
 use WP_Term;
 use stdClass;
+use Docalist\Tokenizer;
 
 /**
  * Classe de base pour les indexeurs qui gèrent des objets WP_Post (posts, pages, custom post types, etc.)
@@ -137,6 +138,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
         $mapping->addField('creation')->dateTime();
         $mapping->addField('lastupdate')->dateTime();
         $mapping->addField('title')->text();
+        $mapping->addField('title-sort')->keyword();
         $mapping->addField('content')->text();
         $mapping->addField('excerpt')->text();
         if (is_post_type_hierarchical($this->getType())) {
@@ -310,7 +312,10 @@ class CustomPostTypeIndexer extends AbstractIndexer
         $document['lastupdate'] = $post->post_modified;
 
         // Titre
-        $document['title'] = $post->post_title;
+        if ($post->post_title) {
+            $document['title'] = $post->post_title;
+            $document['title-sort'] = implode(' ', Tokenizer::tokenize($post->post_title));
+        }
 
         // Extrait
         if (! empty($post->post_excerpt)) {

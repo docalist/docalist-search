@@ -61,7 +61,7 @@ class QueryBuilder implements Builder
 
     public function all()
     {
-        return $this->dsl->matchAll();
+        return null;// $this->dsl->matchAll();
     }
 
     public function exists($field)

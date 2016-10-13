@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2016 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -73,12 +73,6 @@ class SearchEngine
 
             return $request;
         }, 10, 3);
-
-        // TODO : filtres à virer, utiliser docalist('docalist-search-engine')->xxx()
-        add_filter('docalist_search_get_request', [$this, 'request'], 10, 0);
-        add_filter('docalist_search_get_results', [$this, 'results'], 10, 0);
-        add_filter('docalist_search_get_rank', [$this, 'rank'], 10, 1);
-        add_filter('docalist_search_get_hit_link', [$this, 'hitLink'], 10, 1);
     }
 
     /**

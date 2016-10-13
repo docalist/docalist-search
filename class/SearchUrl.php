@@ -286,7 +286,7 @@ class SearchUrl
             // parse_url convertit les "." en "_"
             $name = strtr($name, '_', '.');
 
-            if (is_string($value) && ($this->isFilter($name) || $this->isSpecialFilter($name))) {
+            if (is_string($value) && $this->isFilter($name)) {
                 $value = explode(self::SEPARATOR, $value);
                 $this->parameters[$name] = count($value) === 1 ? reset($value) : $value;
                 continue;
@@ -439,18 +439,21 @@ class SearchUrl
                     break;
 
                 default:
-                    // Filtre standard
-                    if ($this->isFilter($name)) {
-                        // Croisés en "et" : la requête doit matcher chacun des termes indiqués
-                        foreach((array) $value as $value) {
-                            $this->request->addFilter($dsl->term($name, $value));
-                        }
-                    }
+                    // Teste s'il s'agit d'un filtre et récupère sa combinatoire
+                    if ($op = $this->isFilter($name)) {
 
-                    // Filtre spécial
-                    elseif ($this->isSpecialFilter($name)) {
+                        // Croisés en "et" : la requête doit matcher chacun des termes indiqués
+                        if ($op === 'and') {
+                            foreach((array) $value as $value) {
+                                $this->request->addFilter($dsl->term($name, $value));
+                            }
+                        }
+
                         // Croisés en "ou" : la requête doit matcher l'un des termes indiqués
-                        $this->request->addFilter($dsl->terms($name, (array) $value));
+                        else {
+                            $this->request->addFilter($dsl->terms($name, (array) $value));
+//                          $this->request->addPostFilter($dsl->terms($name, (array) $value));
+                        }
                     }
 
                     // Champ
@@ -493,46 +496,37 @@ class SearchUrl
     }
 
     /**
-     * Indique si un champ est un filtre standard.
-     *
-     * Par convention, les filtres standard ont un nom de la forme "xxx.filter" (topic.filter, author.filter, etc.)
-     * et sont croisés en "et".
+     * Indique si un champ est un filtre et retourne sa combinatoire ('or' ou 'and').
      *
      * @param string $field
      *
-     * @return bool
+     * @return false|'or'|'and' Retourne false si le champ n'est pas un filtre, sa combinatoire sinon.
      */
     protected function isFilter($field)
     {
-        return substr($field, -7) === '.filter'
-            || $field === 'category'
-            || $field === 'tag';
-    }
-
-    /**
-     * Indique si un champ est un filtre spécial.
-     *
-     * Certains filtres ne sont pas de la forme "xxx.filter" (status, createdby...) : ce sont des filtres spéciaux qui
-     * sont croisés en "ou".
-     *
-     * Remarque : la liste est codée en dur.
-     *
-     * @param string $field
-     *
-     * @return bool
-     */
-    protected function isSpecialFilter($field)
-    {
         static $filters = [
-            'in' => true,
-            'is' => true,
-            'type' => true,
-            'status' => true,
-            'createdby' => true,
-            'parent' => true,
+            'in' => 'or',
+            'is' => 'or',
+            'type' => 'or',
+            'status' => 'or',
+            'createdby' => 'or',
+            'parent' => 'or',
+
+            'topic-support.filter' => 'or',
+
+            'category' => 'and',
+            'tag' => 'and',
         ];
 
-        return isset($filters[$field]);
+        if (isset($filters[$field])) {
+            return $filters[$field];
+        }
+
+        if (substr($field, -7) === '.filter') {
+            return 'and';
+        }
+
+        return false;
     }
 
     /**

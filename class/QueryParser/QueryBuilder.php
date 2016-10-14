@@ -51,7 +51,9 @@ class QueryBuilder implements Builder
 
     public function phrase($field, array $terms)
     {
-        return $this->dsl->match($field, implode(' ', $terms), 'match_phrase');
+        ($field === '') && $field = ['title^2', 'content', 'name'];
+        return $this->dsl->multiMatch($field, implode(' ', $terms), 'phrase', []);
+//        return $this->dsl->match($field, implode(' ', $terms), 'match_phrase');
     }
 
     public function prefix($field, $prefix)

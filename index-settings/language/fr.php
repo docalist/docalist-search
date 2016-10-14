@@ -41,7 +41,7 @@ return [
         /*
          * Filtre fr-stop : supprime les mots vides français.
          *
-         * cf. https://github.com/apache/lucene-solr/blob/trunk/lucene/analysis/common/src/resources/org/apache/lucene/analysis/snowball/french_stop.txt
+         * cf. https://github.com/apache/lucene-solr/blob/master/lucene/analysis/common/src/resources/org/apache/lucene/analysis/snowball/french_stop.txt
          */
         'fr-stop' => [
             'type' => 'stop',

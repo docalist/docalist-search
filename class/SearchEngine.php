@@ -91,6 +91,11 @@ class SearchEngine
 
             return $clauses;
         }, 10, 2);
+
+        // Fournit un titre aux critères de tri standard
+        add_filter('docalist_search_get_sort_title', function($sort) {
+            return $this->getSortTitle($sort);
+        }, 10, 2);
     }
 
     /**
@@ -104,33 +109,47 @@ class SearchEngine
         switch($sort)
         {
             // Pertinence
-            case 'score':
             case null:
-                return null; // inutile de générer une clause, c'est la valeur par défaut de ES.
+            case 'score':           return null; // inutile de générer une clause, c'est la valeur par défaut de ES.
 
             // Date de création
-            case 'creation':
-            case 'creation-':
-                return ['creation' => 'desc'];
-            case 'creation+':
-                return 'creation';
+            case 'creation':        return 'creation';
+            case 'creation-':       return ['creation' => 'desc'];
 
             // Date de mise à jour
-            case 'lastupdate':
-            case 'lastupdate-':
-                return ['lastupdate' => 'desc'];
-            case 'lastupdate+':
-                return 'lastupdate';
+            case 'lastupdate':      return 'lastupdate';
+            case 'lastupdate-':     return ['lastupdate' => 'desc'];
 
             // Titre
-            case 'title':
-            case 'title+':
-                return 'title-sort';
-            case 'title-':
-                return ['title-sort' => 'desc'];
+            case 'title':           return 'title-sort';
+            case 'title-':          return ['title-sort' => 'desc'];
         }
 
         return null; // tri non reconnu
+    }
+
+    protected function getSortTitle($sort)
+    {
+        switch($sort)
+        {
+            // Pertinence
+            case null:
+            case 'score':       return 'Pertinence';
+
+            // Date de création
+            case 'creation':    return 'Date de publication (ancien -> récent)';
+            case 'creation-':   return 'Date de publication (récent -> ancien)';
+
+            // Date de mise à jour
+            case 'lastupdate':  return 'Date de mise à jour (ancien -> récent)';
+            case 'lastupdate-': return 'Date de mise à jour (récent -> ancien)';
+
+            // Titre
+            case 'title':       return 'Titre (A -> Z)';
+            case 'title-':      return 'Titre (Z -> A)';
+        }
+
+        return $sort; // tri non reconnu
     }
 
     /**

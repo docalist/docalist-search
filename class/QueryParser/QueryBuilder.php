@@ -58,7 +58,9 @@ class QueryBuilder implements Builder
 
     public function prefix($field, $prefix)
     {
-        return $this->dsl->prefix($field, $prefix);
+        ($field === '') && $field = ['title^2', 'content', 'name'];
+        return $this->dsl->multiMatch($field, $prefix, 'phrase_prefix', []);
+        // return $this->dsl->prefix($field, $prefix); // ne supporte pas plusieurs champs
     }
 
     public function all()

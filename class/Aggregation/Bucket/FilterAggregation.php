@@ -27,11 +27,13 @@ class FilterAggregation extends SingleBucketAggregation
     /**
      * Constructeur
      *
-     * @param string    $filter     Définition DSL du filtre à appliquer à l'agrégation.
-     * @param array     $parameters Autres paramètres de l'agrégation.
+     * @param string    $filter         Définition DSL du filtre à appliquer à l'agrégation.
+     * @param array     $parameters     Autres paramètres de l'agrégation.
+     * @param array     $renderOptions  Options d'affichage.
      */
-    public function __construct(array $filter, array $parameters = [])
+    public function __construct(array $filter, array $parameters = [], array $renderOptions = [])
     {
-        parent::__construct(['filter' => $filter] + $parameters);
+        $parameters['filter'] = $filter;
+        parent::__construct($parameters, $renderOptions);
     }
 }

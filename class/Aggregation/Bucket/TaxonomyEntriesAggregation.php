@@ -30,15 +30,15 @@ class TaxonomyEntriesAggregation extends TermsAggregation
     /**
      * Constructeur
      *
-     * @param string        $field      Champ sur lequel porte l'agrégation.
-     * @param string|array  $taxonomies Nom de la ou des taxonomies utilisées pour convertir les termes en libellés
-     * @param array         $parameters Autres paramètres de l'agrégation.
+     * @param string        $field          Champ sur lequel porte l'agrégation.
+     * @param string|array  $taxonomies     Taxonomie(s) utilisée(s) pour convertir les termes en libellés.
+     * @param array         $parameters     Autres paramètres de l'agrégation.
+     * @param array         $renderOptions  Options d'affichage.
      */
-    public function __construct($field, $taxonomies, array $parameters = [])
+    public function __construct($field, $taxonomies, array $parameters = [], array $renderOptions = [])
     {
-        parent::__construct($field, $parameters);
+        parent::__construct($field, $parameters, $renderOptions);
         $this->setTaxonomies($taxonomies);
-        //$this->setTitle($title)
     }
 
     /**

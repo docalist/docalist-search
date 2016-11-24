@@ -29,10 +29,17 @@ class TermsIn extends TermsAggregation
      */
     protected $collections;
 
-    public function __construct()
+    /**
+     * Constructeur
+     *
+     * @param array $parameters     Autres paramètres de l'agrégation.
+     * @param array $renderOptions  Options d'affichage.
+     */
+    public function __construct(array $parameters = [], array $renderOptions = [])
     {
-        parent::__construct('in', ['size' => 1000]);
-        $this->setTitle(__('Type de contenu', 'docalist-search'));
+        !isset($parameters['size']) && $parameters['size'] = 1000;
+        !isset($renderOptions['title']) && $renderOptions['title'] = __('Corpus', 'docalist-search');
+        parent::__construct('in', $parameters, $renderOptions);
     }
 
     public function getBucketLabel($bucket)

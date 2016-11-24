@@ -20,8 +20,6 @@ namespace Docalist\Search\Aggregation;
  */
 abstract class SingleMetricAggregation extends MetricsAggregation
 {
-    const DEFAULT_VIEW = 'docalist-search:aggregations/single-metric';
-
     /**
      * Retourne la valeur calculée par l'agrégation.
      *
@@ -30,5 +28,10 @@ abstract class SingleMetricAggregation extends MetricsAggregation
     public function getValue()
     {
         return $this->getResult('value');
+    }
+
+    protected function renderResult()
+    {
+        return $this->formatValue($this->getValue());
     }
 }

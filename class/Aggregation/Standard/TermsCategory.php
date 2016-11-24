@@ -20,9 +20,16 @@ use Docalist\Search\Aggregation\Bucket\TaxonomyEntriesAggregation;
  */
 class TermsCategory extends TaxonomyEntriesAggregation
 {
-    public function __construct()
+    /**
+     * Constructeur
+     *
+     * @param array $parameters     Autres paramètres de l'agrégation.
+     * @param array $renderOptions  Options d'affichage.
+     */
+    public function __construct(array $parameters = [], array $renderOptions = [])
     {
-        parent::__construct('category', 'category', ['size' => 1000/*, 'missing' => self::MISSING*/]);
-        $this->setTitle('Catégorie');
+        !isset($parameters['size']) && $parameters['size'] = 1000;
+        !isset($renderOptions['title']) && $renderOptions['title'] = __('Catégorie', 'docalist-search');
+        parent::__construct('category', 'category', $parameters, $renderOptions);
     }
 }

@@ -208,19 +208,20 @@ abstract class BaseAggregation implements Aggregation
     {
         $title = $this->getType() . ' ' . $this->getParameter('field');
         return [
-            'container'     => true,    // Génère ou non un container.
-            'container.tag' => 'div',   // Tag à utiliser pour le container (si container est à true).
-            'container.css' => '',      // Classes css du tag container (en plus de celles qui sont générées).
+            'container'         => true,    // Génère ou non un container.
+            'container.tag'     => 'div',   // Tag à utiliser pour le container (si container est à true).
+            'container.css'     => '',      // Classes css du tag container (en plus de celles qui sont générées).
+            'container.tooltip' => '',      // Attribut title du tag container
 
-            'title'         => $title,  // Titre de l'agrégation ou false pour ne pas afficher de titre.
-            'title.tag'     => 'h3',    // Tag à utiliser pour le titre (si title n'est pas à false).
-            'title.css'     => '',      // Classes css du tag titre
-            'title.before'  => true,    // Position du titre : true = avant le contenu, false = après.
+            'title'             => $title,  // Titre de l'agrégation ou false pour ne pas afficher de titre.
+            'title.tag'         => 'h3',    // Tag à utiliser pour le titre (si title n'est pas à false).
+            'title.css'         => '',      // Classes css du tag titre
+            'title.before'      => true,    // Position du titre : true = avant le contenu, false = après.
 
-            'content.tag'   => 'pre',   // Tag à utiliser pour le contenu de l'agrégation.
-            'content.css'    =>'',      // Classes css du tag contenu.
+            'content.tag'       => 'pre',   // Tag à utiliser pour le contenu de l'agrégation.
+            'content.css'       =>'',      // Classes css du tag contenu.
 
-            'data'          => false,   // Génère ou non des attributs "data-xxx".
+            'data'              => false,   // Génère ou non des attributs "data-xxx".
         ];
     }
 
@@ -328,6 +329,11 @@ abstract class BaseAggregation implements Aggregation
             strtr($field, '.', '-'),                                // Champ sur lequel porte l'agrégation
             $searchUrl->hasFilter($field) ? 'facet-active' : ''     // "facet-active" si l'une des valeurs est filtrée
         ));
+
+        // Génère un attribut 'title' si on a une option 'container.tooltip'
+        if ($title = $this->renderOptions['container.tooltip']) {
+            $attributes['title'] = $title;
+        }
 
         // Génère un attribut 'data-hits' si l'option 'data' est activée
         if ($this->renderOptions['data']) {

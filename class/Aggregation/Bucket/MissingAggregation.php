@@ -27,11 +27,13 @@ class MissingAggregation extends SingleBucketAggregation
     /**
      * Constructeur
      *
-     * @param string    $field      Champ sur lequel porte l'agrégation.
-     * @param array     $parameters Autres paramètres de l'agrégation.
+     * @param string    $field          Champ sur lequel porte l'agrégation.
+     * @param array     $parameters     Autres paramètres de l'agrégation.
+     * @param array     $renderOptions  Options d'affichage.
      */
-    public function __construct($field, array $parameters = [])
+    public function __construct($field, array $parameters = [], array $renderOptions = [])
     {
-        parent::__construct(['field' => $field] + $parameters);
+        $parameters['field'] = $field;
+        parent::__construct($parameters, $renderOptions);
     }
 }

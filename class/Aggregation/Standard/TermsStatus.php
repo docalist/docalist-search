@@ -21,10 +21,17 @@ use Docalist\Search\Aggregation\Bucket\TermsAggregation;
  */
 class TermsStatus extends TermsAggregation
 {
-    public function __construct()
+    /**
+     * Constructeur
+     *
+     * @param array $parameters     Autres paramètres de l'agrégation.
+     * @param array $renderOptions  Options d'affichage.
+     */
+    public function __construct(array $parameters = [], array $renderOptions = [])
     {
-        parent::__construct('status', ['size' => 1000]);
-        $this->setTitle(__('Statut de publication', 'docalist-search'));
+        !isset($parameters['size']) && $parameters['size'] = 100;
+        !isset($renderOptions['title']) && $renderOptions['title'] = __('Statut de publication', 'docalist-search');
+        parent::__construct('status', $parameters, $renderOptions);
     }
 
     public function getBucketLabel($bucket)

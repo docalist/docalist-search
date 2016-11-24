@@ -20,9 +20,16 @@ use Docalist\Search\Aggregation\Bucket\TaxonomyEntriesAggregation;
  */
 class TermsPostTag extends TaxonomyEntriesAggregation
 {
-    public function __construct()
+    /**
+     * Constructeur
+     *
+     * @param array $parameters     Autres paramètres de l'agrégation.
+     * @param array $renderOptions  Options d'affichage.
+     */
+    public function __construct(array $parameters = [], array $renderOptions = [])
     {
-        parent::__construct('tag', 'post_tag', ['size' => 1000/*, 'missing' => self::MISSING*/]);
-        $this->setTitle('Mots-clés');
+        !isset($parameters['size']) && $parameters['size'] = 1000;
+        !isset($renderOptions['title']) && $renderOptions['title'] = __('Mots-clés', 'docalist-search');
+        parent::__construct('tag', 'post_tag', $parameters, $renderOptions);
     }
 }

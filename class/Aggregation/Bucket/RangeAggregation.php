@@ -23,23 +23,25 @@ use Docalist\Search\Aggregation\MultiBucketsAggregation;
 class RangeAggregation extends MultiBucketsAggregation
 {
     const TYPE = 'range';
-    const DEFAULT_VIEW = 'docalist-search:aggregations/bucket/range';
 
     /**
      * Constructeur
      *
-     * @param string $field Champ sur lequel porte l'agrégation.
-     * @param array  $ranges Un tableau indiquant la liste des intervalles à générer. Chaque intervalle est lui-même
-     * un tableau contenant les clés 'from' et/ou 'to'. Exemple :
-     * [
-     *     [ 'key' => 'moins de 50', 'to'   =>  50              ],
-     *     [ 'key' => 'de 50 à 100', 'from' =>  50, 'to' => 100 ],
-     *     [ 'key' => '100 et plus', 'from' => 100              ]
-     * ]
-     * @param array $parameters Autres paramètres de l'agrégation.
+     * @param string    $field          Champ sur lequel porte l'agrégation.
+     * @param array     $ranges         Un tableau indiquant les intervalles à générer. Chaque intervalle
+     *                                  est lui-même un tableau contenant les clés 'from' et/ou 'to' :
+     *                                      [
+     *                                          [ 'key' => 'moins de 50', 'to'   =>  50              ],
+     *                                          [ 'key' => 'de 50 à 100', 'from' =>  50, 'to' => 100 ],
+     *                                          [ 'key' => '100 et plus', 'from' => 100              ]
+     *                                      ]
+     * @param array     $parameters     Autres paramètres de l'agrégation.
+     * @param array     $renderOptions  Options d'affichage.
      */
-    public function __construct($field, array $ranges, array $parameters = [])
+    public function __construct($field, array $ranges, array $parameters = [], array $renderOptions = [])
     {
-        parent::__construct(['field' => $field, 'ranges' => $ranges] + $parameters);
+        $parameters['field'] = $field;
+        $parameters['ranges'] = $ranges;
+        parent::__construct($parameters, $renderOptions);
     }
 }

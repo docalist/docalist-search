@@ -31,6 +31,9 @@ interface Aggregation
     /**
      * Définit le nom de l'agrégation.
      *
+     * Remarque : chaque agrégation doit avoir un nom (unique) qui permet de l'identifier dans la liste des
+     * agrégations et par défaut il s'agit de la classe de l'objet agrégation.
+     *
      * @param string $name Nom de l'agrégation.
      *
      * @return self
@@ -40,30 +43,17 @@ interface Aggregation
     /**
      * Retourne le nom de l'agrégation.
      *
-     * @return string|null Le nom de l'agrégation ou null si l'agrégation n'a pas de nom.
+     * @return string Le nom de l'agrégation (ou sa classe si aucun nom n'a été défini).
      */
     public function getName();
-
-    /**
-     * Définit le titre de l'agrégation.
-     *
-     * @param string $title Le titre de l'agrégation.
-     *
-     * @return self
-     */
-    public function setTitle($title);
-
-    /**
-     * Retourne le titre de l'agrégation.
-     *
-     * @return string Le titre de l'agrégation ou null si l'agrégation n'a pas de titre.
-     */
-    public function getTitle();
 
     /**
      * Définit les paramètres de l'agrégation.
      *
      * @param array $parameters Un tableau contenant les paramètres elasticsearch de l'agrégation.
+     *
+     * Remarque : aucun test n'est fait pour vérifier la validité des paramètres fournis. S'ils sont erronés,
+     * elasticsearch générera une erreur.
      *
      * @return self
      */
@@ -116,7 +106,7 @@ interface Aggregation
      *
      * @param stdClass $result Le résultat généré par elasticsearch pour cette agrégation.
      *
-     * @eturn self
+     * @return self
      */
     public function setResult(stdClass $result);
 
@@ -141,7 +131,7 @@ interface Aggregation
      *
      * @param SearchRequest $searchRequest
      *
-     * @eturn self
+     * @return self
      */
     public function setSearchRequest(SearchRequest $searchRequest);
 
@@ -169,37 +159,62 @@ interface Aggregation
     public function getSearchResponse();
 
     /**
-     * Retourne le nom de la vue par défaut utilisée pour afficher les résultats de cette agrégation.
+     * Retourne les options d'affichage par défaut.
      *
-     * @return string
+     * @return array
      */
-    public function getDefaultView();
+    public function getDefaultRenderOptions();
 
     /**
-     * Affiche le résultat de l'agrégation.
+     * Définit les options d'affichage.
      *
-     * La méthode peut être appellée avec 0, 1 ou 2 paramètres :
+     * Les options passées en paramètre sont fusionnées avec les options d'affichage déjà définies.
      *
-     * - display() : affichage par défaut.
-     * - display([...]) ou display(null, [...]) : affichage par défaut avec les paramètres fournis.
-     * - display('ma-vue') : affichage avec la vue indiquée.
-     * - display('ma-vue', [...]) : affichage avec la vue indiquée et les paramètres fournis.
-     * - display(null, [...]) : exécute la vue indiquée en lui fournissant les paramètres indiqués.
+     * @param array $options
      *
-     * @param string $view Optionnel, le nom de la vue à exécuter (vue par défaut de l'agrégation sinon).
-     * @param array  $data Optionnel, un tableau contenant les données à transmettre à la vue.
-     *
-     * @return mixed La méthode retourne ce que retourne la vue (rien en général).
+     * @return self
      */
-    public function display($view = null, array $data = []);
+    public function setRenderOptions(array $options = []);
+
+    /**
+     * Retourne les options d'affichage.
+     *
+     * @return array
+     */
+    public function getRenderOptions();
+
+    /**
+     * Définit une option d'affichage.
+     *
+     * @param string    $option Nom de l'option.
+     * @param mixed     $value  Nouvelle valeur de l'option.
+     *
+     * @return self
+     */
+    public function setRenderOption($option, $value);
+
+    /**
+     * Retourne la valeur actuelle d'une option d'affichage.
+     *
+     * @param string $option Nom de l'option à retourner.
+     */
+    public function getRenderOption($option);
+
+    /**
+     * Affiche l'agrégation.
+     *
+     * @param array $options Options d'affichage (fusionnées avec les options en cours).
+     *
+     * @return self
+     */
+    public function display(array $options = []);
 
     /**
      * Identique à display() mais retourne le résultat au lieu de l'afficher.
      *
-     * @param string $view Optionnel, le nom de la vue à exécuter (vue par défaut de l'agrégation sinon).
-     * @param array  $data Optionnel, un tableau contenant les données à transmettre à la vue.
+     * @param array $options Options d'affichage (fusionnées avec les options en cours).
      *
      * @return string
      */
-    public function render($view = null, array $data = []);
+    public function render(array $options = []);
 }

@@ -23,7 +23,6 @@ use Docalist\Search\Aggregation\MultiMetricsAggregation;
 class StatsAggregation extends MultiMetricsAggregation
 {
     const TYPE = 'stats';
-    const DEFAULT_VIEW = 'docalist-search:aggregations/metrics/stats';
 
     /**
      * Retourne la valeur minimale calculée par l'agrégation.
@@ -73,5 +72,35 @@ class StatsAggregation extends MultiMetricsAggregation
     public function getAvg()
     {
         return $this->getResult('avg');
+    }
+
+    public function getDefaultRenderOptions()
+    {
+        $options = parent::getDefaultRenderOptions();
+        $options['container.tooltip'] = __('{count} fiche(s), min {min}, max {max}, moyenne {avg}', 'docalist-search');
+
+        return $options;
+    }
+
+    protected function renderResult()
+    {
+        // On retourne la somme comme résultat
+        return $this->formatValue($this->getSum());
+    }
+
+    protected function getContainerAttributes()
+    {
+        $attributes = parent::getContainerAttributes();
+
+        if (isset($attributes['title'])) {
+            $attributes['title'] = strtr($attributes['title'], [
+                '{count}'   => number_format($this->getCount()),
+                '{min}'     => $this->formatValue($this->getMin()),
+                '{max}'     => $this->formatValue($this->getMax()),
+                '{avg}'     => $this->formatValue($this->getAvg()),
+            ]);
+        }
+
+        return $attributes;
     }
 }

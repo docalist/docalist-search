@@ -28,12 +28,15 @@ class HistogramAggregation extends MultiBucketsAggregation
     /**
      * Constructeur
      *
-     * @param string    $field      Champ sur lequel porte l'agrégation.
-     * @param array     $interval   Taille de chacune des barres de l'histogramme généré.
-     * @param array     $parameters Autres paramètres de l'agrégation.
+     * @param string    $field          Champ sur lequel porte l'agrégation.
+     * @param array     $interval       Taille de chacune des barres de l'histogramme généré.
+     * @param array     $parameters     Autres paramètres de l'agrégation.
+     * @param array     $renderOptions  Options d'affichage.
      */
-    public function __construct($field, $interval, array $parameters = [])
+    public function __construct($field, $interval, array $parameters = [], array $renderOptions = [])
     {
-        parent::__construct(['field' => $field, 'interval' => $interval] + $parameters);
+        $parameters['field'] = $field;
+        $parameters['interval'] = $interval;
+        parent::__construct($parameters, $renderOptions);
     }
 }

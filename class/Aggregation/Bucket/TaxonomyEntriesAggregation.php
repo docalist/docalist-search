@@ -14,6 +14,7 @@
 namespace Docalist\Search\Aggregation\Bucket;
 
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
+use stdClass;
 
 /**
  * Une agrégation de type "terms" qui traduit les termes obtenus en utilisant une taxonomie WordPress.
@@ -67,7 +68,7 @@ class TaxonomyEntriesAggregation extends TermsAggregation
         return $this->taxonomies;
     }
 
-    public function getBucketLabel($bucket)
+    public function getBucketLabel(stdClass $bucket)
     {
         if ($bucket->key === static::MISSING) {
             return $this->getLabelForMissing();

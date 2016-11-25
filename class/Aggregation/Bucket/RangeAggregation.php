@@ -14,6 +14,7 @@
 namespace Docalist\Search\Aggregation\Bucket;
 
 use Docalist\Search\Aggregation\MultiBucketsAggregation;
+use stdClass;
 
 /**
  * Une agrégation de type "buckets" qui regroupe les documents dans une liste d'intervalles donnés.
@@ -43,5 +44,22 @@ class RangeAggregation extends MultiBucketsAggregation
         $parameters['field'] = $field;
         $parameters['ranges'] = $ranges;
         parent::__construct($parameters, $renderOptions);
+    }
+
+    protected function getBucketFilter(stdClass $bucket)
+    {
+        $from = isset($bucket->from) ? $bucket->from : '*';
+        $to = isset($bucket->to) ? $bucket->to : '*';
+
+        return $from . '..' . $to;
+    }
+
+    protected function getBucketClass(stdClass $bucket)
+    {
+        // On génère : Moins de 500 -> 'r-500', De 500 à 1000 -> 'r500-1000', Plus de 1000 -> 'r1000-'
+        $from = isset($bucket->from) ? $bucket->from : '';
+        $to = isset($bucket->to) ? $bucket->to : '';
+
+        return sprintf('r%s-%s', $from, $to);
     }
 }

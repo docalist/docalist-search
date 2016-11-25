@@ -14,6 +14,7 @@
 namespace Docalist\Search\Aggregation\Bucket;
 
 use Docalist\Search\Aggregation\MultiBucketsAggregation;
+use stdClass;
 
 /**
  * Une agrégation de type "buckets" qui regroupe les documents en fonction des termes trouvés dans un champ donné.
@@ -44,7 +45,7 @@ class TermsAggregation extends MultiBucketsAggregation
         parent::__construct($parameters, $options);
     }
 
-    public function getBucketLabel($bucket)
+    public function getBucketLabel(stdClass $bucket)
     {
         return ($bucket->key === static::MISSING) ? $this->getLabelForMissing() : $bucket->key;
     }

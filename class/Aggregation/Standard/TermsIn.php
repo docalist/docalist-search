@@ -15,6 +15,7 @@ namespace Docalist\Search\Aggregation\Standard;
 
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
 use Docalist\Search\Indexer;
+use stdClass;
 
 /**
  * Une agrégation standard de type "terms" sur le champ "in" qui retourne le nombre de documents pour chacune
@@ -42,7 +43,7 @@ class TermsIn extends TermsAggregation
         parent::__construct('in', $parameters, $options);
     }
 
-    public function getBucketLabel($bucket)
+    public function getBucketLabel(stdClass $bucket)
     {
         // Initialise la liste des collections au premier appel
         if (is_null($this->collections)) {

@@ -168,7 +168,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @return stdClass|null Le bucket modifié ou null pour indiquer "ne pas afficher ce bucket".
      */
-    public function prepareBucket(stdClass $bucket)
+    protected function prepareBucket(stdClass $bucket)
     {
         foreach($this->getAggregations() as $name => $aggregation) {
             $aggregation->setResult(isset($bucket->$name) ? $bucket->$name : new stdClass());

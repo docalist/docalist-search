@@ -14,6 +14,7 @@
 namespace Docalist\Search\Aggregation\Standard;
 
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
+use stdClass;
 
 /**
  * Une agrégation standard de type "terms" sur le champ "status" qui retourne le nombre de documents pour chacun
@@ -34,7 +35,7 @@ class TermsStatus extends TermsAggregation
         parent::__construct('status', $parameters, $options);
     }
 
-    public function getBucketLabel($bucket)
+    public function getBucketLabel(stdClass $bucket)
     {
         if ($status = get_post_status_object($bucket->key)) {
             return $status->label;

@@ -15,6 +15,7 @@ namespace Docalist\Search\Aggregation\Bucket;
 
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
 use Docalist\Search\Aggregation\TableBasedTrait;
+use stdClass;
 
 /**
  * Une agrégation de type "terms" qui traduit les termes obtenus en utilisant une table d'autorité docalist.
@@ -37,7 +38,7 @@ class TableEntriesAggregation extends TermsAggregation
         $this->setTables($tables);
     }
 
-    public function getBucketLabel($bucket)
+    public function getBucketLabel(stdClass $bucket)
     {
         if ($bucket->key === static::MISSING) {
             return $this->getLabelForMissing();

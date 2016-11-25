@@ -46,13 +46,13 @@ class RangeAggregation extends MultiBucketsAggregation
         parent::__construct($parameters, $options);
     }
 
-    protected function prepareBucket(stdClass $bucket)
+    protected function zzprepareBucket(stdClass $bucket)
     {
         /**
          * Pour les agrégations de type range, ES retourne des buckets pour tous les ranges, même
          * si le doc_count obtenu est à zéro.
          * Pour ne pas afficher ces buckets à zéro, on surcharge prepareBucket() et on ne retourne
-         * un bucket quie si on a un count.
+         * un bucket que si on a un count.
          */
         return $bucket->doc_count === 0 ? null : parent::prepareBucket($bucket);
     }

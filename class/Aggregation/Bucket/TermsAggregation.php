@@ -47,10 +47,10 @@ class TermsAggregation extends MultiBucketsAggregation
 
     public function getBucketLabel(stdClass $bucket)
     {
-        return ($bucket->key === static::MISSING) ? $this->getLabelForMissing() : $bucket->key;
+        return ($bucket->key === static::MISSING) ? $this->getMissingLabel() : $bucket->key;
     }
 
-    protected function getLabelForMissing() {
+    protected function getMissingLabel() {
         return __('Non disponible', 'docalist-search');
     }
 }

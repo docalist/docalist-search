@@ -24,12 +24,12 @@ class TermsCategory extends TaxonomyEntriesAggregation
      * Constructeur
      *
      * @param array $parameters     Autres paramètres de l'agrégation.
-     * @param array $renderOptions  Options d'affichage.
+     * @param array $options        Options d'affichage.
      */
-    public function __construct(array $parameters = [], array $renderOptions = [])
+    public function __construct(array $parameters = [], array $options = [])
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;
-        !isset($renderOptions['title']) && $renderOptions['title'] = __('Catégorie', 'docalist-search');
-        parent::__construct('category', 'category', $parameters, $renderOptions);
+        !isset($options['title']) && $options['title'] = __('Catégorie', 'docalist-search');
+        parent::__construct('category', 'category', $parameters, $options);
     }
 }

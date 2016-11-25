@@ -163,7 +163,7 @@ interface Aggregation
      *
      * @return array
      */
-    public function getDefaultRenderOptions();
+    public function getDefaultOptions();
 
     /**
      * Définit les options d'affichage.
@@ -174,14 +174,14 @@ interface Aggregation
      *
      * @return self
      */
-    public function setRenderOptions(array $options = []);
+    public function setOptions(array $options = []);
 
     /**
      * Retourne les options d'affichage.
      *
      * @return array
      */
-    public function getRenderOptions();
+    public function getOptions();
 
     /**
      * Définit une option d'affichage.
@@ -191,14 +191,14 @@ interface Aggregation
      *
      * @return self
      */
-    public function setRenderOption($option, $value);
+    public function setOption($option, $value);
 
     /**
      * Retourne la valeur actuelle d'une option d'affichage.
      *
      * @param string $option Nom de l'option à retourner.
      */
-    public function getRenderOption($option);
+    public function getOption($option);
 
     /**
      * Affiche l'agrégation.

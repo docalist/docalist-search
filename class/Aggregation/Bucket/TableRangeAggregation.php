@@ -30,12 +30,12 @@ class TableRangeAggregation extends RangeAggregation
      * @param string $field         Champ sur lequel porte l'agrégation.
      * @param string $table         Nom de la table d'autorité utilisée pour convertir les termes en libellés.
      * @param array  $parameters    Autres paramètres de l'agrégation.
-     * @param array  $renderOptions Options d'affichage.
+     * @param array  $options       Options d'affichage.
      */
-    public function __construct($field, $table, array $parameters = [], array $renderOptions = [])
+    public function __construct($field, $table, array $parameters = [], array $options = [])
     {
         $this->setTables($table); // important : avant l'appel à getRanges()
-        parent::__construct($field, $this->getRanges(), $parameters, $renderOptions);
+        parent::__construct($field, $this->getRanges(), $parameters, $options);
     }
 
     /**

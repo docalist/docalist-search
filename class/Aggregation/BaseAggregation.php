@@ -72,19 +72,19 @@ abstract class BaseAggregation implements Aggregation
      *
      * @var array
      */
-    protected $renderOptions;
+    protected $options;
 
     /**
      * Constructeur : initialise l'agrégation avec les paramètres indiqués.
      *
      * @param array $parameters     Paramètres de l'agrégation.
-     * @param array $renderOptions  Options d'affichage.
+     * @param array $options        Options d'affichage.
      */
-    public function __construct(array $parameters = [], array $renderOptions = [])
+    public function __construct(array $parameters = [], array $options = [])
     {
         $this->parameters = $parameters;
-        $this->renderOptions = $this->getDefaultRenderOptions();
-        $renderOptions && $this->setRenderOptions($renderOptions);
+        $this->options = $this->getDefaultOptions();
+        $options && $this->setOptions($options);
     }
 
     public function getType()
@@ -204,7 +204,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return array
      */
-    public function getDefaultRenderOptions()
+    public function getDefaultOptions()
     {
         $title = $this->getType() . ' ' . $this->getParameter('field');
         return [
@@ -225,28 +225,28 @@ abstract class BaseAggregation implements Aggregation
         ];
     }
 
-    public function setRenderOptions(array $options = [])
+    public function setOptions(array $options = [])
     {
-        $this->renderOptions = $options + $this->renderOptions;
+        $this->options = $options + $this->options;
 
         return $this;
     }
 
-    public function getRenderOptions()
+    public function getOptions()
     {
-        return $this->renderOptions;
+        return $this->options;
     }
 
-    public function setRenderOption($option, $value)
+    public function setOption($option, $value)
     {
-        $this->renderOptions[$option] = $value;
+        $this->options[$option] = $value;
 
         return $this;
     }
 
-    public function getRenderOption($option)
+    public function getOption($option)
     {
-        return isset($this->renderOptions[$option]) ? $this->renderOptions[$option] : null;
+        return isset($this->options[$option]) ? $this->options[$option] : null;
     }
 
     // ----------------------------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ abstract class BaseAggregation implements Aggregation
     public function render(array $options = [])
     {
         // Tient compte des options d'affichage passées en paramètre
-        $this->setRenderOptions($options);
+        $this->setOptions($options);
 
         // Génère le résultat, terminé si l'agrégation n'a rien généré
         if ('' === $content = $this->renderContent()) {
@@ -272,7 +272,7 @@ abstract class BaseAggregation implements Aggregation
 
         // Génère le titre (avant ou après le résultat selon l'option 'title.before')
         if ('' !== $title = $this->renderTitle()) {
-            $content = $this->renderOptions['title.before'] ? ($title . $content) : ($content . $title);
+            $content = $this->options['title.before'] ? ($title . $content) : ($content . $title);
         }
 
         // Génère le containeur
@@ -299,12 +299,12 @@ abstract class BaseAggregation implements Aggregation
     protected function renderContainer($content)
     {
         // Si l'option 'container' est à false, on ne génère pas de container, on retourne juste le contenu
-        if ($this->renderOptions['container'] === false) {
+        if ($this->options['container'] === false) {
             return $content;
         }
 
         // Génère le container
-        $tag = $this->renderOptions['container.tag'];
+        $tag = $this->options['container.tag'];
         $attributes = $this->getContainerAttributes();
 
         return $this->renderTag($tag, $attributes, $content);
@@ -324,19 +324,19 @@ abstract class BaseAggregation implements Aggregation
 
         // Détermine les classes css à appliquer au container
         $attributes['class'] = trim(sprintf('%s %s %s %s',
-            $this->renderOptions['container.css'],                  // Classes css indiquées dans les options
+            $this->options['container.css'],                  // Classes css indiquées dans les options
             $this->getType(),                                       // Type de la facette (e.g. "terms")
             strtr($field, '.', '-'),                                // Champ sur lequel porte l'agrégation
             $searchUrl->hasFilter($field) ? 'facet-active' : ''     // "facet-active" si l'une des valeurs est filtrée
         ));
 
         // Génère un attribut 'title' si on a une option 'container.tooltip'
-        if ($title = $this->renderOptions['container.tooltip']) {
+        if ($title = $this->options['container.tooltip']) {
             $attributes['title'] = $title;
         }
 
         // Génère un attribut 'data-hits' si l'option 'data' est activée
-        if ($this->renderOptions['data']) {
+        if ($this->options['data']) {
             $attributes['data-hits'] = $this->getSearchResponse()->getHitsCount();
         }
 
@@ -352,13 +352,13 @@ abstract class BaseAggregation implements Aggregation
     protected function renderTitle()
     {
         // Si on n'a aucun titre (ou false), terminé
-        if (empty($title = $this->renderOptions['title'])) {
+        if (empty($title = $this->options['title'])) {
             return '';
         }
 
         // Génère le titre
-        $tag = $this->renderOptions['title.tag'];
-        $class = $this->renderOptions['title.css'];
+        $tag = $this->options['title.tag'];
+        $class = $this->options['title.css'];
 
         return $this->renderTag($tag, $class ? ['class' => $class] : [], $title);
     }
@@ -376,8 +376,8 @@ abstract class BaseAggregation implements Aggregation
         }
 
         // Génère le contenu avec le tag indiqué dans les options
-        $tag = $this->renderOptions['content.tag'];
-        $class = $this->renderOptions['content.css'];
+        $tag = $this->options['content.tag'];
+        $class = $this->options['content.css'];
 
         return $this->renderTag($tag, $class ? ['class' => $class] : [], $result);
     }

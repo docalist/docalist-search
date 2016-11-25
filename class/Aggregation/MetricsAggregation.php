@@ -25,17 +25,17 @@ abstract class MetricsAggregation extends BaseAggregation
      *
      * @param string    $field          Champ sur lequel porte l'agrégation.
      * @param array     $parameters     Autres paramètres de l'agrégation.
-     * @param array     $renderOptions  Options d'affichage.
+     * @param array     $options        Options d'affichage.
      */
-    public function __construct($field, array $parameters = [], array $renderOptions = [])
+    public function __construct($field, array $parameters = [], array $options = [])
     {
         $parameters['field'] = $field;
-        parent::__construct($parameters, $renderOptions);
+        parent::__construct($parameters, $options);
     }
 
-    public function getDefaultRenderOptions()
+    public function getDefaultOptions()
     {
-        $options = parent::getDefaultRenderOptions();
+        $options = parent::getDefaultOptions();
         $options['title.tag'] = 'em';
         $options['title.before'] = false;
         $options['content.tag']  = 'span';
@@ -62,22 +62,22 @@ abstract class MetricsAggregation extends BaseAggregation
     public function formatValue($value)
     {
         // Arrondit la valeur au nombre de chiffres après la virgule qui figure dans les options.
-        $value = round($value, $this->renderOptions['metric.decimals']);
+        $value = round($value, $this->options['metric.decimals']);
 
         // On ne génère rien si la valeur est à 0 et que l'option 'metric.zero' est à false
-        if (0 == $value && !$this->renderOptions['metric.zero']) {
+        if (0 == $value && !$this->options['metric.zero']) {
             return '';
         }
 
         // Formatte le nombre en fonction des options d'affichage
         $value = number_format(
             $value,
-            ($value == (int) $value) ? 0 : $this->renderOptions['metric.decimals'],
-            $this->renderOptions['metric.point'],
-            $this->renderOptions['metric.thousands']
+            ($value == (int) $value) ? 0 : $this->options['metric.decimals'],
+            $this->options['metric.point'],
+            $this->options['metric.thousands']
         );
 
         // Retourne la valeur formattée
-        return sprintf($this->renderOptions['metric.format'], $value);
+        return sprintf($this->options['metric.format'], $value);
     }
 }

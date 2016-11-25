@@ -31,11 +31,11 @@ class FiltersAggregation extends MultiBucketsAggregation
      *                                  Les clés du tableau indiquent le nom des filtres et les valeurs associées
      *                                  contiennent la définition DSL du filtre.
      * @param array     $parameters     Autres paramètres de l'agrégation.
-     * @param array     $renderOptions  Options d'affichage.
+     * @param array     $options        Options d'affichage.
      */
-    public function __construct(array $filters, array $parameters = [], array $renderOptions = [])
+    public function __construct(array $filters, array $parameters = [], array $options = [])
     {
         $parameters['filters'] = $filters;
-        parent::__construct($parameters, $renderOptions);
+        parent::__construct($parameters, $options);
     }
 }

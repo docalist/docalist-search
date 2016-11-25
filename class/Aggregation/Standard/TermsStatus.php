@@ -25,13 +25,13 @@ class TermsStatus extends TermsAggregation
      * Constructeur
      *
      * @param array $parameters     Autres paramètres de l'agrégation.
-     * @param array $renderOptions  Options d'affichage.
+     * @param array $options        Options d'affichage.
      */
-    public function __construct(array $parameters = [], array $renderOptions = [])
+    public function __construct(array $parameters = [], array $options = [])
     {
         !isset($parameters['size']) && $parameters['size'] = 100;
-        !isset($renderOptions['title']) && $renderOptions['title'] = __('Statut de publication', 'docalist-search');
-        parent::__construct('status', $parameters, $renderOptions);
+        !isset($options['title']) && $options['title'] = __('Statut de publication', 'docalist-search');
+        parent::__construct('status', $parameters, $options);
     }
 
     public function getBucketLabel($bucket)

@@ -22,9 +22,9 @@ use stdClass;
  */
 abstract class MultiBucketsAggregation extends BucketAggregation
 {
-    public function getDefaultRenderOptions()
+    public function getDefaultOptions()
     {
-        $options = parent::getDefaultRenderOptions();
+        $options = parent::getDefaultOptions();
 
         $options['container.css']  = 'facet';
         $options['content.tag']  = 'ul';
@@ -70,11 +70,11 @@ abstract class MultiBucketsAggregation extends BucketAggregation
     protected function renderBucket(stdClass $bucket)
     {
         // Génère le libellé du bucket
-        $tag = $this->renderOptions['bucket.label.tag'];
+        $tag = $this->options['bucket.label.tag'];
         $result = $this->renderTag($tag, [], $this->getBucketLabel($bucket));
 
         // Génère le nombre de documents obtenus pour ce bucket
-        $tag = $this->renderOptions['bucket.count.tag'];
+        $tag = $this->options['bucket.count.tag'];
         $tag && $result .= $this->renderTag($tag, [], $bucket->doc_count);
 
         // Génère le lien permettant d'activer ou de désativer ce bucket
@@ -91,22 +91,22 @@ abstract class MultiBucketsAggregation extends BucketAggregation
 
         // Génère les buckets enfants de ce bucket (s'il s'agit d'une hiérarchie)
         if (!empty($bucket->children) && $children = $this->renderBuckets($bucket->children)) {
-            $tag = $this->renderOptions['content.tag'];
+            $tag = $this->options['content.tag'];
             $result .= $this->renderTag($tag, [], $children);
         }
 
         // Génère les attributs du bucket
         $attributes = [];
-        $class = $this->renderOptions['bucket.css'] ? $this->getBucketClass($bucket) : '';
+        $class = $this->options['bucket.css'] ? $this->getBucketClass($bucket) : '';
         $searchUrl->hasFilter($field, $filter) && $class = ltrim($class . ' filter-active');
         $class && $attributes['class'] = $class;
-        if ($this->renderOptions['data']) {
+        if ($this->options['data']) {
             $attributes['data-bucket'] = $bucket->key;
             $attributes['data-count'] = $bucket->doc_count;
         }
 
         // Génère le bucket
-        return $this->renderTag($this->renderOptions['bucket.tag'], $attributes, $result);
+        return $this->renderTag($this->options['bucket.tag'], $attributes, $result);
     }
 
     /**

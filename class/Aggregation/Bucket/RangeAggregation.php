@@ -37,13 +37,13 @@ class RangeAggregation extends MultiBucketsAggregation
      *                                          [ 'key' => '100 et plus', 'from' => 100              ]
      *                                      ]
      * @param array     $parameters     Autres paramètres de l'agrégation.
-     * @param array     $renderOptions  Options d'affichage.
+     * @param array     $options        Options d'affichage.
      */
-    public function __construct($field, array $ranges, array $parameters = [], array $renderOptions = [])
+    public function __construct($field, array $ranges, array $parameters = [], array $options = [])
     {
         $parameters['field'] = $field;
         $parameters['ranges'] = $ranges;
-        parent::__construct($parameters, $renderOptions);
+        parent::__construct($parameters, $options);
     }
 
     protected function getBucketFilter(stdClass $bucket)

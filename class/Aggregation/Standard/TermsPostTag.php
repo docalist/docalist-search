@@ -24,12 +24,12 @@ class TermsPostTag extends TaxonomyEntriesAggregation
      * Constructeur
      *
      * @param array $parameters     Autres paramètres de l'agrégation.
-     * @param array $renderOptions  Options d'affichage.
+     * @param array $options        Options d'affichage.
      */
-    public function __construct(array $parameters = [], array $renderOptions = [])
+    public function __construct(array $parameters = [], array $options = [])
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;
-        !isset($renderOptions['title']) && $renderOptions['title'] = __('Mots-clés', 'docalist-search');
-        parent::__construct('tag', 'post_tag', $parameters, $renderOptions);
+        !isset($options['title']) && $options['title'] = __('Mots-clés', 'docalist-search');
+        parent::__construct('tag', 'post_tag', $parameters, $options);
     }
 }

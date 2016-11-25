@@ -71,7 +71,7 @@ class TaxonomyEntriesAggregation extends TermsAggregation
     public function getBucketLabel(stdClass $bucket)
     {
         if ($bucket->key === static::MISSING) {
-            return $this->getLabelForMissing();
+            return $this->getMissingLabel();
         }
 
         foreach($this->getTaxonomies() as $taxonomy) {

@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2016 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -264,7 +264,7 @@ class ElasticsearchMappingBuilder implements MappingBuilder
         return $this;
     }
 
-    public function decimal($type = 'double')
+    public function decimal($type = 'float')
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/number.html
         if (! in_array($type, ['double', 'float'])) {

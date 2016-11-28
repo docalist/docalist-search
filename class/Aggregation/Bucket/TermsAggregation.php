@@ -93,7 +93,9 @@ class TermsAggregation extends MultiBucketsAggregation
     public function setResult(stdClass $result)
     {
         // Hiérarchise les buckets
-        $result->buckets = $this->createBucketsHierarchy($result->buckets);
+        if ($this->options['hierarchy']) {
+            $result->buckets = $this->createBucketsHierarchy($result->buckets);
+        }
 
         // Stocke le résultat
         return parent::setResult($result);

@@ -29,10 +29,10 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         $options['container.css']  = 'facet';
         $options['content.tag']  = 'ul';
 
-        $options['bucket.tag']  = 'li';             // Tag à utiliser pour les bucket
+        $options['bucket.tag']  = 'li';             // Tag à utiliser pour les buckets
         $options['bucket.css']  = false;            // Génère ou non un attribut "class" pour chaque bucket
-        $options['bucket.label.tag']  = 'span';     // Tag à utiliser pour le libellé des buckets
-        $options['bucket.count.tag']  = 'em';       // Tag à utiliser pour le count des buckets ou false
+        $options['bucket.label.tag']  = 'span';     // Tag à utiliser pour le libellé des buckets  (vide : pas de tag)
+        $options['bucket.count.tag']  = 'em';       // Tag à utiliser pour le count des buckets (vide : pas de count)
 
         return $options;
     }
@@ -70,19 +70,13 @@ abstract class MultiBucketsAggregation extends BucketAggregation
     protected function renderBucket(stdClass $bucket)
     {
         // Génère le libellé du bucket
-        $tag = $this->options['bucket.label.tag'];
-        $result = $this->renderTag($tag, [], $this->getBucketLabel($bucket));
+        $result = $this->renderBucketLabel($bucket);
 
         // Génère le nombre de documents obtenus pour ce bucket
-        $tag = $this->options['bucket.count.tag'];
-        $tag && $result .= $this->renderTag($tag, [], $bucket->doc_count);
+        $result .= $this->renderBucketCount($bucket);
 
         // Génère le lien permettant d'activer ou de désativer ce bucket
-        $field = $this->getParameter('field');
-        $filter = $this->getBucketFilter($bucket);
-        $searchUrl = $this->getSearchRequest()->getSearchUrl();
-        $url = $searchUrl->toggleFilter($field, $filter);
-        $result = $this->renderTag('a', ['href' => $url], $result);
+        $result = $this->renderBucketLink($bucket, $result);
 
         // Génère les sous-agrégations de ce bucket
         foreach($this->getAggregations() as $aggregation) {
@@ -96,6 +90,10 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         }
 
         // Génère les attributs du bucket
+        $field = $this->getParameter('field');
+        $filter = $this->getBucketFilter($bucket);
+        $searchUrl = $this->getSearchRequest()->getSearchUrl();
+
         $attributes = [];
         $class = $this->options['bucket.css'] ? $this->getBucketClass($bucket) : '';
         $searchUrl->hasFilter($field, $filter) && $class = ltrim($class . ' filter-active');
@@ -107,6 +105,54 @@ abstract class MultiBucketsAggregation extends BucketAggregation
 
         // Génère le bucket
         return $this->renderTag($this->options['bucket.tag'], $attributes, $result);
+    }
+
+    /**
+     * Génère le libellé du bucket passé en paramètre.
+     *
+     * @param stdClass $bucket
+     *
+     * @return string
+     */
+    protected function renderBucketLabel(stdClass $bucket)
+    {
+        $tag = $this->options['bucket.label.tag'];
+        $label = $this->getBucketLabel($bucket);
+
+        return $tag ? $this->renderTag($tag, [], $label) : $label;
+    }
+
+    /**
+     * Génère le nombre de documents obtenus pour le bucket passé en paramètre.
+     *
+     * @param stdClass $bucket
+     *
+     * @return string
+     */
+    protected function renderBucketCount(stdClass $bucket)
+    {
+        $tag = $this->options['bucket.count.tag'];
+
+        return $tag ? $this->renderTag($tag, [], $bucket->doc_count) : '';
+    }
+
+    /**
+     * Génère le lien du bucket passé en paramètre.
+     *
+     * @param stdClass  $bucket
+     * @param string    $content Contenu du lien.
+     *
+     * @return string
+     */
+    protected function renderBucketLink(stdClass $bucket, $content)
+    {
+        // Génère le lien permettant d'activer ou de désativer ce bucket
+        $field = $this->getParameter('field');
+        $filter = $this->getBucketFilter($bucket);
+        $searchUrl = $this->getSearchRequest()->getSearchUrl();
+        $url = $searchUrl->toggleFilter($field, $filter);
+
+        return $this->renderTag('a', ['href' => $url], $content);
     }
 
     /**

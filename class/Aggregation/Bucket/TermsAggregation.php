@@ -50,7 +50,6 @@ class TermsAggregation extends MultiBucketsAggregation
         $options = parent::getDefaultOptions();
 
         $options['hierarchy']  = false;             // Génère ou non une liste hiérarchique.
-        $options['hierarchy.sep']  = '/';           // Séparateur utilisé pour le champ hierarchy.
 
         return $options;
     }
@@ -204,9 +203,8 @@ class TermsAggregation extends MultiBucketsAggregation
          */
         if ($this->options['hierarchy']) {
             $bucket = clone $bucket;
-            $sep = $this->options['hierarchy.sep'];
-            if (false !== $pos = strrpos($bucket->key, $sep)) {
-                $bucket->key = substr($bucket->key, $pos + strlen($sep));
+            if (false !== $pos = strrpos($bucket->key, '/')) {
+                $bucket->key = substr($bucket->key, $pos + 1);
             }
         }
 

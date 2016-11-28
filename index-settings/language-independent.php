@@ -105,5 +105,19 @@ return [
             ],
             'tokenizer' => 'url_tokenizer',
         ],
+
+        /*
+         * hierarchy : permet d'indexer le path d'un tag dans une hiérarchie.
+         */
+        'hierarchy' => [
+            'type' => 'custom',
+
+            'filter' => [
+                'lowercase',    // Convertit le texte en minuscules
+                'asciifolding', // Supprime les accents
+            ],
+            'tokenizer' => 'path_hierarchy',
+        ],
     ],
 ];
+

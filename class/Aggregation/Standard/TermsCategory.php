@@ -30,6 +30,7 @@ class TermsCategory extends TaxonomyEntriesAggregation
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;
         !isset($options['title']) && $options['title'] = __('Catégorie', 'docalist-search');
-        parent::__construct('category', 'category', $parameters, $options);
+        $options['hierarchy'] = true;
+        parent::__construct('category-hierarchy', 'category', $parameters, $options);
     }
 }

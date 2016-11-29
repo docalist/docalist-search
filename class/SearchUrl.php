@@ -512,6 +512,7 @@ class SearchUrl
             'parent' => 'or',
 
             'topic-support.filter' => 'or',
+            'topic-discipline-hierarchy' => 'and',
 
             'category' => 'and',
             'tag' => 'and',

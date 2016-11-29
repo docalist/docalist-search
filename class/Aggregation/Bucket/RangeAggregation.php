@@ -46,7 +46,7 @@ class RangeAggregation extends MultiBucketsAggregation
         parent::__construct($parameters, $options);
     }
 
-    protected function zzprepareBucket(stdClass $bucket)
+    protected function prepareBucket(stdClass $bucket)
     {
         /**
          * Pour les agrégations de type range, ES retourne des buckets pour tous les ranges, même

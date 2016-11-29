@@ -146,8 +146,11 @@ class CustomPostTypeIndexer extends AbstractIndexer
         }
 
         // Taxonomies associées à ce post_type
-        foreach($this->getIndexedTaxonomies() as $field) {
+        foreach($this->getIndexedTaxonomies() as $taxonomy => $field) {
             $mapping->addField($field)->keyword();
+            if (is_taxonomy_hierarchical($taxonomy)) {
+                $mapping->addField("$field-hierarchy")->text('hierarchy');
+            }
         }
 
         $settings['mappings'][$this->getType()] = $mapping->getMapping();
@@ -335,11 +338,22 @@ class CustomPostTypeIndexer extends AbstractIndexer
         // Taxonomies associées à ce post
         foreach($this->getIndexedTaxonomies() as $taxonomy => $field) {
             if (is_array($terms = get_the_terms($post, $taxonomy))) {
-                $result = [];
+                $hierarchy = is_taxonomy_hierarchical($taxonomy) ? "$field-hierarchy" : false;
+
+                $document[$field] = [];
+                $hierarchy && $document[$hierarchy] = [];
                 foreach($terms as $term) { /** @var WP_Term $term */
-                    $result[] = $term->slug;
+                    $document[$field][] = $term->slug;
+
+                    if ($hierarchy) {
+                        $path = $term->slug;
+                        foreach(get_ancestors($term->term_id, $taxonomy, 'taxonomy') as $ancestor) {
+                            $term = get_term($ancestor, $taxonomy);
+                            $path = $term->slug . '/' . $path;
+                        }
+                        $document[$hierarchy][] = $path;
+                    }
                 }
-                $document[$field] = $result;
             }
         }
 

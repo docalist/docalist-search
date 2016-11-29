@@ -515,6 +515,8 @@ class SearchUrl
             'topic-discipline-hierarchy' => 'and',
 
             'category' => 'and',
+            'category-hierarchy' => 'and',
+
             'tag' => 'and',
         ];
 

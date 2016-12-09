@@ -251,6 +251,11 @@ class ElasticsearchMappingBuilder implements MappingBuilder
         return $this;
     }
 
+    public function setProperty($property, $value)
+    {
+        $this->last[$property] = $value;
+    }
+
     public function integer($type = 'long')
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/number.html

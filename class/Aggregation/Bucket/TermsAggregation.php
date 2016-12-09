@@ -57,7 +57,10 @@ class TermsAggregation extends MultiBucketsAggregation
     public function getDefinition()
     {
         $definition = parent::getDefinition();
-        $this->options['hierarchy'] && $definition[$this->getType()]['include'] = $this->getIncludeRegex();
+        if ($this->options['hierarchy']) {
+            $include = $this->getIncludeRegex();
+            $include && $definition[$this->getType()]['include'] = $include;
+        }
 
         return $definition;
     }

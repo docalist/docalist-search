@@ -33,7 +33,7 @@ class FilterAggregation extends SingleBucketAggregation
      */
     public function __construct(array $filter, array $parameters = [], array $options = [])
     {
-        $parameters['filter'] = $filter;
+        $parameters = $filter;
         parent::__construct($parameters, $options);
     }
 }

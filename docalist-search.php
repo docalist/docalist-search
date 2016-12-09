@@ -44,6 +44,8 @@ add_action('plugins_loaded', function () {
     }
 
     // Ok
-    docalist('autoloader')->add(__NAMESPACE__, __DIR__ . '/class');
+    docalist('autoloader')
+        ->add(__NAMESPACE__, __DIR__ . '/class')
+        ->add('Docalist\Search\Tests', __DIR__ . '/tests');
     docalist('services')->add('docalist-search', new Plugin());
 });

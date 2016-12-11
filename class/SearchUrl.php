@@ -516,6 +516,7 @@ class SearchUrl
 
             'category' => 'and',
             'category-hierarchy' => 'and',
+            'geoloc-hierarchy' => 'and',
 
             'tag' => 'and',
         ];

@@ -22,6 +22,16 @@ use stdClass;
  */
 abstract class MultiBucketsAggregation extends BucketAggregation
 {
+    /**
+     * Pendant l'affichage des buckets, niveau auquel on est dans la hiérarchie (1-based).
+     *
+     * La propriété est incrémentée à chaque fois qu'on entre dans renderBuckets() et elle est décrémentée
+     * à chaque fois qu'on en sort.
+     *
+     * @var int
+     */
+    protected $bucketsLevel = -1;
+
     public function getDefaultOptions()
     {
         $options = parent::getDefaultOptions();
@@ -45,17 +55,19 @@ abstract class MultiBucketsAggregation extends BucketAggregation
     /**
      * Génère le rendu des buckets passés en paramètre.
      *
-     * @param stdClass[] $buckets
+     * @param stdClass[]    $buckets    Les buckets à afficher.
      *
      * @return string
      */
     protected function renderBuckets(array $buckets)
     {
+        ++$this->bucketsLevel;
         $result = '';
         foreach ($buckets as $bucket) {
             $bucket = $this->prepareBucket($bucket);
             $bucket && $result .= $this->renderBucket($bucket);
         }
+        --$this->bucketsLevel;
 
         return $result;
     }

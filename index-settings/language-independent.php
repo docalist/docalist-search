@@ -112,10 +112,10 @@ return [
         'hierarchy' => [
             'type' => 'custom',
 
-            'filter' => [
-                'lowercase',    // Convertit le texte en minuscules
-                'asciifolding', // Supprime les accents
-            ],
+//             'filter' => [
+//                 'lowercase',    // Convertit le texte en minuscules
+//                 'asciifolding', // Supprime les accents
+//             ],
             'tokenizer' => 'path_hierarchy',
         ],
     ],

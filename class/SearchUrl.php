@@ -511,7 +511,7 @@ class SearchUrl
             'createdby' => 'or',
             'parent' => 'or',
 
-            'topic-support.filter' => 'or',
+//            'topic-support.filter' => 'and',
             'topic-discipline-hierarchy' => 'and',
 
             'category' => 'and',

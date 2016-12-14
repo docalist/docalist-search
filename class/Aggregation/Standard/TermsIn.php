@@ -39,7 +39,7 @@ class TermsIn extends TermsAggregation
     public function __construct(array $parameters = [], array $options = [])
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;
-        !isset($options['title']) && $options['title'] = __('Corpus', 'docalist-search');
+        !isset($options['title']) && $options['title'] = __('Type de contenu', 'docalist-search');
         parent::__construct('in', $parameters, $options);
     }
 

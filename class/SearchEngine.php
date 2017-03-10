@@ -340,7 +340,7 @@ class SearchEngine
 
         // Une fois que WordPress a chargé les posts, vérifie qu'on a tout les
         // documents et indique à WordPress le nombre total de réponses trouvées.
-        add_filter('posts_results', function (array $posts = null, WP_Query & $query) use ($id) { //!!! pas appellé si supress_filters=true
+        add_filter('posts_results', function (array $posts = null, WP_Query $query) use ($id) { //!!! pas appellé si supress_filters=true
             if (count($id) !== count($posts)) {
                 echo "<p>WARNING : L'index docalist-search est désynchronisé.</p>";
                 // TODO : à améliorer (cf. plugin "simple notices")

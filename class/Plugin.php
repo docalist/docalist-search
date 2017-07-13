@@ -13,6 +13,7 @@
  */
 namespace Docalist\Search;
 
+use Docalist\Views;
 use Docalist\Search\Indexer\PostIndexer;
 use Docalist\Search\Indexer\PageIndexer;
 use Docalist\Search\Lookup\IndexLookup;
@@ -40,6 +41,11 @@ class Plugin
     {
         // Charge les fichiers de traduction du plugin
         load_plugin_textdomain('docalist-search', false, 'docalist-search/languages');
+
+        // Ajoute notre répertoire "views" au service "docalist-views"
+        add_filter('docalist_service_views', function(Views $views) {
+            return $views->addDirectory('docalist-search', DOCALIST_SEARCH_DIR . '/views');
+        });
 
         // Charge la configuration du plugin
         $this->settings = new Settings(docalist('settings-repository'));

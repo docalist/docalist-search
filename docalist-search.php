@@ -22,8 +22,26 @@
  */
 namespace Docalist\Search;
 
-// Définit une constante pour indiquer que ce plugin est activé
-define('DOCALIST_SEARCH', __DIR__);
+/**
+ * Version du plugin.
+ */
+define('DOCALIST_SEARCH_VERSION', '0.12.0'); // Garder synchro avec la version indiquée dans l'entête
+
+/**
+ * Path absolu du répertoire dans lequel le plugin est installé.
+ *
+ * Par défaut, on utilise la constante magique __DIR__ qui retourne le path réel du répertoire et résoud les liens
+ * symboliques.
+ *
+ * Si le répertoire du plugin est un lien symbolique, la constante doit être définie manuellement dans le fichier
+ * wp_config.php et pointer sur le lien symbolique et non sur le répertoire réel.
+ */
+!defined('DOCALIST_SEARCH_DIR') && define('DOCALIST_SEARCH_DIR', __DIR__);
+
+/**
+ * Path absolu du fichier principal du plugin.
+ */
+define('DOCALIST_SEARCH', DOCALIST_SEARCH_DIR . DIRECTORY_SEPARATOR . basename(__FILE__));
 
 /*
  * Initialise le plugin.
@@ -34,11 +52,14 @@ add_action('plugins_loaded', function () {
     foreach ($dependencies as $dependency) {
         if (! defined($dependency)) {
             return add_action('admin_notices', function () use ($dependency) {
-                deactivate_plugins(plugin_basename(__FILE__));
+                deactivate_plugins(DOCALIST_SEARCH);
                 unset($_GET['activate']); // empêche wp d'afficher "extension activée"
-                $dependency = ucwords(strtolower(strtr($dependency, '_', ' ')));
-                $plugin = get_plugin_data(__FILE__, true, false)['Name'];
-                echo "<div class='error'><p><b>$plugin</b> has been deactivated because it requires <b>$dependency</b>.</p></div>";
+                printf(
+                    '<div class="%s"><p><b>%s</b> has been deactivated because it requires <b>%s</b>.</p></div>',
+                    'notice notice-error is-dismissible',
+                    'Docalist Search',
+                    ucwords(strtolower(strtr($dependency, '_', ' ')))
+                );
             });
         }
     }
@@ -46,6 +67,7 @@ add_action('plugins_loaded', function () {
     // Ok
     docalist('autoloader')
         ->add(__NAMESPACE__, __DIR__ . '/class')
-        ->add('Docalist\Search\Tests', __DIR__ . '/tests');
+        ->add(__NAMESPACE__ . '\Tests', __DIR__ . '/tests');
+
     docalist('services')->add('docalist-search', new Plugin());
 });

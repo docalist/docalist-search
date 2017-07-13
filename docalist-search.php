@@ -9,7 +9,7 @@
  *
  * Plugin Name: Docalist Search
  * Plugin URI:  http://docalist.org
- * Description: An ElasticSearch-based search engine for indexing posts, pages, docalist databases and other custom post types.
+ * Description: An ElasticSearch-based search engine for WordPress.
  * Version:     0.12.0
  * Author:      Daniel Ménard
  * Author URI:  http://docalist.org/

@@ -46,7 +46,7 @@ class GlobalAggregation extends SingleBucketAggregation
 
         // Génère chacune des sous-agrégations
         $result = '';
-        foreach($this->getAggregations() as $aggregation) {
+        foreach ($this->getAggregations() as $aggregation) {
             $result .= $aggregation->render($options);
         }
 

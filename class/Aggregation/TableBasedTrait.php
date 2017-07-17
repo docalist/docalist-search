@@ -37,7 +37,7 @@ trait TableBasedTrait
     public function setTables($tables)
     {
         $this->tables = [];
-        foreach((array) $tables as $table) {
+        foreach ((array) $tables as $table) {
             $this->tables[] = docalist('table-manager')->get($table);
         }
 

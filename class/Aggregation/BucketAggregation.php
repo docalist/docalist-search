@@ -67,7 +67,7 @@ abstract class BucketAggregation extends BaseAggregation
     public function setAggregations(array $aggregations = [])
     {
         $this->aggregations = [];
-        foreach($aggregations as $aggregation) {
+        foreach ($aggregations as $aggregation) {
             $this->addAggregation($aggregation);
         }
 
@@ -124,7 +124,7 @@ abstract class BucketAggregation extends BaseAggregation
 
         if ($this->hasAggregations()) {
             $aggs = [];
-            foreach($this->getAggregations() as $name => $aggregation) {
+            foreach ($this->getAggregations() as $name => $aggregation) {
                 $aggs[$name] = $aggregation->getDefinition();
             }
             $definition['aggs'] = $aggs;
@@ -137,7 +137,7 @@ abstract class BucketAggregation extends BaseAggregation
     public function setSearchRequest(SearchRequest $searchRequest)
     {
         parent::setSearchRequest($searchRequest);
-        foreach($this->getAggregations() as $aggregation) {
+        foreach ($this->getAggregations() as $aggregation) {
             $aggregation->setSearchRequest($searchRequest);
         }
 
@@ -149,7 +149,7 @@ abstract class BucketAggregation extends BaseAggregation
     {
         parent::setSearchResponse($searchResponse);
 
-        foreach($this->getAggregations() as $aggregation) {
+        foreach ($this->getAggregations() as $aggregation) {
             $aggregation->setSearchResponse($searchResponse);
         }
 
@@ -170,7 +170,7 @@ abstract class BucketAggregation extends BaseAggregation
      */
     protected function prepareBucket(stdClass $bucket)
     {
-        foreach($this->getAggregations() as $name => $aggregation) {
+        foreach ($this->getAggregations() as $name => $aggregation) {
             $aggregation->setResult(isset($bucket->$name) ? $bucket->$name : new stdClass());
         }
 

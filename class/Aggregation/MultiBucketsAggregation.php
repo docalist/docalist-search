@@ -91,7 +91,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         $result = $this->renderBucketLink($bucket, $result);
 
         // Génère les sous-agrégations de ce bucket
-        foreach($this->getAggregations() as $aggregation) {
+        foreach ($this->getAggregations() as $aggregation) {
             $result .= $aggregation->render(['container' => false, 'title' => false]);
         }
 

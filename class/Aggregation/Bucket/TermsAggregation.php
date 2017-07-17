@@ -82,7 +82,7 @@ class TermsAggregation extends MultiBucketsAggregation
 
         // Et on développe tous les termes sélectionnés
         $filters = isset($parameters[$field]) ? (array) $parameters[$field] : [];
-        foreach($filters as $filter) {
+        foreach ($filters as $filter) {
             $include .= '|' . ($filter) . '/' . '[^/]+';
         }
 
@@ -121,14 +121,13 @@ class TermsAggregation extends MultiBucketsAggregation
     protected function createBucketsHierarchy(array $buckets)
     {
         // Indexe les buckets par clé
-        foreach($buckets as $i => $bucket) {
+        foreach ($buckets as $i => $bucket) {
             $buckets[$bucket->key] = $bucket;
             unset($buckets[$i]);
         }
 
         // Déplace tous les buckets qui ne sont pas des tags racine comme enfant de leur tag parent
-        foreach($buckets as $key => $bucket) {
-
+        foreach ($buckets as $key => $bucket) {
             // Récupère les différents segments qui composent la clé du bucket
             $parts = explode('/', $key);
 
@@ -140,8 +139,7 @@ class TermsAggregation extends MultiBucketsAggregation
             // Détermine l'endroit où ce bucket doit figurer dans la hiérarchie
             $current = & $buckets;
             $last = array_pop($parts);
-            foreach($parts as $i => $part) {
-
+            foreach ($parts as $i => $part) {
                 // Si ce noeud n'existe pas encore dans la hiérarchie, on le crée
                 if (!isset($current[$part])) {
                     $path = implode('/', array_slice($parts, 0, $i + 1));
@@ -201,7 +199,8 @@ class TermsAggregation extends MultiBucketsAggregation
      *
      * @return string
      */
-    protected function getMissingLabel() {
+    protected function getMissingLabel()
+    {
         return __('Non disponible', 'docalist-search');
     }
 }

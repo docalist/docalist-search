@@ -323,7 +323,8 @@ abstract class BaseAggregation implements Aggregation
         $attributes = [];
 
         // Détermine les classes css à appliquer au container
-        $attributes['class'] = trim(sprintf('%s %s %s %s',
+        $attributes['class'] = trim(sprintf(
+            '%s %s %s %s',
             $this->options['container.css'],                  // Classes css indiquées dans les options
             $this->getType(),                                       // Type de la facette (e.g. "terms")
             strtr($field, '.', '-'),                                // Champ sur lequel porte l'agrégation

@@ -74,7 +74,7 @@ class TaxonomyEntriesAggregation extends TermsAggregation
             return $this->getMissingLabel();
         }
 
-        foreach($this->getTaxonomies() as $taxonomy) {
+        foreach ($this->getTaxonomies() as $taxonomy) {
             $term = get_term_by('slug', $bucket->key, $taxonomy);
             if ($term !== false) {
                 return $term->name;

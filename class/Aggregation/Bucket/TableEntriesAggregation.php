@@ -44,7 +44,7 @@ class TableEntriesAggregation extends TermsAggregation
             return $this->getMissingLabel();
         }
 
-        foreach($this->getTables() as $table) {
+        foreach ($this->getTables() as $table) {
             $label = $table->find('label', 'code=' . $table->quote($bucket->key));
             if ($label !== false) {
                 return $label;

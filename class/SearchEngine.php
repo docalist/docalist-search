@@ -226,40 +226,6 @@ class SearchEngine
     }
 
     /**
-     * Retourne le rank d'un hit, c'est à dire la position de ce hit (1-based) dans l'ensemble des réponses qui
-     * répondent à la requête.
-     *
-     * @param int $id Post ID du hit recherché.
-     *
-     * @return int Retourne la position du hit dans les résultats (le premier est à la position 1) ou zéro si
-     * l'ID indiqué ne figure pas dans la liste des réponses.
-     */
-    public function rank($id)
-    {
-        if ($this->searchResponse) {
-            return $this->searchResponse->position($id) + 1 + ($this->searchRequest->page() - 1) * $this->searchRequest->size();
-        }
-
-        // Le hit demandé ne fait pas partie des réponses
-        return 0; // // @todo null ? zéro ? exception ?
-    }
-
-    /**
-     * Retourne le lien à utiliser pour afficher le hit indiqué tout seul sur une page (i.e. recherche en format long).
-     *
-     * Le lien retourné est un lien qui permet de relancer une recherche avec start=rank(id) et size=1
-     *
-     * @param int $id Post ID du hit.
-     */
-    public function hitLink($id)
-    {
-        $url = get_pagenum_link($this->rank($id), false);
-        $url = add_query_arg(['size' => 1], $url);
-
-        return $url;
-    }
-
-    /**
      * Filtre "parse_query" exécuté lorsque WordPress analyse la requête adressée au site.
      *
      * Remplace la recherche standard de WordPress par notre moteur.

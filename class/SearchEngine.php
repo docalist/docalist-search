@@ -23,8 +23,7 @@ use Exception;
 class SearchEngine
 {
     /**
-     * La configuration du moteur de recherche
-     * (passée en paramètre au constructeur).
+     * La configuration du moteur de recherche (passée en paramètre au constructeur).
      *
      * @var Settings
      */
@@ -64,15 +63,20 @@ class SearchEngine
         add_filter('parse_query', [$this, 'onParseQuery']);
 
         // Crée la requête quand on est sur la page "liste des réponses"
-        add_filter('docalist_search_create_request', function (SearchRequest $request = null, WP_Query $query, & $display = true) {
-            if (is_null($request) && $query->is_page && $query->get_queried_object_id() === $this->searchPage()) {
-                $searchUrl = new SearchUrl($_SERVER['REQUEST_URI']);
-                $request = $searchUrl->getSearchRequest();
-             // $display = false; // modèle pour panier, export, etc si on ne voulait pas afficher les résultats.
-            }
+        add_filter(
+            'docalist_search_create_request',
+            function (SearchRequest $request = null, WP_Query $query, & $display = true) {
+                if (is_null($request) && $query->is_page && $query->get_queried_object_id() === $this->searchPage()) {
+                    $searchUrl = new SearchUrl($_SERVER['REQUEST_URI']);
+                    $request = $searchUrl->getSearchRequest();
+                 // $display = false; // modèle pour panier, export, etc si on ne voulait pas afficher les résultats.
+                }
 
-            return $request;
-        }, 10, 3);
+                return $request;
+            },
+            10,
+            3
+        );
 
         // Fournit un tri par défaut
         add_filter('docalist_search_get_default_sort', function($sort, SearchRequest $request) {
@@ -99,10 +103,12 @@ class SearchEngine
     }
 
     /**
-     * Retourne la définition du critère de tri passé en paramètre si c'est un tri connu.
+     * Retourne la définition du critère de tri passé en paramètre si c'est un tri par défaut de docalist-search.
      *
-     * @param string $sort
-     * @return null|string[]|string
+     * @param string $sort Nom du critère de tri.
+     *
+     * @return null|string|string[] Définition elasticsearch du critère de tri ou null si ce n'est pas un tri par
+     * défaut de docalist-search.
      */
     protected function getSort($sort)
     {
@@ -138,6 +144,13 @@ class SearchEngine
         return null; // tri non reconnu
     }
 
+    /**
+     * Retourne le libellé du critère de tri passé en paramètre si c'est un tri par défaut de docalist-search.
+     *
+     * @param string $sort Nom du critère de tri.
+     *
+     * @return string Libellé du critère de tri, ou son nom si ce n'est pas un tri reconnu.
+     */
     protected function getSortTitle($sort)
     {
         switch($sort)
@@ -145,36 +158,35 @@ class SearchEngine
             // Pertinence
             case null:
             case 'score':
-                return 'Pertinence';
+                return __('Pertinence', 'docalist-search');
 
             // Date de création
             case 'creation':
-                return 'Date de publication (ancien -> récent)';
+                return __('Date de publication (ancien -> récent)', 'docalist-search');
 
             case 'creation-':
-                return 'Date de publication (récent -> ancien)';
+                return __('Date de publication (récent -> ancien)', 'docalist-search');
 
             // Date de mise à jour
             case 'lastupdate':
-                return 'Date de mise à jour (ancien -> récent)';
+                return __('Date de mise à jour (ancien -> récent)', 'docalist-search');
 
             case 'lastupdate-':
-                return 'Date de mise à jour (récent -> ancien)';
+                return __('Date de mise à jour (récent -> ancien)', 'docalist-search');
 
             // Titre
             case 'posttitle':
-                return 'Titre (A -> Z)';
+                return __('Titre (A -> Z)', 'docalist-search');
 
             case 'posttitle-':
-                return 'Titre (Z -> A)';
+                return __('Titre (Z -> A)', 'docalist-search');
         }
 
         return $sort; // tri non reconnu
     }
 
     /**
-     * Retourne l'ID de la page "liste des réponses" indiquée dans les
-     * paramètres de docalist-search.
+     * Retourne le Post ID de la page "liste des réponses" indiquée dans les paramètres de docalist-search.
      *
      * @return int
      */
@@ -184,8 +196,7 @@ class SearchEngine
     }
 
     /**
-     * Retourne l'URL de la page "liste des réponses" indiquée dans les
-     * paramètres de docalist-search.
+     * Retourne l'URL de la page "liste des réponses" indiquée dans les paramètres de docalist-search.
      *
      * @return string
      */
@@ -215,14 +226,13 @@ class SearchEngine
     }
 
     /**
-     * Retourne le rank d'un hit, c'est à dire la position de ce hit (1-based)
-     * dans l'ensemble des réponses qui répondent à la requête.
+     * Retourne le rank d'un hit, c'est à dire la position de ce hit (1-based) dans l'ensemble des réponses qui
+     * répondent à la requête.
      *
-     * @param int $id
+     * @param int $id Post ID du hit recherché.
      *
-     * @return int Retourne la position du hit dans les résultats (le premier
-     * est à la position 1) ou zéro si l'id indiqué ne figure pas dans la liste
-     * des réponses.
+     * @return int Retourne la position du hit dans les résultats (le premier est à la position 1) ou zéro si
+     * l'ID indiqué ne figure pas dans la liste des réponses.
      */
     public function rank($id)
     {
@@ -235,13 +245,11 @@ class SearchEngine
     }
 
     /**
-     * Retourne le lien à utiliser pour afficher le hit indiqué tout seul sur
-     * une page (i.e. recherche en format long).
+     * Retourne le lien à utiliser pour afficher le hit indiqué tout seul sur une page (i.e. recherche en format long).
      *
-     * Le lien retourné est un lien qui permet de relancer une recherche avec
-     * start=rank(id) et size=1
+     * Le lien retourné est un lien qui permet de relancer une recherche avec start=rank(id) et size=1
      *
-     * @param int $id
+     * @param int $id Post ID du hit.
      */
     public function hitLink($id)
     {
@@ -252,14 +260,12 @@ class SearchEngine
     }
 
     /**
-     * Filtre "parse_query" exécuté lorsque WordPress analyse la requête
-     * adressée au site.
+     * Filtre "parse_query" exécuté lorsque WordPress analyse la requête adressée au site.
      *
      * Remplace la recherche standard de WordPress par notre moteur.
      *
-     * Si la requête est une recherche, et qu'il s'agit de la requête
-     * principale, on installe les filtres supplémentaires qui vont permettre
-     * d'exécuter la recherche (onPostsRequest, onPostsResults, etc.)
+     * Si la requête est une recherche, et qu'il s'agit de la requête principale, on installe les filtres
+     * supplémentaires qui vont permettre d'exécuter la recherche (onPostsRequest, onPostsResults, etc.)
      *
      * @param WP_Query $query La requête analysée par WordPress.
      *

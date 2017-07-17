@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -39,7 +39,7 @@ class SearchLookup implements LookupInterface
         // On récupère le titre des notices qui ont été mises à jour récemment
         $query = [
             'size' => 100,
-            '_source' => [ 'title' ],
+            '_source' => [ 'posttitle' ],
             'query' => [
                 'bool' => [
                     'filter'    => [ [ 'query_string' => [ 'query' => $source ] ] ],
@@ -57,15 +57,15 @@ class SearchLookup implements LookupInterface
 
     public function getSuggestions($search, $source = '')
     {
-        // On recherche les suggestions sur le champ "title" uniquement en utilisant une match_phrase_prefix
+        // On recherche les suggestions sur le champ "posttitle" uniquement en utilisant une match_phrase_prefix
         // La source (obligatoire) indique le filtre qui est appliqué à la recherche (query-string avec default_op=OR)
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/query-dsl-match-query.html#query-dsl-match-query-phrase-prefix
         $query = [
             'size' => 100,
-            '_source' => [ 'title' ],
+            '_source' => [ 'posttitle' ],
             'query' => [
                 'bool' => [
-                    'must'   => [ [ 'match_phrase_prefix' => [ 'title' => $search ] ] ],
+                    'must'   => [ [ 'match_phrase_prefix' => [ 'posttitle' => $search ] ] ],
                     'filter' => [ [ 'query_string'        => [ 'query' => $source ] ] ],
                 ]
             ],
@@ -97,7 +97,7 @@ class SearchLookup implements LookupInterface
         foreach($response->hits->hits as $hit) {
             $result[] = [
                 'code' => $hit->_id,
-                'label' => $hit->_source->title ?: ('ID #' . $hit->_id),
+                'label' => $hit->_source->posttitle ?: ('ID #' . $hit->_id),
             ];
         }
 
@@ -138,6 +138,5 @@ class SearchLookup implements LookupInterface
 
         // Ok
         return $codes;
-
     }
 }

@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -16,7 +16,7 @@ namespace Docalist\Search\Lookup;
 use Docalist\Lookup\LookupInterface;
 
 /**
- * Lookup sur la liste des termes présents dans l'index Ealsticsearch.
+ * Lookup sur la liste des termes présents dans l'index Elasticsearch.
  *
  * Le champ doit être indexé comme filtre (filter) et comme champ de completion (suggest).
  */

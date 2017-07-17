@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -50,7 +50,7 @@ interface Indexer
     /**
      * Retourne le code à utiliser pour désigner une collection de contenus de ce type.
      *
-     * Utilisé pour initialiser le champ 'in' lors de l'indexation.
+     * @eturn string Retourne le code utilisé pour initialiser le champ 'in' lors de l'indexation.
      */
     public function getCollection();
 
@@ -74,6 +74,8 @@ interface Indexer
      * qu'il gère.
      *
      * @param IndexManager $indexManager Le gestionnaire d'index docalist-search.
+     *
+     * @return void
      */
     public function activateRealtime(IndexManager $indexManager);
 
@@ -81,6 +83,8 @@ interface Indexer
      * Indexe tous les contenus gérés par l'indexeur.
      *
      * @param IndexManager $indexManager Le gestionnaire d'index docalist-search.
+     *
+     * @return void
      */
     public function indexAll(IndexManager $indexManager);
 

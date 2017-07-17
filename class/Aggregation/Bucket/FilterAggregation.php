@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2016 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -18,7 +18,8 @@ use Docalist\Search\Aggregation\SingleBucketAggregation;
 /**
  * Une agrégation de type "bucket" qui regroupe tous les documents qui correspondent à un filtre donné.
  *
- * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/search-aggregations-bucket-filter-aggregation.html
+ * @link
+ * https://www.elastic.co/guide/en/elasticsearch/reference/master/search-aggregations-bucket-filter-aggregation.html
  */
 class FilterAggregation extends SingleBucketAggregation
 {
@@ -27,14 +28,12 @@ class FilterAggregation extends SingleBucketAggregation
     /**
      * Constructeur
      *
-     * @param string    $filter         Définition DSL du filtre à appliquer à l'agrégation.
-     * @param array     $parameters     Autres paramètres de l'agrégation.
+     * @param array     $filter         Définition DSL du filtre à appliquer à l'agrégation.
      * @param array     $options        Options d'affichage.
      */
-    public function __construct(array $filter, array $parameters = [], array $options = [])
+    public function __construct(array $filter, array $options = [])
     {
-        $parameters = $filter;
-        parent::__construct($parameters, $options);
+        parent::__construct($filter, $options);
     }
 
     public function render(array $options = [])
@@ -65,5 +64,4 @@ class FilterAggregation extends SingleBucketAggregation
         // Ok
         return $result;
     }
-
 }

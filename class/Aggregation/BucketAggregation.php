@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2016 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -85,7 +85,7 @@ abstract class BucketAggregation extends BaseAggregation
     {
         $name = $aggregation->getName();
         if (isset($this->aggregations[$name])) {
-            throw new InvalidArgumentException("A sub-aggregation named '$name' already exists");
+            throw new InvalidArgumentException(sprintf('A sub-aggregation named "%s" already exists', $name));
         }
 
         $this->aggregations[$name] = $aggregation;
@@ -110,7 +110,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @param string $name Le nom de l'agrégation à retourner.
      *
-     * @return Agregation|null Retourne la sous agrégation demandée ou null si l'agrégation indiqué n'existe pas.
+     * @return Aggregation|null Retourne la sous agrégation demandée ou null si l'agrégation indiqué n'existe pas.
      */
     public function getAggregation($name)
     {
@@ -190,7 +190,7 @@ abstract class BucketAggregation extends BaseAggregation
     /**
      * Retourne le libellé à afficher pour le bucket passé en paramètre.
      *
-     * @param object $bucket Les données du bucket : un objet avec des champs comme 'key', 'doc_count', 'from', etc.
+     * @param stdClass $bucket Les données du bucket : un objet avec des champs comme 'key', 'doc_count', 'from', etc.
      *
      * @return string Le libellé à afficher pour ce bucket.
      */

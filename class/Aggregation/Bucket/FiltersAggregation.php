@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2016 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -18,7 +18,8 @@ use Docalist\Search\Aggregation\MultiBucketsAggregation;
 /**
  * Une agrégation de type "buckets" qui regroupe les documents qui correspondent aux filtres indiqués.
  *
- * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/search-aggregations-bucket-filters-aggregation.html
+ * @link
+ * https://www.elastic.co/guide/en/elasticsearch/reference/master/search-aggregations-bucket-filters-aggregation.html
  */
 class FiltersAggregation extends MultiBucketsAggregation
 {

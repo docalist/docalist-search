@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2016 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -41,7 +41,7 @@ class TableRangeAggregation extends RangeAggregation
     /**
      * Construit les intervalles à partir des entrées qui figurent dans la table d'autorité.
      *
-     * @eturn array
+     * @return array
      */
     protected function getRanges()
     {

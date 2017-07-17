@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2016 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -120,7 +120,7 @@ interface Aggregation
      * Par exemple : si le résultat de l'agrégation est un objet de la forme "{count: 44, min: 1, max:40, etc.}",
      * getResult() retournera cet objet complet et getResult('count') retournera 44.
      *
-     * @param string $name Optionnel, nom du champ de résultat à retourner.
+     * @param string|null $name Optionnel, nom du champ de résultat à retourner.
      *
      * @return mixed|null Le résultat demandé ou null s'il n'est pas disponible.
      */
@@ -197,6 +197,8 @@ interface Aggregation
      * Retourne la valeur actuelle d'une option d'affichage.
      *
      * @param string $option Nom de l'option à retourner.
+     *
+     * @return mixed|null La valeur de l'option demandée ou null si l'option n'est pas définie.
      */
     public function getOption($option);
 

@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2016 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -84,7 +84,7 @@ abstract class BaseAggregation implements Aggregation
     {
         $this->parameters = $parameters;
         $this->options = $this->getDefaultOptions();
-        $options && $this->setOptions($options);
+        !empty($options) && $this->setOptions($options);
     }
 
     public function getType()
@@ -253,7 +253,7 @@ abstract class BaseAggregation implements Aggregation
     // Affichage
     // ----------------------------------------------------------------------------------------------------
 
-    public function display(array $options = null)
+    public function display(array $options = [])
     {
         echo $this->render($options);
 
@@ -402,7 +402,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return string
      */
-    protected function renderTag($tag, array $attributes = [], $content = null)
+    protected function renderTag($tag, array $attributes = [], $content = '')
     {
         ob_start();
         docalist('html')->tag($tag, $attributes, $content);

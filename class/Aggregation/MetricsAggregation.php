@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2016 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -45,9 +45,8 @@ abstract class MetricsAggregation extends BaseAggregation
         $options['metric.format']  = '%s'; // Format final (exemple : '%s €' ou '$%s').
         $options['metric.zero']  = false; // Affiche ou non les valeurs zéro.
 
-        // On pourrait utiliser :
-        // metric.point     = $wp_locale->number_format['decimal_point']
-        // metric.thousands = $wp_locale->number_format['thousands_sep']
+        // On pourrait aussi utiliser la propriété 'number_format' de la variable globale '$wp_locale' de WordPress
+        // (paramètres 'decimal_point' et 'thousands_sep')
 
         return $options;
     }

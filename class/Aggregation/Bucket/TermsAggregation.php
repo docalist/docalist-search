@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2016 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -19,7 +19,8 @@ use stdClass;
 /**
  * Une agrégation de type "buckets" qui regroupe les documents en fonction des termes trouvés dans un champ donné.
  *
- * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/search-aggregations-bucket-terms-aggregation.html
+ * @link
+ * https://www.elastic.co/guide/en/elasticsearch/reference/master/search-aggregations-bucket-terms-aggregation.html
  */
 class TermsAggregation extends MultiBucketsAggregation
 {
@@ -119,15 +120,6 @@ class TermsAggregation extends MultiBucketsAggregation
      */
     protected function createBucketsHierarchy(array $buckets)
     {
-        // Active ou non de débuggage de la fonction
-        $debug = false;
-
-        // Debug : affiche la liste initiale
-        if ($debug) {
-            echo '<h1>', $this->getName(), ' : liste initiale des buckets</h1>';
-            echo '<pre>', json_encode($buckets, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), '</pre>';
-        }
-
         // Indexe les buckets par clé
         foreach($buckets as $i => $bucket) {
             $buckets[$bucket->key] = $bucket;
@@ -176,12 +168,6 @@ class TermsAggregation extends MultiBucketsAggregation
             unset($buckets[$key]);
         }
 
-        // Debug : affiche la liste obtenue
-        if ($debug) {
-            echo '<h1>', $this->getName(), ' : liste hiérarchisée</h1>';
-            echo '<pre>', json_encode($buckets, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), '</pre>';
-        }
-
         // Retourne la liste hiérarchisée
         return $buckets;
     }
@@ -192,7 +178,7 @@ class TermsAggregation extends MultiBucketsAggregation
             return $this->getMissingLabel();
         }
 
-        return  $bucket->key;
+        return $bucket->key;
     }
 
     protected function renderBucketLabel(stdClass $bucket)

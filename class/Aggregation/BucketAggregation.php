@@ -14,7 +14,7 @@
 namespace Docalist\Search\Aggregation;
 
 use Docalist\Search\Aggregation;
-use Docalist\Search\SearchRequest2 as SearchRequest;
+use Docalist\Search\SearchRequest;
 use Docalist\Search\SearchResponse;
 use stdClass;
 use InvalidArgumentException;

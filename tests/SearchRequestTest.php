@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Biblio UserData" plugin.
  *
- * Copyright (C) 2015-2015 Daniel Ménard
+ * Copyright (C) 2015-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -14,7 +14,7 @@
 namespace Docalist\Tests\SearchRequestTest;
 
 use WP_UnitTestCase;
-use Docalist\Search\SearchRequest2 as SearchRequest;
+use Docalist\Search\SearchRequest;
 use Docalist\Search\QueryDSL\Version200 as DSL;
 
 class SearchRequestTest extends WP_UnitTestCase

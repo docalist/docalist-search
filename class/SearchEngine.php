@@ -13,7 +13,7 @@
  */
 namespace Docalist\Search;
 
-use Docalist\Search\SearchRequest2 as SearchRequest;
+use Docalist\Search\SearchRequest;
 use WP_Query;
 use Exception;
 

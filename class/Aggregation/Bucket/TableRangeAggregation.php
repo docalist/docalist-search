@@ -45,13 +45,14 @@ class TableRangeAggregation extends RangeAggregation
      */
     protected function getRanges()
     {
+        // On n'utilise que la première table
+        $table = current($this->getTables());
+
         // La table contient les champs label/start/end mais ES veut que les ranges soient sous la forme key/from/to
         // Pour éviter de faire une boucle pour convertir les noms de champs, on renomme les champs à la volée
         // Au final, on obtient un tableau de stdClass (au lieu d'un tableau de tableaux) mais une fois sérialisé
         // en JSON, ça donne la même chose (à condition que les clés commencent à zéro, d'où le array_values).
         // Remarque : si start ou end est vide, ça génère la valeur 'null', mais ça ne gène pas ES.
-        foreach($this->getTables() as $table) { // On n'utilise que la première
-            return array_values($table->search('ROWID,label as key,start as `from`,end as `to`'));
-        }
+        return array_values($table->search('ROWID,label as key,start as `from`,end as `to`'));
     }
 }

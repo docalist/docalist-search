@@ -110,19 +110,29 @@ class SearchEngine
         {
             // Pertinence
             case null:
-            case 'score':           return null; // inutile de générer une clause, c'est la valeur par défaut de ES.
+            case 'score':
+                return null; // inutile de générer une clause, c'est la valeur par défaut de ES.
 
             // Date de création
-            case 'creation':        return 'creation';
-            case 'creation-':       return ['creation' => 'desc'];
+            case 'creation':
+                return 'creation';
+
+            case 'creation-':
+                return ['creation' => 'desc'];
 
             // Date de mise à jour
-            case 'lastupdate':      return 'lastupdate';
-            case 'lastupdate-':     return ['lastupdate' => 'desc'];
+            case 'lastupdate':
+                return 'lastupdate';
+
+            case 'lastupdate-':
+                return ['lastupdate' => 'desc'];
 
             // Titre
-            case 'posttitle':       return 'posttitle-sort';
-            case 'posttitle-':      return ['posttitle-sort' => 'desc'];
+            case 'posttitle':
+                return 'posttitle-sort';
+
+            case 'posttitle-':
+                return ['posttitle-sort' => 'desc'];
         }
 
         return null; // tri non reconnu
@@ -134,19 +144,29 @@ class SearchEngine
         {
             // Pertinence
             case null:
-            case 'score':       return 'Pertinence';
+            case 'score':
+                return 'Pertinence';
 
             // Date de création
-            case 'creation':    return 'Date de publication (ancien -> récent)';
-            case 'creation-':   return 'Date de publication (récent -> ancien)';
+            case 'creation':
+                return 'Date de publication (ancien -> récent)';
+
+            case 'creation-':
+                return 'Date de publication (récent -> ancien)';
 
             // Date de mise à jour
-            case 'lastupdate':  return 'Date de mise à jour (ancien -> récent)';
-            case 'lastupdate-': return 'Date de mise à jour (récent -> ancien)';
+            case 'lastupdate':
+                return 'Date de mise à jour (ancien -> récent)';
+
+            case 'lastupdate-':
+                return 'Date de mise à jour (récent -> ancien)';
 
             // Titre
-            case 'posttitle':   return 'Titre (A -> Z)';
-            case 'posttitle-':  return 'Titre (Z -> A)';
+            case 'posttitle':
+                return 'Titre (A -> Z)';
+
+            case 'posttitle-':
+                return 'Titre (Z -> A)';
         }
 
         return $sort; // tri non reconnu

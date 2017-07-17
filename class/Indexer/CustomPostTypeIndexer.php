@@ -137,8 +137,8 @@ class CustomPostTypeIndexer extends AbstractIndexer
         $mapping->addField('createdby')->keyword();
         $mapping->addField('creation')->dateTime();
         $mapping->addField('lastupdate')->dateTime();
-        $mapping->addField('title')->text();
-        $mapping->addField('title-sort')->keyword();
+        $mapping->addField('posttitle')->text();
+        $mapping->addField('posttitle-sort')->keyword();
         $mapping->addField('content')->text();
         $mapping->addField('excerpt')->text();
         if (is_post_type_hierarchical($this->getType())) {
@@ -314,10 +314,10 @@ class CustomPostTypeIndexer extends AbstractIndexer
         // Date de modification
         $document['lastupdate'] = $post->post_modified;
 
-        // Titre
+        // Titre du post
         if ($post->post_title) {
-            $document['title'] = $post->post_title;
-            $document['title-sort'] = implode(' ', Tokenizer::tokenize($post->post_title));
+            $document['posttitle'] = $post->post_title;
+            $document['posttitle-sort'] = implode(' ', Tokenizer::tokenize($post->post_title));
         }
 
         // Extrait

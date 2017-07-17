@@ -38,8 +38,8 @@ class SearchResponse
     /**
      * Initialise l'objet à partir de la réponse retournée par elasticsearch.
      *
-     * @param SearchRequest $request    L'objet SearchRequest qui a généré ces résultats.
-     * @param stdClass      $data       La réponse brute retournée par ElasticSearch.
+     * @param SearchRequest|null    $request    Optionnel, l'objet SearchRequest qui a généré ces résultats.
+     * @param stdClass|null         $data       Optionnel, la réponse brute retournée par ElasticSearch.
      */
     public function __construct(SearchRequest $request = null, stdClass $data = null)
     {

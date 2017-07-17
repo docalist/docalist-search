@@ -19,7 +19,7 @@ use InvalidArgumentException;
 /**
  * Une requête de recherche adressée à ElasticSearch.
  */
-class SearchRequest2
+class SearchRequest
 {
     /**
      * Numéro de la page de résultats par défaut.

@@ -1017,6 +1017,41 @@ class SearchRequest
             foreach($this->aggregations as $name => $aggregation) {
                 ($aggregation instanceof Aggregation) && $aggregation = $aggregation->getDefinition();
                 $request['aggregations'][$name] = $aggregation;
+/*
+    Code expérimental pour gérer les agrégations en "OU" en utilisant des post-filters.
+    Non finalisé, en commentaire pour ne pas perdre le travail fait.
+                if (! ($aggregation instanceof Aggregation)) {
+                    $request['aggregations'][$name] = $aggregation;
+                    continue;
+                }
+
+                $field = $aggregation->getParameter('field');
+                if (TRUE || empty($this->postFilters) || empty($field)) {
+                    $request['aggregations'][$name] = $aggregation->getDefinition();
+                    continue;
+                }
+
+                //                 echo "<h1>Agg $name porte sur le champ $field</h2>";
+                $filters = [];
+                foreach($this->postFilters as $filter) {
+                    // le filtre est de la forme [type => [ champ => params]], on extrait le nom du champ
+                    if ($field !== key(reset($filter))) {
+                        $filters[] = $dsl->filter($filter);
+                    }
+                }
+                if (empty($filters)) {
+                    $request['aggregations'][$name] = $aggregation->getDefinition();
+                    continue;
+                }
+                //count($filters) > 1 &&
+                $filters = $dsl->bool($filters);
+                //                 echo 'Filtres à appliquer à cette agg : <pre>', var_export($filters,true), '</pre>';
+                $agg = new FilterAggregation($filters);
+                $agg->addAggregation($aggregation);
+                $agg->setName($name)->setSearchRequest($this);
+                $this->aggregations[$name] = $agg;
+                $request['aggregations'][$name] = $agg->getDefinition();
+*/
             }
         }
 

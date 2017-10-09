@@ -43,7 +43,12 @@ define('DOCALIST_SEARCH_VERSION', '0.12.0'); // Garder synchro avec la version i
  */
 define('DOCALIST_SEARCH', DOCALIST_SEARCH_DIR . DIRECTORY_SEPARATOR . basename(__FILE__));
 
-/*
+/**
+ * Url de base du plugin.
+ */
+define('DOCALIST_SEARCH_URL', plugins_url('', DOCALIST_SEARCH));
+
+/**
  * Initialise le plugin.
  */
 add_action('plugins_loaded', function () {

@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2011-2016 Daniel Ménard
+ * Copyright (C) 2011-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -45,20 +45,20 @@ class QueryBuilder implements Builder
         //   (resolve ?)
         // - canRange($name) : indique si le champ supporte ou non les requêtes de type range ?
         // + gestion de "triggers" : by:me -> createdby:login, today -> date en cours, etc.
-        ($field === '') && $field = ['title^2', 'content', 'name'];
+        ($field === '') && $field = ['posttitle^2', 'content', 'name'];
         return $this->dsl->multiMatch($field, implode(' ', $terms), 'best_fields', ['operator' => 'and']);
     }
 
     public function phrase($field, array $terms)
     {
-        ($field === '') && $field = ['title^2', 'content', 'name'];
+        ($field === '') && $field = ['posttitle^2', 'content', 'name'];
         return $this->dsl->multiMatch($field, implode(' ', $terms), 'phrase', []);
 //        return $this->dsl->match($field, implode(' ', $terms), 'match_phrase');
     }
 
     public function prefix($field, $prefix)
     {
-        ($field === '') && $field = ['title^2', 'content', 'name'];
+        ($field === '') && $field = ['posttitle^2', 'content', 'name'];
         return $this->dsl->multiMatch($field, $prefix, 'phrase_prefix', []);
         // return $this->dsl->prefix($field, $prefix); // ne supporte pas plusieurs champs
     }

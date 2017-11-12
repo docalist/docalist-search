@@ -278,6 +278,9 @@ class SearchUrl
                 $this->parameters[$name] = $value;
                 continue;
             }
+            if (substr($name, 0, 10) === 'customize_') {
+                continue;
+            }
 
             if ($value === '') {
                 continue;

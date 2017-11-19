@@ -140,10 +140,10 @@ class SearchRequest
         $request = $this->buildRequest();
 
         // Construit les paramètres de la recherche à partir des options indiquées
-        $queryString = $this->getExecuteOptions($options);
+        $url = '/{index}/_search' . $this->getExecuteOptions($options);
 
         // Exécute la requête
-        $data = docalist('elastic-search')->get("/{index}/_search$queryString", $request);
+        $data = docalist('elastic-search')->get($url, $request);
         if (isset($data->error)) {
             $this->hasErrors = true;
 

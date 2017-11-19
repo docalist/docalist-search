@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2016 Daniel Ménard
+ * Copyright (C) 2012-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -149,7 +149,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
         foreach($this->getIndexedTaxonomies() as $taxonomy => $field) {
             $mapping->addField($field)->keyword();
             if (is_taxonomy_hierarchical($taxonomy)) {
-                $mapping->addField("$field-hierarchy")->text('hierarchy');
+                $mapping->addField($field . '-hierarchy')->text('hierarchy');
             }
         }
 
@@ -338,7 +338,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
         // Taxonomies associées à ce post
         foreach($this->getIndexedTaxonomies() as $taxonomy => $field) {
             if (is_array($terms = get_the_terms($post, $taxonomy))) {
-                $hierarchy = is_taxonomy_hierarchical($taxonomy) ? "$field-hierarchy" : false;
+                $hierarchy = is_taxonomy_hierarchical($taxonomy) ? ($field . '-hierarchy') : false;
 
                 $document[$field] = [];
                 $hierarchy && $document[$hierarchy] = [];

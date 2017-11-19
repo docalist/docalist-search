@@ -74,25 +74,31 @@ trait AggregationsTrait
      * 2. addAggregation(string $name, array $aggregation); // compatibilité ascendante, agrégation en tableau
      * 3. addAggregation(string $name, Aggregation $aggregation); // compatibilité ascendante ($name est ignoré)
      *
-     * @param string $name Deprecated : nom de l'agrégation, utilisé uniquement si $aggregation est un tableau.
-     * @param Aggregation|array $aggregation Un objet Aggregation (deprecated : ou un tableau décrivant l'agrégation).
+     * @param Aggregation $aggregation Un objet Aggregation (deprecated : ou un tableau décrivant l'agrégation).
      *
      * @return self
      */
-    public function addAggregation($name = 'deprecated', $aggregation)
+    public function addAggregation($aggregation) // plus tard : Aggregation $aggregation
     {
+        $args = func_get_args();
+
+        // Mode normal (cas 1)
+        if (count($args) === 1  && $args[0] instanceof Aggregation) {
+            return $this->addAggregationObject($args[0]);
+        }
+
         // Compatibilité ascendante (cas 2)
-        if (is_array($aggregation)) {
-            return $this->addAggregationArray($name, $aggregation);
+        if (count($args) === 2 && is_string($args[0]) && is_array($args[1])) {
+            return $this->addAggregationNoCheck($args[0], $args[1]);
         }
 
         // Compatibilité ascendante (cas 3)
-        if (is_scalar($name)) {
-            return $this->addAggregationObject($aggregation);
+        if (count($args) === 2 && is_string($args[0]) && $args[1] instanceof Aggregation) {
+            return $this->addAggregationObject($args[1]);
         }
 
-        // Mode normal (cas 1)
-        return $this->addAggregationObject($name);
+        // Bad call
+        throw InvalidArgumentException('addAggregation : paramètres incorrect');
     }
 
     protected function addAggregationObject(Aggregation $aggregation)
@@ -100,11 +106,6 @@ trait AggregationsTrait
         $aggregation->setSearchRequest($this);
 
         return $this->addAggregationNoCheck($aggregation->getName(), $aggregation);
-    }
-
-    protected function addAggregationArray($name, array $aggregation)
-    {
-        return $this->addAggregationNoCheck($name, $aggregation);
     }
 
     protected function addAggregationNoCheck($name, $aggregation)
@@ -194,8 +195,15 @@ trait AggregationsTrait
      */
     public function removeAggregation($name)
     {
+        // Vérifie que l'agrégation existe
+        if (! isset($this->aggregations[$name])) {
+            return $this;
+        }
+
         // Indique à l'agrégation qu'elle ne fait plus partie de cette SearchRequest
-        ! is_array($aggregation) && $aggregation->setSearchRequest(null); // is_array : compatibilité ascendante
+        if (! is_array($this->aggregations[$name])) { // is_array : compatibilité ascendante
+            $this->aggregations[$name]->setSearchRequest(null);
+        }
 
         // Supprime l'agrégation
         unset($this->aggregations[$name]);

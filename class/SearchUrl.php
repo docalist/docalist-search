@@ -311,7 +311,7 @@ class SearchUrl
         // Valide le paramètre size
         if (isset($this->parameters[self::SIZE])) {
             $size = filter_var($this->parameters[self::SIZE], FILTER_VALIDATE_INT);
-            if ($size === false || $size < 0 || $size === SearchRequest::DEFAULT_SIZE) { // 0 = no limit
+            if ($size === false || $size < 0 || $size === SearchRequest::DEFAULT_SIZE) {
                 unset($this->parameters[self::SIZE]);
             } else {
                 $this->parameters[self::SIZE] = $size;
@@ -453,8 +453,7 @@ class SearchUrl
 
                         // Croisés en "ou" : la requête doit matcher l'un des termes indiqués
                         else {
-//                          $this->request->addFilter($dsl->terms($name, (array) $value));
-                            $this->request->addPostFilter($dsl->terms($name, (array) $value));
+                            $this->request->addFilter($dsl->terms($name, (array) $value), 'post-filter');
                         }
                     }
 

@@ -57,6 +57,11 @@ trait TypesTrait
         return $this;
     }
 
+    /**
+     * Retourne la clause DSL filter permettant de restreindre la recherche aux types sélectionnés.
+     *
+     * @return array
+     */
     protected function getTypesFilterClause()
     {
         // Rien à faire si on a aucun type

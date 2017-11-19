@@ -227,7 +227,7 @@ class ElasticsearchMappingBuilder implements MappingBuilder
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
         // https://github.com/elastic/elasticsearch/issues/12394
         $this->last['type'] = $this->keywordType;
-        $this->last['index'] = 'not_analyzed';
+//         $this->last['index'] = 'not_analyzed';
 
         return $this;
     }
@@ -254,6 +254,8 @@ class ElasticsearchMappingBuilder implements MappingBuilder
     public function setProperty($property, $value)
     {
         $this->last[$property] = $value;
+
+        return $this;
     }
 
     public function integer($type = 'long')
@@ -349,7 +351,7 @@ class ElasticsearchMappingBuilder implements MappingBuilder
     {
         $this->last['fields']['filter'] = [
             'type' => $this->keywordType,
-            'index' => 'not_analyzed',
+//             'index' => 'not_analyzed',
         ];
 
         return $this;

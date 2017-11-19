@@ -30,7 +30,12 @@ class SearchRequest
 {
     use QueryTrait, PageTrait, SizeTrait, SortTrait, SourceTrait, SearchUrlTrait, AggregationsTrait, EquationTrait;
 
-    const DEFAULT_SIZE = 10; // Compatibilité ascendante pour thème SVB
+    /**
+     * Valeur par défaut pour le nombre de réponses par page (size).
+     *
+     * @var integer
+     */
+    const DEFAULT_SIZE = 10; // Devrait être dans SizeTrait mais un trait ne peut pas définir de constantes
 
     /**
      * Indique si la requête exécutée a des erreurs.

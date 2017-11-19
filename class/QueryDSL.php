@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2015 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -266,14 +266,13 @@ interface QueryDSL
     /**
      * Crée une requête qui retourne les documents qui satisfont les conditions booléennes passées en paramètres.
      *
-     * @param string $field Le champ sur lequel porte la recherche.
      * @param array $clauses Un tableau de clauses booléennes. Chaque clause doit être un tableau contenant
      * une seule entrée dont la clé indique le type de clause ('must', 'filter', 'should', 'must_not').
      * @param array $parameters Paramètres additionnels de la requête.
      *
      * @return array Un tableau décrivant une requête de type "Bool".
      *
-     * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.0/query-dsl-bool-query.html
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html
      *
      * @throws InvalidArgumentException Si le tableau comporte des clauses invalides.
      */

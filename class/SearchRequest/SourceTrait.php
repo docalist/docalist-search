@@ -43,13 +43,11 @@ trait SourceTrait
      * - true  : retourner tous les champs
      * - string : une liste de champ ou de masques (exemple : "creation,title*,event.*")
      * - array : une liste de champ ou de masques (exemple : ['creation', 'title*', 'event.*'])
+     *
+     * @return self
      */
     public function setSource($source)
     {
-        if (!is_bool($source) && !is_string($source) && !is_array($source)) {
-            throw new InvalidArgumentException("Invalid source filter, expected bool, string or array");
-        }
-
         // Bool : true=tous les champs, false=aucun
         if (is_bool($source)) {
             $this->source = $source;
@@ -57,7 +55,7 @@ trait SourceTrait
             return $this;
         }
 
-        // String : une chaine contenant un ou plusieurs noms de champs
+        // String : une chaine contenant un ou plusieurs noms de champs, on traite comme un tableau
         if (is_string($source)) {
             return $this->setSource(explode(',', $source));
         }
@@ -74,11 +72,11 @@ trait SourceTrait
 
             $this->source = array_map('trim', $source);
 
-            return;
+            return $this;
         }
 
         // Argument incorrect
-        throw new InvalidArgumentException("Invalid source filter, expected bool, string or array");
+        throw new InvalidArgumentException('Invalid source filter, expected bool, string or array');
     }
 
     /**

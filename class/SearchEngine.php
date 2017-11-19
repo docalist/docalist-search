@@ -117,7 +117,7 @@ class SearchEngine
             // Pertinence
             case null:
             case 'score':
-                return null; // inutile de générer une clause, c'est la valeur par défaut de ES.
+                return '_score';
 
             // Date de création
             case 'creation':
@@ -330,8 +330,8 @@ class SearchEngine
             return $sql;
         });
 
-        // Une fois que WordPress a chargé les posts, vérifie qu'on a tout les
-        // documents et indique à WordPress le nombre total de réponses trouvées.
+        // Une fois que WordPress a chargé les posts, vérifie qu'on a tous les documents et indique à WordPress
+        // le nombre total de réponses trouvées.
         add_filter('posts_results', function (array $posts = null, WP_Query $query) use ($id) { //!!! pas appellé si supress_filters=true
             if (count($id) !== count($posts)) {
                 echo "<p>WARNING : L'index docalist-search est désynchronisé.</p>";
@@ -341,7 +341,7 @@ class SearchEngine
             $size = $this->searchRequest->getSize();
 
             $query->found_posts = $total;
-            $query->max_num_pages = (int) ceil($total / $size);
+            $query->max_num_pages = ($size === 0) ? 1 : (int) ceil($total / $size);
 
             // TODO : supprimer le filtre une fois qu'il a été exécuté
 

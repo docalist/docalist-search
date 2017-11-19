@@ -561,8 +561,16 @@ class IndexManager
 
                 }
             }
+        } elseif (is_object($result) && isset($result->error)) {
+            printf(
+                "<p style='color:red'>Bulk error:<pre>%s</pre></p>",
+                json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+            );
         } else {
-            // @todo: signaler une erreur ?
+            printf(
+                "<p style='color:red'>Unknown bulk response:<pre>%s</pre></p>",
+                json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+            );
         }
 
         // Réinitialise le buffer

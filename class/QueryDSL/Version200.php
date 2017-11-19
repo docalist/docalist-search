@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2015 Daniel Ménard
+ * Copyright (C) 2013-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -189,7 +189,7 @@ class Version200 implements QueryDSL
 
         // Construit les arguments de la requête
         $args = [$field => $terms];
-        $parameters && $args += $parameters;
+        !empty($parameters) && $args += $parameters;
 
         // Ok
         return ['terms' => $args];
@@ -427,7 +427,7 @@ class Version200 implements QueryDSL
      */
     protected function checkParameters($queryName, array $parameters, array $accept)
     {
-        if ($parameters && $bad = array_diff(array_keys($parameters), $accept)) {
+        if (!empty($parameters) && $bad = array_diff(array_keys($parameters), $accept)) {
             throw new InvalidArgumentException("Invalid $queryName parameters: " . implode(', ', $bad));
         }
     }

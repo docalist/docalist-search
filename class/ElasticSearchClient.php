@@ -185,7 +185,7 @@ class ElasticSearchClient
 
         // Compresse le corps de la requête
         $body = $data;
-        if ($data && $this->settings->compressrequest()) {
+        if (!empty($body) && $this->settings->compressrequest()) {
             // gzip : RFC 1952 -> il faut utiliser gzencode / gzdecode
             if (false === $body = gzencode($data, 6)) {
                 throw new Exception('Error while gzipping request body');

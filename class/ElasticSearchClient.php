@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -69,7 +69,9 @@ class ElasticSearchClient
                 echo '<pre style="background-color:#E8FFDD;text-align:left">';
                 echo $time, ' ms - ', $header;
                 if ($response) {
-                    echo ' ', $this->prettify($response);
+                    $response = $this->prettify($response);
+                    (php_sapi_name() !== 'cli') && $response = htmlspecialchars($response);
+                    echo ' ', $response;
                 }
                 echo '</pre>';
 
@@ -173,7 +175,12 @@ class ElasticSearchClient
 
         // Mais certaines actions attendent une chaine (_analyze par exemple)
         else {
-            $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+            if (substr($path, -6) === '/_bulk') {
+                $headers[] = 'Content-Type: application/x-ndjson';
+                // charset : pas supporté par ES, forcément UTF-8
+            } else {
+                $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+            }
         }
 
         // Compresse le corps de la requête

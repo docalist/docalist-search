@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -139,7 +139,7 @@ class IndexManager
         $this->log = docalist('logs')->get('indexer');
 
         // Initialise les paramètres du buffer
-        $this->bulkMaxSize = $this->settings->bulkMaxSize() * 1024 * 1024; // en Mo dans la config
+        $this->bulkMaxSize = (int) $this->settings->bulkMaxSize() * 1024 * 1024; // en Mo dans la config
         $this->bulkMaxCount = $this->settings->bulkMaxCount();
 
         // Active l'indexation en temps réel
@@ -195,13 +195,19 @@ class IndexManager
 
         // Génère un message d'erreur si aucun indexeur n'est disponible pour le type indiqué
         if (!isset($this->indexers[$type])) {
-            docalist('admin-notices')->warning("Warning: indexer for type '$type' is not available", 'docalist-search');
+            docalist('admin-notices')->warning(
+                sprintf(__('Warning: indexer for type "%s" is not available', 'docalist-search'), $type),
+                'docalist-search'
+            );
             $this->indexers[$type] = new NullIndexer();
         }
 
         // Génère un message d'erreur si ce n'est pas un Indexer
         if (! $this->indexers[$type] instanceof Indexer) {
-            docalist('admin-notices')->error("Error: invalid indexer for type '$type'", 'docalist-search');
+            docalist('admin-notices')->error(
+                sprintf(__('Error: invalid indexer for type "%s"', 'docalist-search'), $type),
+                'docalist-search'
+            );
             $this->indexers[$type] = new NullIndexer();
         }
 
@@ -301,7 +307,7 @@ class IndexManager
         $settings['settings']['index']['refresh_interval'] = -1;
 
         // Crée le nouvel index
-        $this->checkAcknowledged('creating index', $es->put("/$index", $settings));
+        $this->checkAcknowledged('creating index', $es->put('/' . $index, $settings));
 
         // Crée l'alias "write" (nom de base + suffixe '_write')
         $this->createAlias($base . '_write', $index); // garder synchro avec flush()
@@ -322,7 +328,7 @@ class IndexManager
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
         $this->checkAcknowledged(
             'setting number_of_replicas and refresh_interval',
-            $es->put("/$index/_settings", [
+            $es->put('/' . $index . '/_settings', [
                 'index' => [
                     'number_of_replicas' => $replicas,
                     'refresh_interval' => $refresh
@@ -331,7 +337,7 @@ class IndexManager
         );
 
         // Force un refresh
-        $es->post("/$index/_refresh"); // pas vraiment utile, il y aura un auto refresh au bout x secondes
+        $es->post('/' . $index . '/_refresh'); // pas vraiment utile, il y aura un auto refresh au bout x secondes
 
         // Faut-il appeller force_merge (optimize) ?
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-forcemerge.html
@@ -345,7 +351,7 @@ class IndexManager
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-delete-index.html
         // Remarque : ignore_unavailable=true non nécessaire car on a au moins 1 index (celui qu'on vient de créer)
         do_action('docalist_search_remove_old_indices');
-        $this->checkAcknowledged('deleting old indices', $es->delete("/$base-*,-$index"));
+        $this->checkAcknowledged('deleting old indices', $es->delete('/' . $base . '-*,-' . $index));
 
         // Terminé
         do_action('docalist_search_after_create_index');
@@ -372,7 +378,7 @@ class IndexManager
             ]
         ];
 
-        $this->checkAcknowledged("creating alias $alias", $es->post('/_aliases', $request));
+        $this->checkAcknowledged('creating alias ' . $alias, $es->post('/_aliases', $request));
 
         return $this;
     }
@@ -514,7 +520,7 @@ class IndexManager
 
         // Envoie le buffer à ES
         $alias = $this->settings->index() . '_write'; // garder synchro avec createIndex()
-        $result = docalist('elastic-search')->bulk("/$alias/_bulk", $this->bulk);
+        $result = docalist('elastic-search')->bulk('/' . $alias . '/_bulk', $this->bulk);
         // @todo : permettre un timeout plus long pour les requêtes bulk
         // @todo si erreur, réessayer ? (par exemple avec un timeout plus long)
 
@@ -715,7 +721,7 @@ class IndexManager
         is_null($types) && $types = array_flip($this->settings->types());
 
         if (! isset($types[$type])) {
-            throw new InvalidArgumentException("Type '$type' is not indexed");
+            throw new InvalidArgumentException('Type "' . $type . '" is not indexed');
         }
 
         return $this;
@@ -828,7 +834,7 @@ class IndexManager
         switch ($status) {
             case 404: return 1; // Le serveur répond mais l'index n'existe pas
             case 200: return 2; // Le serveur répond et l'index existe
-            default: throw new RuntimeException("Unknown ping status $status");
+            default: throw new RuntimeException('Unknown ping status "' . $status . '"');
         }
     }
 }

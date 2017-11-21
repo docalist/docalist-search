@@ -513,13 +513,7 @@ class SearchUrl
             'createdby' => 'or',
             'parent' => 'or',
 
-//            'topic-support.filter' => 'and',
-            'topic-discipline-hierarchy' => 'and',
-
             'category' => 'and',
-            'category-hierarchy' => 'and',
-            'geoloc-hierarchy' => 'and',
-
             'tag' => 'and',
         ];
 
@@ -528,6 +522,10 @@ class SearchUrl
         }
 
         if (substr($field, -7) === '.filter') {
+            return 'and';
+        }
+
+        if (substr($field, -10) === '-hierarchy') {
             return 'and';
         }
 

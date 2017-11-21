@@ -226,10 +226,30 @@ class ElasticsearchMappingBuilder implements MappingBuilder
     {
         // https://www.elastic.co/guide/en/elasticsearch/reference/current/string.html
         // https://github.com/elastic/elasticsearch/issues/12394
-        $this->last['type'] = $this->keywordType;
-        $this->last['index'] = 'not_analyzed';
+        if (version_compare($this->esVersion, '5', '<')) {
+            $this->last['type'] = 'string';
+            $this->last['index'] = 'not_analyzed';
+        } else {
+            $this->last['type'] = 'keyword';
+        }
 
         return $this;
+    }
+
+    public function hierarchy($analyzer = 'hierarchy')
+    {
+        // Version 2.x
+        if (version_compare($this->esVersion, '5', '<')) {
+            return $this
+                ->text($analyzer)
+                ->setProperty('search_analyzer', 'keyword');
+        }
+
+        // Versions 5.x, 6.x
+        return $this
+            ->text($analyzer)
+            ->setProperty('fielddata', true)
+            ->setProperty('search_analyzer', 'keyword');
     }
 
     public function literal()

@@ -219,4 +219,14 @@ interface Aggregation
      * @return string
      */
     public function render(array $options = []);
+
+    /**
+     * Indique si l'agrégation est active.
+     *
+     * L'agrégation est active si la requête en cours contient un filtre qui porte sur le champ utilisé par
+     * l'agrégation.
+     *
+     * @return bool
+     */
+    public function isActive();
 }

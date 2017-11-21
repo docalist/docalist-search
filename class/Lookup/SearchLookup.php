@@ -49,7 +49,7 @@ class SearchLookup implements LookupInterface
         ];
 
         // Exécute la requête
-        $response = docalist('elastic-search')->post('/{index}/_search', $query);
+        $response = docalist('elasticsearch')->post('/{index}/_search', $query);
 
         // Retourne les résultats
         return $this->processResponse($response);
@@ -73,7 +73,7 @@ class SearchLookup implements LookupInterface
 
 
         // Exécute la requête
-        $response = docalist('elastic-search')->post('/{index}/_search', $query);
+        $response = docalist('elasticsearch')->post('/{index}/_search', $query);
 
         // Retourne les résultats
         return $this->processResponse($response);

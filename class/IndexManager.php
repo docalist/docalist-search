@@ -285,7 +285,7 @@ class IndexManager
     public function createIndex()
     {
         // Récupère la connexion elastic search
-        $es = docalist('elastic-search'); /** @var ElasticSearchClient $es */
+        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
 
         // Récupère le nom de base de l'index
         $base = $this->settings->index();
@@ -369,7 +369,7 @@ class IndexManager
     protected function createAlias($alias, $index)
     {
         // Récupère la connexion elastic search
-        $es = docalist('elastic-search'); /** @var ElasticSearchClient $es */
+        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
 
         $request = [
             'actions' => [
@@ -520,7 +520,7 @@ class IndexManager
 
         // Envoie le buffer à ES
         $alias = $this->settings->index() . '_write'; // garder synchro avec createIndex()
-        $result = docalist('elastic-search')->bulk('/' . $alias . '/_bulk', $this->bulk);
+        $result = docalist('elasticsearch')->bulk('/' . $alias . '/_bulk', $this->bulk);
         // @todo : permettre un timeout plus long pour les requêtes bulk
         // @todo si erreur, réessayer ? (par exemple avec un timeout plus long)
 
@@ -823,7 +823,7 @@ class IndexManager
     public function ping()
     {
         // Récupère la connexion elastic search
-        $es = docalist('elastic-search'); /** @var ElasticSearchClient $es */
+        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
 
         try {
             $status = $es->head('/{index}');

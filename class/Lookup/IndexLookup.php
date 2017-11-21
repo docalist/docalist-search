@@ -49,7 +49,7 @@ class IndexLookup implements LookupInterface
         ];
 
         // Exécute la requête
-        $result = docalist('elastic-search')->post('/{index}/_search?search_type=count', $query);
+        $result = docalist('elasticsearch')->post('/{index}/_search?search_type=count', $query);
         if (! isset($result->aggregations->lookup->buckets)) {
             return [];
         }
@@ -82,7 +82,7 @@ class IndexLookup implements LookupInterface
         ];
 
         // Exécute la requête
-        $result = docalist('elastic-search')->post('/{index}/_suggest', $query);
+        $result = docalist('elasticsearch')->post('/{index}/_suggest', $query);
 
         // Récupère les suggestions
         if (! isset($result->lookup[0]->options)) {

@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Biblio UserData" plugin.
  *
- * Copyright (C) 2015-2015 Daniel Ménard
+ * Copyright (C) 2015-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -29,7 +29,7 @@ class Version200Test extends WP_UnitTestCase
             echo "\n------------------------------------------------------------------------------\n$json\n";
         }
 
-        $response = docalist('elastic-search')->get('/_validate/query?explain&rewrite=true', $query);
+        $response = docalist('elasticsearch')->get('/_validate/query?explain&rewrite=true', $query);
         if ($debug) {
             $json = json_encode($response, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             echo $json, "\n";

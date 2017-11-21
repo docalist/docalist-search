@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -125,7 +125,7 @@ class SettingsPage extends AdminPage
          }
 
         // Stocke le numéro de version de elasticsearch
-         $version = docalist('elastic-search')->getVersion();
+         $version = docalist('elasticsearch')->getVersion();
          if (is_null($version)) {
              throw new InvalidArgumentException(
                  __("Impossible d'obtenir la version de elasticsearch, verifiez l'url indiquée.", 'docalist-search')
@@ -273,7 +273,7 @@ class SettingsPage extends AdminPage
             }
 
             // 2. ES répond et l'index existe, vérifie que l'index n'est pas vide
-            $response = docalist('elastic-search')->get('/{index}/_count');
+            $response = docalist('elasticsearch')->get('/{index}/_count');
             if (!isset($response->count) || $response->count === 0) {
                 $msg = __('Lancez une <a href="%s">réindexation manuelle</a> de vos contenus.', 'docalist-search');
                 $msg = sprintf($msg, esc_url($this->url('Reindex')));
@@ -307,7 +307,7 @@ class SettingsPage extends AdminPage
     {
         // On fait une recherche * en demandant une agrégation sur le champ spécial _field_names
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-field-names-field.html
-        $response = docalist('elastic-search')->get('/{index}/_search', [
+        $response = docalist('elasticsearch')->get('/{index}/_search', [
             'size' => 0,
             'aggs' => [
                 'fields' => [ // Nom de l'agrégation générée
@@ -335,7 +335,7 @@ class SettingsPage extends AdminPage
 
     public function actionFieldData($query = '*')
     {
-        $response = docalist('elastic-search')->get('/{index}/_search', [
+        $response = docalist('elasticsearch')->get('/{index}/_search', [
             'query' => [
                 'query_string' => [
                     'query' => $query,

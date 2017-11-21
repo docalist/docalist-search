@@ -105,11 +105,11 @@ return [
             ],
 
             'filter' => [
-                'lowercase',    // Convertit le texte en minuscules
-                'fr-elision',   // Supprime les élisions (c', d', l'...)
-                'fr-stop',      // Supprime les mots-vides
-                'asciifolding', // Supprime les accents
-                'fr-stem-light', // Stemming léger
+                'lowercase',        // Convertit le texte en minuscules
+                'fr-elision',       // Supprime les élisions (c', d', l'...)
+                'fr-stop',          // Supprime les mots-vides
+                'fr-stem-minimal',  // Stemming minimal
+                'asciifolding',     // Supprime les accents (important : apprès le stemming, teste les accents)
             ],
 
             'tokenizer' => 'standard',

@@ -98,7 +98,7 @@ trait AggregationsTrait
         }
 
         // Bad call
-        throw InvalidArgumentException('addAggregation : paramètres incorrect');
+        throw new InvalidArgumentException('addAggregation : paramètres incorrect');
     }
 
     protected function addAggregationObject(Aggregation $aggregation)

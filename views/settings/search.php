@@ -2,7 +2,7 @@
 /**
  * This file is part of the 'Docalist Search' plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -26,7 +26,6 @@ use Docalist\Forms\Form;
  */
 ?>
 <div class="wrap">
-    <?= screen_icon() ?>
     <h1><?= __("Paramètres du moteur de recherche.", 'docalist-search') ?></h1>
 
     <p class="description"><?php
@@ -61,9 +60,10 @@ use Docalist\Forms\Form;
  *
  * @return array Un tableau de la forme PageID => PageTitle
  */
-function pagesList() {
+function pagesList()
+{
     $pages = ['…'];
-    foreach(get_pages() as $page) { /** @var \WP_Post $page */
+    foreach (get_pages() as $page) { /** @var \WP_Post $page */
         $pages[$page->ID] = str_repeat('   ', count($page->ancestors)) . $page->post_title;
     }
 

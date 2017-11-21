@@ -42,7 +42,9 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         $options['bucket.tag']  = 'li';             // Tag à utiliser pour les buckets
         $options['bucket.css']  = false;            // Génère ou non un attribut "class" pour chaque bucket
         $options['bucket.label.tag']  = 'span';     // Tag à utiliser pour le libellé des buckets  (vide : pas de tag)
+        $options['bucket.label.css']  = '';     // Css pour le libellé
         $options['bucket.count.tag']  = 'em';       // Tag à utiliser pour le count des buckets (vide : pas de count)
+        $options['bucket.count.css']  = '';       // Css pour le count
 
         return $options;
     }
@@ -98,7 +100,8 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         // Génère les buckets enfants de ce bucket (s'il s'agit d'une hiérarchie)
         if (!empty($bucket->children) && $children = $this->renderBuckets($bucket->children)) {
             $tag = $this->options['content.tag'];
-            $result .= $this->renderTag($tag, [], $children);
+            $class = $this->options['content.css'];
+            $result .= $this->renderTag($tag, $class ? ['class' => $class] : [], $children);
         }
 
         // Génère les attributs du bucket
@@ -107,8 +110,10 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         $searchUrl = $this->getSearchRequest()->getSearchUrl();
 
         $attributes = [];
-        $class = $this->options['bucket.css'] ? $this->getBucketClass($bucket) : '';
-        $searchUrl->hasFilter($field, $filter) && $class = ltrim($class . ' filter-active');
+        $class = $this->options['bucket.css'];// ? $this->getBucketClass($bucket) : '';
+        ($class === false) && $class = '';
+        ($class === true) && $class = $this->getBucketClass($bucket);
+        $searchUrl && $searchUrl->hasFilter($field, $filter) && $class = ltrim($class . ' filter-active');
         $class && $attributes['class'] = $class;
         if ($this->options['data']) {
             $attributes['data-bucket'] = $bucket->key;
@@ -129,9 +134,10 @@ abstract class MultiBucketsAggregation extends BucketAggregation
     protected function renderBucketLabel(stdClass $bucket)
     {
         $tag = $this->options['bucket.label.tag'];
+        $css = $this->options['bucket.label.css'];
         $label = $this->getBucketLabel($bucket);
 
-        return $tag ? $this->renderTag($tag, [], $label) : $label;
+        return $tag ? $this->renderTag($tag, $css ? ['class' => $css] : [], $label) : $label;
     }
 
     /**
@@ -144,8 +150,9 @@ abstract class MultiBucketsAggregation extends BucketAggregation
     protected function renderBucketCount(stdClass $bucket)
     {
         $tag = $this->options['bucket.count.tag'];
+        $css = $this->options['bucket.count.css'];
 
-        return $tag ? $this->renderTag($tag, [], $bucket->doc_count) : '';
+        return $tag ? $this->renderTag($tag, $css ? ['class' => $css] : [], $bucket->doc_count) : '';
     }
 
     /**
@@ -162,9 +169,12 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         $field = $this->getParameter('field');
         $filter = $this->getBucketFilter($bucket);
         $searchUrl = $this->getSearchRequest()->getSearchUrl();
-        $url = $searchUrl->toggleFilter($field, $filter);
+        if ($searchUrl) {
+            $url = $searchUrl->toggleFilter($field, $filter);
 
-        return $this->renderTag('a', ['href' => $url], $content);
+            return $this->renderTag('a', ['href' => $url], $content);
+        }
+        return $this->renderTag('span', [], $content);
     }
 
     /**

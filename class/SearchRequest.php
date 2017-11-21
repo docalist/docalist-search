@@ -148,7 +148,7 @@ class SearchRequest
         $url = '/{index}/_search' . $this->getExecuteOptions($options);
 
         // Exécute la requête
-        $data = docalist('elastic-search')->get($url, $request);
+        $data = docalist('elasticsearch')->get($url, $request);
         if (isset($data->error)) {
             $this->hasErrors = true;
 
@@ -239,5 +239,74 @@ class SearchRequest
     public function hasErrors()
     {
         return $this->hasErrors;
+    }
+
+    /**
+     * Indique si la requête est valide.
+     *
+     * La méthode utilise l'API validate de Elasticsearch et retourne un booléen qui indique si la requête est
+     * valide ou non.
+     *
+     * Si vous passez un paramètre, vous obtenez une explication supplémentaire :
+     *
+     * - si la requête est invalide : le message d'erreur de l'exception Elasticsearch qui indique pourquoi la
+     *   requête a échoué.
+     * - si la requête est valide : une simili équation de recherche qui indique précisément comment
+     *   Elasticsearch a compris la requête (tokens recherchés, combinatoire, etc.)
+     *
+     * @param string $explanation
+     *
+     * @return bool
+     */
+    public function validate(& $explanation = '')
+    {
+        // Construit la requête
+        $request = [];
+        $this->buildQueryClause($request);
+
+        // Construit l'url
+        $url = '/{index}/_validate/query?explain=true&rewrite=true';
+
+        // Exécute la requête
+        $response = docalist('elasticsearch')->get($url, $request);
+
+        // Normalement on a toujours le champ "explanations"
+        if (! (isset($response->explanations) || empty($response->explanations))) {
+            $explanation = json_encode(
+                $response,
+                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_PRETTY_PRINT
+            );
+
+            return false;
+        }
+
+        // Récupère la première explication donnée (on en a une seule car on n'a pas mis "&all_shards=true")
+        $explanation = reset($response->explanations);
+
+        // Cas d'une requête valide
+        if (isset($explanation->valid) && $explanation->valid === true) {
+            $explanation = $this->formatExplanation($explanation->explanation);
+
+            return true;
+        }
+
+        // Cas d'une requête invalide
+        $explanation = $explanation->error;
+
+        return false;
+    }
+
+    /**
+     * Formatte et indente l'équation de recherche fournie par validate().
+     *
+     * No-op pour le moment / non implémenté.
+     *
+     * @param string $explanation
+     *
+     * @return string
+     */
+    protected function formatExplanation($explanation)
+    {
+        return $explanation;
     }
 }

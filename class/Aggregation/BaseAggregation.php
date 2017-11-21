@@ -82,6 +82,7 @@ abstract class BaseAggregation implements Aggregation
      */
     public function __construct(array $parameters = [], array $options = [])
     {
+        $this->setName(uniqid());
         $this->parameters = $parameters;
         $this->options = $this->getDefaultOptions();
         !empty($options) && $this->setOptions($options);
@@ -101,7 +102,7 @@ abstract class BaseAggregation implements Aggregation
 
     public function getName()
     {
-        return $this->name ?: get_class($this);
+        return $this->name;
     }
 
     public function setParameters(array $parameters)
@@ -319,16 +320,15 @@ abstract class BaseAggregation implements Aggregation
     {
         // Initialise les variables dont on a besoin
         $field = $this->getParameter('field');
-        $searchUrl = $this->getSearchRequest()->getSearchUrl();
         $attributes = [];
 
         // Détermine les classes css à appliquer au container
         $attributes['class'] = trim(sprintf(
             '%s %s %s %s',
-            $this->options['container.css'],                  // Classes css indiquées dans les options
-            $this->getType(),                                       // Type de la facette (e.g. "terms")
-            strtr($field, '.', '-'),                                // Champ sur lequel porte l'agrégation
-            $searchUrl->hasFilter($field) ? 'facet-active' : ''     // "facet-active" si l'une des valeurs est filtrée
+            $this->options['container.css'],            // Classes css indiquées dans les options
+            $this->getType(),                           // Type de la facette (e.g. "terms")
+            strtr($field, '.', '-'),                    // Champ sur lequel porte l'agrégation
+            $this->isActive() ? 'facet-active' : ''     // "facet-active" si l'une des valeurs est filtrée
         ));
 
         // Génère un attribut 'title' si on a une option 'container.tooltip'
@@ -343,6 +343,26 @@ abstract class BaseAggregation implements Aggregation
 
         // Retourne les attributs
         return $attributes;
+    }
+
+    public function isActive()
+    {
+        $field = $this->getParameter('field');
+        if (is_null($field)) {
+            return false;
+        }
+
+        $request = $this->getSearchRequest();
+        if (is_null($request)) {
+            return false;
+        }
+
+        $searchUrl = $request->getSearchUrl();
+        if (is_null($searchUrl)) {
+            return false;
+        }
+
+        return $searchUrl->hasFilter($field);
     }
 
     /**

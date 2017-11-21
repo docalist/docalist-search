@@ -50,12 +50,5 @@ return [
             require __DIR__ . '/language/fr.php',
             require __DIR__ . '/language/it.php'
         ),
-
-        /*
-         * Mappings
-         *
-         * @see https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping.html
-         */
-        'mappings' => [],
     ],
 ];

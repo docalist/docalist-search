@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2017 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -100,7 +100,7 @@ class Settings extends TypeSettings
                         'docalist-search'),
                         'https://www.elastic.co/guide/en/elasticsearch/guide/master/shard-scale.html'
                     ),
-                    'default' => 3,
+                    'default' => 1,
                 ],
                 'replicas' => [
                     'type' => 'Docalist\Type\Integer',

@@ -52,8 +52,12 @@ class Plugin
 
         // Services fournis pas ce plugin
         docalist('services')->add([
-            'elastic-search' => function () { // TODO : enlever le tiret
+            'elasticsearch' => function () {
                 return new ElasticSearchClient($this->settings);
+            },
+            'elastic-search' => function () {
+                _deprecated_hook('Le service "elastic-search"', '0.12', 'le service "elasticsearch"', '(sans tiret)');
+                return docalist('elasticsearch');
             },
             'elasticsearch-query-dsl' => function () {
                 $version = $this->settings->esversion();

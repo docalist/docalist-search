@@ -830,7 +830,7 @@ class IndexManager
         } catch (Exception $e) {
             return 0;   // Le serveur ne répond pas
         }
-
+return 2;
         switch ($status) {
             case 404: return 1; // Le serveur répond mais l'index n'existe pas
             case 200: return 2; // Le serveur répond et l'index existe

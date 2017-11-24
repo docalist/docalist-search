@@ -263,7 +263,7 @@ class SettingsPage extends AdminPage
             // 1. ES répond mais l'index n'existe pas encore
             if ($ping === 1) {
                 $msg = __('Vérifiez les <a href="%s">paramètres de l\'indexeur</a>.', 'docalist-search');
-                $msg = sprintf($msg, esc_url($this->url('IndexerSettings')));
+                $msg = sprintf($msg, esc_url($this->url('ServerSettings')));
 
                 return $this->view('docalist-core:error', [
                     'h2' => __('Paramètres de recherche', 'docalist-biblio'),

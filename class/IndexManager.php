@@ -826,7 +826,7 @@ class IndexManager
         $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
 
         try {
-            $status = $es->head('/{index}');
+            $status = $es->get('/{index}');
         } catch (Exception $e) {
             return 0;   // Le serveur ne répond pas
         }

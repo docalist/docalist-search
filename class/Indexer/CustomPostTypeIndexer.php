@@ -132,6 +132,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
 
         $mapping->addField('in')->keyword();
         $mapping->addField('type')->keyword();
+        $mapping->addField('type-label')->text()->filter();
         $mapping->addField('status')->keyword();
         $mapping->addField('slug')->text();
         $mapping->addField('createdby')->keyword();
@@ -295,6 +296,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
 
         // Type
         $document['type'] = $this->getType();
+        $document['type-label'] = $this->getLabel();
 
         // Statut
         $document['status'] = $post->post_status;

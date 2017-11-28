@@ -60,6 +60,11 @@ class SettingsPage extends AdminPage
         });
     }
 
+    protected function getDefaultAction()
+    {
+        return 'Index';
+    }
+
     /**
      * Page d'accueil (menu) des réglages Docalist-Search.
      *
@@ -313,7 +318,7 @@ class SettingsPage extends AdminPage
                 'fields' => [ // Nom de l'agrégation générée
                     'terms' => [
                         'field' => '_field_names',
-                        'size' => 0, // 0 = pas de limit (INT_MAX)
+                        'size' => 1000,
                         'order' => [ '_term' => 'asc' ],
                     ],
                 ],

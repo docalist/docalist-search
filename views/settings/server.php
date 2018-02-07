@@ -30,7 +30,7 @@ use Docalist\Forms\Form;
     <?php
         $form = new Form();
 
-        $form->tag('h2.title', __('Cluster Elasticsearch', 'docalist-biblio'));
+        $form->tag('h2.title', __('Cluster Elasticsearch', 'docalist-search'));
         $description = sprintf(
             __(
                 'Pour fonctionner, Docalist Search doit pouvoir accéder à un cluster <a href="%1$s">Elasticsearch</a>
@@ -54,7 +54,7 @@ use Docalist\Forms\Form;
         $form->input('replicas')->setAttribute('type', 'number')->addClass('small-text');
 
 
-        $form->tag('h2.title', __("Délai d'attente", 'docalist-biblio'));
+        $form->tag('h2.title', __("Délai d'attente", 'docalist-search'));
         $description = __(
             "Les options ci-dessous permettent de fixer une limite sur le temps de réponse de votre cluster
              Elasticsearch. En général, les options par défaut conviennent mais si vous utilisez un service
@@ -66,7 +66,7 @@ use Docalist\Forms\Form;
         $form->input('timeout')->setAttribute('type', 'number')->addClass('small-text');
 
 
-        $form->tag('h2.title', __('Compression du trafic réseau', 'docalist-biblio'));
+        $form->tag('h2.title', __('Compression du trafic réseau', 'docalist-search'));
         $description = __(
             "Les requêtes adressées au cluster Elasticsearch et les réponses retournées peuvent parfois être
              volumineuses. Si vous utilisez un cluster Elasticsearch distant, les options ci-dessous vous permettent
@@ -80,7 +80,7 @@ use Docalist\Forms\Form;
         $form->checkbox('compressresponse');
 
 
-        $form->tag('h2.title', __("Buffer d'indexation", 'docalist-biblio'));
+        $form->tag('h2.title', __("Buffer d'indexation", 'docalist-search'));
         $description = __(
             "Lorsque vous créez ou que vous modifiez des documents Docalist Search utilise un buffer d'indexation dans
              lequel il stocke les documents à mettre à jour et à supprimer.

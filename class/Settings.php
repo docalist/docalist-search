@@ -54,7 +54,7 @@ class Settings extends TypeSettings
                  * Paramètres serveur
                  */
                 'url' => [
-                    'type' => 'Docalist\Type\Text',
+                    'type' => Text::class,
                     'label' => __('Url du cluster Elasticsearch', 'docalist-search'),
                     'description' => __(
                         "Adresse complète de votre cluster Elasticsearch (exemple : <code>http://127.0.0.1:9200</code>).
@@ -68,7 +68,7 @@ class Settings extends TypeSettings
                     'default' => 'http://127.0.0.1:9200',
                 ],
                 'esversion' => [
-                    'type' => 'Docalist\Type\Text',
+                    'type' => Text::class,
                     'label' => __("Version de Elasticsearch", 'docalist-search'),
                     'description' => __(
                         "Numéro de version retourné par votre cluster Elasticsearch lorsque vos paramètres ont été
@@ -79,7 +79,7 @@ class Settings extends TypeSettings
                     'default' => '0.0.0',
                 ],
                 'index' => [
-                    'type' => 'Docalist\Type\Text',
+                    'type' => Text::class,
                     'label' => __("Nom de base de l'index", 'docalist-search'),
                     'description' => __(
                         "Préfixe qui sera utilisé pour déterminer le nom des index et des alias Elasticsearch
@@ -90,7 +90,7 @@ class Settings extends TypeSettings
                     'default' => $defaultIndex,
                 ],
                 'shards' => [
-                    'type' => 'Docalist\Type\Integer',
+                    'type' => Integer::class,
                     'label' => __('Nombre de shards', 'docalist-search'),
                     'description' => sprintf(
                         __(
@@ -105,7 +105,7 @@ class Settings extends TypeSettings
                     'default' => 1,
                 ],
                 'replicas' => [
-                    'type' => 'Docalist\Type\Integer',
+                    'type' => Integer::class,
                     'label' => __('Nombre de réplicas', 'docalist-search'),
                     'description' => sprintf(
                         __(
@@ -123,7 +123,7 @@ class Settings extends TypeSettings
                     'default' => 0,
                 ],
                 'connecttimeout' => [
-                    'type' => 'Docalist\Type\Integer',
+                    'type' => Integer::class,
                     'label' => __('Timeout de connexion', 'docalist-search'),
                     'description' => __(
                         "En secondes. Si la connexion avec le cluster Elasticsearch n'est pas établie au bout
@@ -133,7 +133,7 @@ class Settings extends TypeSettings
                     'default' => 1,
                 ],
                 'timeout' => [
-                    'type' => 'Docalist\Type\Integer',
+                    'type' => Integer::class,
                     'label' => __('Timeout des requêtes', 'docalist-search'),
                     'description' => __(
                         "En secondes. Si le serveur Elasticsearch n'a pas répondu au bout du nombre
@@ -143,7 +143,7 @@ class Settings extends TypeSettings
                     'default' => 10,
                 ],
                 'compressrequest' => [
-                    'type' => 'Docalist\Type\Boolean',
+                    'type' => Boolean::class,
                     'label' => __('Compresser les requêtes', 'docalist-search'),
                     'description' => __(
                         "Compresse les requêtes envoyées au serveur. N'activez cette option que si votre serveur
@@ -153,7 +153,7 @@ class Settings extends TypeSettings
                     'default' => false,
                 ],
                 'compressresponse' => [
-                    'type' => 'Docalist\Type\Boolean',
+                    'type' => Boolean::class,
                     'label' => __('Compresser les réponses', 'docalist-search'),
                     'description' => sprintf(
                         __(
@@ -171,11 +171,12 @@ class Settings extends TypeSettings
                  * Paramètres d'indexation
                  */
                 'types' => [
-                    'type' => 'Docalist\Type\Text*',
+                    'type' => Text::class,
+                    'repeatable' => true,
                     'label' => __('Contenus à indexer', 'docalist-search'),
                 ],
                 'bulkMaxSize' => [
-                    'type' => 'Docalist\Type\Integer',
+                    'type' => Integer::class,
                     'label' => __('Taille maximale du buffer', 'docalist-search'),
                     'description' => __(
                         'En méga-octets. Le buffer est vidé si la taille totale des documents en attente
@@ -185,7 +186,7 @@ class Settings extends TypeSettings
                     'default' => 10,
                 ],
                 'bulkMaxCount' => [
-                    'type' => 'Docalist\Type\Integer',
+                    'type' => Integer::class,
                     'label' => __('Nombre maximum de documents', 'docalist-search'),
                     'description' => __(
                         'Le buffer est vidé si le nombre de documents en attente dépasse ce nombre.',
@@ -194,7 +195,7 @@ class Settings extends TypeSettings
                     'default' => 10000,
                 ],
                 'realtime' => [
-                    'type' => 'Docalist\Type\Boolean',
+                    'type' => Boolean::class,
                     'label' => __('Indexation en temps réel', 'docalist-search'),
                     'description' => __(
                         'Réindexer automatiquement les contenus créés ou modifiés et retirer les
@@ -208,7 +209,7 @@ class Settings extends TypeSettings
                  * Paramètres généraux
                  */
                 'searchpage' => [
-                    'type' => 'Docalist\Type\Integer',
+                    'type' => Integer::class,
                     'label' => __('Page liste des réponses', 'docalist-search'),
                     'description' => __(
                         'Page WordPress sur laquelle sont affichées les réponses obtenues.',
@@ -216,7 +217,7 @@ class Settings extends TypeSettings
                     ),
                 ],
                 'enabled' => [
-                    'type' => 'Docalist\Type\Boolean',
+                    'type' => Boolean::class,
                     'label' => __('Recherche Docalist Search', 'docalist-search'),
                     'description' => __('Activer la recherche Docalist Search.', 'docalist-search'),
                     'default' => false,

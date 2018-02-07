@@ -16,6 +16,17 @@ namespace Docalist\Search\Tests\Mapping\Field;
 use WP_UnitTestCase;
 use Docalist\Search\Mapping\Field;
 use Docalist\Search\Mapping\Field\Object;
+use Docalist\Search\Mapping\Field\Binary;
+use Docalist\Search\Mapping\Field\Boolean;
+use Docalist\Search\Mapping\Field\Date;
+use Docalist\Search\Mapping\Field\Decimal;
+use Docalist\Search\Mapping\Field\Geopoint;
+use Docalist\Search\Mapping\Field\Geoshape;
+use Docalist\Search\Mapping\Field\Integer;
+use Docalist\Search\Mapping\Field\IP;
+use Docalist\Search\Mapping\Field\Keyword;
+use Docalist\Search\Mapping\Field\Nested;
+use Docalist\Search\Mapping\Field\Text;
 
 class ObjectTest extends WP_UnitTestCase
 {
@@ -70,18 +81,18 @@ class ObjectTest extends WP_UnitTestCase
     {
         // méthode => classe
         return [
-            ['binary', 'Docalist\Search\Mapping\Field\Binary'],
-            ['boolean', 'Docalist\Search\Mapping\Field\Boolean'],
-            ['date', 'Docalist\Search\Mapping\Field\Date'],
-            ['decimal', 'Docalist\Search\Mapping\Field\Decimal'],
-            ['geopoint', 'Docalist\Search\Mapping\Field\Geopoint'],
-            ['geoshape', 'Docalist\Search\Mapping\Field\Geoshape'],
-            ['integer', 'Docalist\Search\Mapping\Field\Integer'],
-            ['ip', 'Docalist\Search\Mapping\Field\IP'],
-            ['keyword', 'Docalist\Search\Mapping\Field\Keyword'],
-            ['nested', 'Docalist\Search\Mapping\Field\Nested'],
-            ['object', 'Docalist\Search\Mapping\Field\Object'],
-            ['text', 'Docalist\Search\Mapping\Field\Text'],
+            ['binary',   Binary::class],
+            ['boolean',  Boolean::class],
+            ['date',     Date::class],
+            ['decimal',  Decimal::class],
+            ['geopoint', Geopoint::class],
+            ['geoshape', Geoshape::class],
+            ['integer',  Integer::class],
+            ['ip',       IP::class],
+            ['keyword',  Keyword::class],
+            ['nested',   Nested::class],
+            ['object',   Object::class],
+            ['text',     Text::class],
         ];
     }
 

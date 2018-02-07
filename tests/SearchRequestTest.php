@@ -16,6 +16,7 @@ namespace Docalist\Tests\SearchRequestTest;
 use WP_UnitTestCase;
 use Docalist\Search\SearchRequest;
 use Docalist\Search\QueryDSL\Version200 as DSL;
+use Docalist\Search\SearchResponse;
 
 class SearchRequestTest extends WP_UnitTestCase
 {
@@ -472,7 +473,7 @@ class SearchRequestTest extends WP_UnitTestCase
         $search->setSort(['creation' => ['order' => 'asc'], 'lastupdate' => ['order' => 'asc']]);
 
         $results = $search->execute();
-        $this->assertInstanceOf('Docalist\Search\SearchResponse', $results);
+        $this->assertInstanceOf(SearchResponse::class, $results);
         $this->assertFalse($search->hasErrors());
 
         $search = new SearchRequest();

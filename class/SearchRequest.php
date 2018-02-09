@@ -22,6 +22,7 @@ use Docalist\Search\SearchRequest\SourceTrait;
 use Docalist\Search\SearchRequest\SearchUrlTrait;
 use Docalist\Search\SearchRequest\AggregationsTrait;
 use Docalist\Search\SearchRequest\EquationTrait;
+use Docalist\Search\Aggregation;
 
 /**
  * Une requête de recherche adressée à ElasticSearch.

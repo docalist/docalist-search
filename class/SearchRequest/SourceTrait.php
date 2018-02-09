@@ -13,6 +13,8 @@
  */
 namespace Docalist\Search\SearchRequest;
 
+use InvalidArgumentException;
+
 /**
  * Contrôle les champs qui seront retournés pour chacun des hits obtenus.
  */

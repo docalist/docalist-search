@@ -50,7 +50,7 @@ class SettingsPage extends AdminPage
         add_filter($filter, function ($actions) {
             $action = sprintf(
                     '<a href="%s" title="%s">%s</a>',
-                    esc_attr($this->url()),
+                    esc_attr($this->getUrl()),
                     $this->menuTitle(),
                     __('Réglages', 'docalist-biblio')
             );
@@ -105,7 +105,7 @@ class SettingsPage extends AdminPage
 
                 $this->settings->save();
 
-                return $this->redirect($this->url('Index'), 303);
+                return $this->redirect($this->getUrl('Index'), 303);
             } catch (Exception $e) {
                 docalist('admin-notices')->error($e->getMessage(), __('Erreur dans vos paramètres', 'docalist-search'));
             }
@@ -256,7 +256,7 @@ class SettingsPage extends AdminPage
             // 0. ES ne répond pas
             if ($ping === 0) {
                 $msg = __('Vérifiez les <a href="%s">paramètres du serveur</a>.', 'docalist-search');
-                $msg = sprintf($msg, esc_url($this->url('ServerSettings')));
+                $msg = sprintf($msg, esc_url($this->getUrl('ServerSettings')));
 
                 return $this->view('docalist-core:error', [
                     'h2' => __('Paramètres de recherche', 'docalist-biblio'),
@@ -268,7 +268,7 @@ class SettingsPage extends AdminPage
             // 1. ES répond mais l'index n'existe pas encore
             if ($ping === 1) {
                 $msg = __('Vérifiez les <a href="%s">paramètres de l\'indexeur</a>.', 'docalist-search');
-                $msg = sprintf($msg, esc_url($this->url('ServerSettings')));
+                $msg = sprintf($msg, esc_url($this->getUrl('ServerSettings')));
 
                 return $this->view('docalist-core:error', [
                     'h2' => __('Paramètres de recherche', 'docalist-biblio'),
@@ -281,7 +281,7 @@ class SettingsPage extends AdminPage
             $response = docalist('elasticsearch')->get('/{index}/_count');
             if (!isset($response->count) || $response->count === 0) {
                 $msg = __('Lancez une <a href="%s">réindexation manuelle</a> de vos contenus.', 'docalist-search');
-                $msg = sprintf($msg, esc_url($this->url('Reindex')));
+                $msg = sprintf($msg, esc_url($this->getUrl('Reindex')));
 
                 return $this->view('docalist-core:error', [
                     'h2' => __('Paramètres de recherche', 'docalist-biblio'),
@@ -299,7 +299,7 @@ class SettingsPage extends AdminPage
             // $settings->validate();
             $this->settings->save();
 
-            return $this->redirect($this->url('Index'), 303);
+            return $this->redirect($this->getUrl('Index'), 303);
         }
 
         return $this->view('docalist-search:settings/search', [

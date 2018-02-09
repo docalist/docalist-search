@@ -33,7 +33,7 @@ use Docalist\Search\SettingsPage;
     ?></p>
 
     <h2>
-        <a href="<?= esc_url($this->url('ServerSettings')) ?>">
+        <a href="<?= esc_url($this->getUrl('ServerSettings')) ?>">
             <?= __('Paramètres Docalist-Search', 'docalist-search') ?>
         </a>
     </h2>
@@ -47,7 +47,7 @@ use Docalist\Search\SettingsPage;
 
 
     <h2>
-        <a href="<?= esc_url($this->url('CreateIndex')) ?>">
+        <a href="<?= esc_url($this->getUrl('CreateIndex')) ?>">
             <?= __("Créer l'index de recherche", 'docalist-search') ?>
         </a>
     </h2>
@@ -57,7 +57,7 @@ use Docalist\Search\SettingsPage;
 
 
     <h2>
-        <a href="<?= esc_url($this->url('SearchSettings')) ?>">
+        <a href="<?= esc_url($this->getUrl('SearchSettings')) ?>">
             <?= __("Paramètres du moteur de recherche", 'docalist-search') ?>
         </a>
     </h2>
@@ -71,7 +71,7 @@ use Docalist\Search\SettingsPage;
 
     <ul class="ul-square">
         <li>
-            <a href="<?= esc_url($this->url('FieldData')) ?>">
+            <a href="<?= esc_url($this->getUrl('FieldData')) ?>">
                 <?= __("FieldData : affiche le contenu exact des documents stockés dans l'index", 'docalist-search') ?>
             </a>
         </li>
@@ -80,7 +80,7 @@ use Docalist\Search\SettingsPage;
 
 <?php /*
     <h2>
-        <a href="<?= esc_url($this->url('ServerStatus')) ?>">
+        <a href="<?= esc_url($this->getUrl('ServerStatus')) ?>">
             <?= __("Statut", 'docalist-search') ?>
         </a>
     </h2>

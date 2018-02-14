@@ -347,14 +347,56 @@ class IndexManager
         $this->createAlias($base, $index);
 
         // Supprime tous les anciens index
-        // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/multi-index.html
-        // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-delete-index.html
-        // Remarque : ignore_unavailable=true non nécessaire car on a au moins 1 index (celui qu'on vient de créer)
         do_action('docalist_search_remove_old_indices');
-        $this->checkAcknowledged('deleting old indices', $es->delete('/' . $base . '-*,-' . $index));
+        $this->deleteOldIndices($base, $index);
 
         // Terminé
         do_action('docalist_search_after_create_index');
+    }
+
+    /**
+     * Supprime tous les index de la forme $baseName-* sauf celui indiqué dans $indexToKeep.
+     *
+     * @param string $baseName Nom de base des index à supprimer (un tiret de fin est ajouté automatiquement).
+     * @param string $indexToKeep Index à conserver.
+     */
+    protected function deleteOldIndices($baseName, $indexToKeep)
+    {
+        // Récupère la connexion elastic search
+        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
+
+        // Récupère la liste de tous les index qui existent
+        // Au lieu d'utiliser le endpoint _settings qui renvoie trop d'informations, on utilise /_alias
+        // qui nous retourne la liste des index et pour chaque index la liste de ses alias.
+        $indices = $es->get('/_alias/');
+
+        // Détermine la liste des index à supprimer
+        $delete = [];
+        $baseName .= '-'; // les alias sont de la forme basename-datetime
+        foreach($indices as $index => $aliases) {
+            // Si c'est l'index qu'on veut garder, continue
+            if ($index === $indexToKeep) {
+                continue;
+            }
+
+            // Si ce n'est pas un de nos index, continue
+            if (0 !== strncmp($index, $baseName, strlen($baseName))) {
+                continue;
+            }
+
+            // Ok, c'est un index à supprimer
+            $delete[] = $index;
+        }
+
+        // S'il n'y a aucun index à supprimer, terminé
+        if (empty($delete)) {
+            return;
+        }
+
+        // Supprime tous les index trouvés
+        // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/multi-index.html
+        // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-delete-index.html
+        $this->checkAcknowledged('deleting old indices', $es->delete('/' . implode(',', $delete)));
     }
 
     /**

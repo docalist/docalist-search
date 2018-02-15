@@ -241,6 +241,20 @@ class ElasticSearchClient
             throw new Exception('ElasticSearch error: ' . curl_error($curl));
         }
 
+        // En mode DEBUG, détecte et signale les Warnings retournés par Elasticsearch dans les entêtes
+        if (defined('WP_DEBUG') && WP_DEBUG && false !== $start = strpos($response, "\r\nWarning:")) {
+            $start += 10;
+            $end = strpos($response, "\r\n", $start);
+            $warning = substr($response, $start, $end - $start);
+            // Les warnings sont de la forme : code elasticsearch-version "message" "date", extrait le message
+            if (false !== $start = strpos($warning, '"')) {
+                ++$start;
+                $end = strpos($warning, '"', $start);
+                $warning = substr($warning, $start, $end - $start);
+            }
+            echo '<pre style="color:#C00">Elasticsearch Warning: ', $warning, '</pre>';
+        }
+
         // Ignore les entêtes de la réponse
         $response = substr($response, curl_getinfo($curl, CURLINFO_HEADER_SIZE));
 

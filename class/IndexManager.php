@@ -373,7 +373,7 @@ class IndexManager
         // Détermine la liste des index à supprimer
         $delete = [];
         $baseName .= '-'; // les alias sont de la forme basename-datetime
-        foreach($indices as $index => $aliases) {
+        foreach ($indices as $index => $aliases) {
             // Si c'est l'index qu'on veut garder, continue
             if ($index === $indexToKeep) {
                 continue;
@@ -499,8 +499,7 @@ class IndexManager
         $this->log && $this->log->info('delete({type},{id})', [
             'type' => $type,
             '_type' => $esType,
-            'id' => $id]
-        );
+            'id' => $id]);
 
         // Flushe le buffer si nécessaire
         $this->maybeFlush();
@@ -606,7 +605,6 @@ class IndexManager
                         json_encode($item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
                     );
                     $this->log && $this->log->error('Unknown bulk response type', ['item' => $item]);
-
                 }
             }
         } elseif (is_object($result) && isset($result->error)) {
@@ -801,19 +799,19 @@ class IndexManager
                 'nbindex' => 0,     // nombre de fois où la méthode index() a été appellée
                 'nbdelete' => 0,    // nombre de fois où la méthode delete() a été appellée
 
-                'totalsize' => 0,   // Taille totale des docs passés à la méthode index(), tels que stockés dans le buffer (tout compris)
+                'totalsize' => 0,   // Taille totale des docs passés à la méthode index(), tout compris
                 'minsize' => 0,     // Taille du plus petit document indexé
-                'avgsize' => 0,     // Taille moyenne des docs passés à la méthode index(), tels que stockés dans le buffer (=totalsize / indexed)
+                'avgsize' => 0,     // Taille moyenne des docs passés à la méthode index() : totalsize / indexed
                 'maxsize' => 0,     // Taille du plus grand document indexé
 
-                'indexed' => 0,     // Nombre de docs que ES a effectivement indexé, suite à une commande index() (= added + updated)
-                'deleted' => 0,     // Nombre de docs que ES a effectivement supprimé, suite à une commande delete()
-                'added' => 0,       // Nombre de documents indexés par ES (indexed) qui n'existaient pas encore (= indexed - updated)
-                'updated' => 0,     // Nombre de documents indexés par ES (indexed) qui existaient déjà (= indexed - added)
+                'indexed' => 0,     // Nb de docs effectivement indexés (commande index)  = added + updated
+                'deleted' => 0,     // Nb de docs effectivement supprimés (commande delete)
+                'added' => 0,       // Nb de documents indexés par ES qui n'existaient pas encore (= indexed - updated)
+                'updated' => 0,     // Nb de documents indexés par ES qui existaient déjà (= indexed - added)
 
                 'start' => 0,       // Timestamp de début de la réindexation
                 'end' => 0,         // Timestamp de fin de la réindexation
-                'time' => 0,        // Durée de la réindexation (en secondes) (=end-start)
+                'time' => 0,        // Durée de la réindexation (en secondes) =end-start
             ];
         }
 
@@ -872,11 +870,14 @@ class IndexManager
         } catch (Exception $e) {
             return 0;   // Le serveur ne répond pas
         }
-return 2;
+        return 2;
         switch ($status) {
-            case 404: return 1; // Le serveur répond mais l'index n'existe pas
-            case 200: return 2; // Le serveur répond et l'index existe
-            default: throw new RuntimeException('Unknown ping status "' . $status . '"');
+            case 404:
+                return 1; // Le serveur répond mais l'index n'existe pas
+            case 200:
+                return 2; // Le serveur répond et l'index existe
+            default:
+                throw new RuntimeException('Unknown ping status "' . $status . '"');
         }
     }
 }

@@ -560,6 +560,7 @@ class SearchUrl
         // Teste si la valeur recherchée figure dans le filtre
         return in_array($value, $this->parameters[$name], true);
     }
+
     /**
      * Inverse un filtre.
      *
@@ -655,7 +656,7 @@ class SearchUrl
         }
 
         // Stocke le nouveau numéro de page si ce n'est pas la page par défaut
-        if ($page === SearchRequest::DEFAULT_PAGE) {
+        if ($page <= 1) {
             unset($args[self::PAGE]);
         } else {
             $args[self::PAGE] = $page;

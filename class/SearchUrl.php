@@ -99,13 +99,9 @@ class SearchUrl
      * @param string[]  $types  Liste des types de contenus sur lesquels porte la recherche
      *                          (par défaut : tous les types indexés)
      */
-    public function __construct($url = null, $types = null)
+    public function __construct($url = null, $types = [])
     {
         $this->setUrl($url);
-        if (empty($types)) {
-            $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
-            $types = $indexManager->getTypes();
-        }
         $this->types = $types;
     }
 
@@ -141,6 +137,18 @@ class SearchUrl
         $this->types = $types;
 
         return $this;
+    }
+
+    /**
+     * Retourne la liste des contenus indexés (nom des CPT).
+     *
+     * @return string[]
+     */
+    private function getIndexedTypes()
+    {
+        $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
+
+        return $indexManager->getTypes();
     }
 
     /**
@@ -323,6 +331,26 @@ class SearchUrl
     }
 
     /**
+     * Encode un composant d'une URI.
+     *
+     * La méthode fonctionne comme la fonction encodeURIComponent() de javascript. Elle encode tous les caractères
+     * sauf: A-Z a-z 0-9 - _ . ! ~ * ' ( )
+     *
+     * En interne, elle utilise la fonction php rawwurlencode(), puis décode les caractères ! * ' ( ).
+     *
+     * @param string $part
+     *
+     * @return string
+     */
+    private function encodeURIComponent(string $component): string
+    {
+        // source : https://stackoverflow.com/a/1734255
+        $preserve = ['%21' => '!', '%2A' => '*', '%27' => "'", '%28' => '(', '%29' => ')'];
+
+        return strtr(rawurlencode($component), $preserve);
+    }
+
+    /**
      * Construit une querystring à partir des paramètres indiqués.
      *
      * @param array $parameters
@@ -342,18 +370,18 @@ class SearchUrl
         }
         $query = '' ;
         foreach($parameters as $key => $value) {
-            $query .= '&' . rawurlencode($key);
+            $query .= '&' . $this->encodeURIComponent($key);
             if ($value === '' || is_null($value)) {
                 continue;
             }
             $query .= '=';
             if (is_array($value)) {
                 foreach($value as &$item) {
-                    $item = rawurlencode($item);
+                    $item = $this->encodeURIComponent($item);
                 }
                 $value = implode(self::SEPARATOR, $value);
             } else {
-                $value = rawurlencode($value);
+                $value = $this->encodeURIComponent($value);
             }
             $query .= $value;
         }
@@ -404,8 +432,8 @@ class SearchUrl
         $parser = docalist('query-parser'); /** @var Parser $parser */
 
         // Par défaut, la requête portera sur tous les types qui ont été indiqués dans le constructeur
-        // Si l'url contient des paramètres 'in', cela restreint la liste
-        $in = [];
+        // Si l'url contient des paramètres 'in', on les traduit en nom de CPT et cela restreint la liste
+        $types = [];
 
         // Crée la requête. Les types interrogés seront définis plus tard.
         $this->request = new SearchRequest();
@@ -436,7 +464,7 @@ class SearchUrl
                         if (!isset($collections[$value])) { // la collection n'existe pas, ignore en silence
                             continue;
                         }
-                        $in[] = $collections[$value]->getType();
+                        $types[] = $collections[$value]->getType();
                     }
                     break;
 
@@ -469,7 +497,8 @@ class SearchUrl
         }
 
         // Définit la liste des types interrogés
-        $types = $in ? array_intersect($this->types, $in) : $this->types;
+        $validTypes = $this->getTypes() ?: $this->getIndexedTypes();
+        $types = empty($types) ? $validTypes : array_intersect($validTypes, $types);
         $this->request->setTypes($types);
 
         // Définit la représentation sous forme d'équation de la requête

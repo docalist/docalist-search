@@ -33,6 +33,18 @@ class QueryBuilder implements Builder
         $this->dsl = docalist('elasticsearch-query-dsl');
     }
 
+    /**
+     * Retourne la liste des champs qui sont interrogés quand on fait une recherche "tous champs".
+     *
+     * @return string[] Un tableau listant les champs interrogés et leur pondération.
+     * Exemple : ['posttitle^2', 'content', 'name', 'topic^5']
+     */
+    private function getDefaultFields(): array
+    {
+        return ['posttitle^3', 'content', 'name^4', 'author^3', 'topic^5', 'othertitle^2', 'corporation^2'];
+        // TODO: passer par un filtre WP
+    }
+
     public function match($field, array $terms)
     {
         // Il faudrait qu'on ait un objet FieldsManager chargé de traduire les champs de recherche manipulés
@@ -45,20 +57,20 @@ class QueryBuilder implements Builder
         //   (resolve ?)
         // - canRange($name) : indique si le champ supporte ou non les requêtes de type range ?
         // + gestion de "triggers" : by:me -> createdby:login, today -> date en cours, etc.
-        ($field === '') && $field = ['posttitle^2', 'content', 'name'];
+        ($field === '') && $field = $this->getDefaultFields();
         return $this->dsl->multiMatch($field, implode(' ', $terms), 'best_fields', ['operator' => 'and']);
     }
 
     public function phrase($field, array $terms)
     {
-        ($field === '') && $field = ['posttitle^2', 'content', 'name'];
+        ($field === '') && $field = $this->getDefaultFields();
         return $this->dsl->multiMatch($field, implode(' ', $terms), 'phrase', []);
 //        return $this->dsl->match($field, implode(' ', $terms), 'match_phrase');
     }
 
     public function prefix($field, $prefix)
     {
-        ($field === '') && $field = ['posttitle^2', 'content', 'name'];
+        ($field === '') && $field = $this->getDefaultFields();
         return $this->dsl->multiMatch($field, $prefix, 'phrase_prefix', []);
         // return $this->dsl->prefix($field, $prefix); // ne supporte pas plusieurs champs
     }

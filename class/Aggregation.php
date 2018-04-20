@@ -133,7 +133,7 @@ interface Aggregation
      *
      * @return self
      */
-    public function setSearchRequest(SearchRequest $searchRequest);
+    public function setSearchRequest(SearchRequest $searchRequest = null);
 
     /**
      * Retourne l'objet SearchRequest dans lequel figure cette agrégation.

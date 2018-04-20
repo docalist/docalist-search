@@ -134,7 +134,7 @@ abstract class BucketAggregation extends BaseAggregation
     }
 
     // On surcharge pour transmettre la requête qui a généré l'agrégation à toutes les sous-agrégations.
-    public function setSearchRequest(SearchRequest $searchRequest)
+    public function setSearchRequest(SearchRequest $searchRequest = null)
     {
         parent::setSearchRequest($searchRequest);
         foreach ($this->getAggregations() as $aggregation) {

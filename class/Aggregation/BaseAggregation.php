@@ -157,7 +157,7 @@ abstract class BaseAggregation implements Aggregation
         return is_null($name) ? $this->result : (isset($this->result->$name) ? $this->result->$name : null);
     }
 
-    public function setSearchRequest(SearchRequest $searchRequest)
+    public function setSearchRequest(SearchRequest $searchRequest = null)
     {
         $this->searchRequest = $searchRequest;
 

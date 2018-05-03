@@ -289,6 +289,7 @@ class SearchEngine
         // Force WordPress à traiter la requête comme une recherche
         $query->is_search = true;
         $query->is_singular = $query->is_page = false;
+        $query->is_comment_feed = false;
 
         // Indique à WordPress les paramètres de la recherche en cours
         $query->set('posts_per_page', $this->searchRequest->getSize());

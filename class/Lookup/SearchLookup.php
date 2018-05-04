@@ -112,15 +112,20 @@ class SearchLookup implements LookupInterface
             return $data;
         }
 
-        // Récupère la base wordpress
-        $wpdb = docalist('wordpress-database'); /** @var wpdb $wpdb */
-
         // Construit la clause WHERE ... IN (...)
         $codes = [];
         foreach ($data as $code) {
             $code = (int) $code; // les codes doivent être des ID wordpress (int)
-            $code && $codes[] = $code;
+            (0 !== $code) && $codes[] = $code;
         }
+
+        if (empty($codes)) {
+            return [];
+        }
+
+        // Récupère la base wordpress
+        $wpdb = docalist('wordpress-database'); /** @var wpdb $wpdb */
+
         $where = 'ID IN (' . implode(',', $codes) . ')';
 
         // Recherche toutes les entrées, on obtient un tableau d'objets qu'on indexe par ID

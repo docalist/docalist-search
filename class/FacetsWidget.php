@@ -245,7 +245,7 @@ class FacetsWidget extends WP_Widget
                 // Bascule automatique de la recherche générale à la recherche sur une base
                 $url = null;
                 if ($field === '_type') {
-                    $database = docalist('docalist-data')->database($value); /* @var Database $database */
+                    $database = docalist('docalist-data')->database($value); /* var Database $database */
 
                     if ($database) {
                         $url = $database->searchPageUrl();

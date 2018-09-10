@@ -17,7 +17,6 @@ use stdClass as StdClass;
 use DateTime;
 use WP_Roles;
 use WP_Widget;
-use Docalist\Data\Database;
 use Docalist\Forms\Container;
 use Exception;
 

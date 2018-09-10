@@ -285,7 +285,7 @@ class IndexManager
     public function createIndex()
     {
         // Récupère la connexion elastic search
-        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
+        $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
 
         // Récupère le nom de base de l'index
         $base = $this->settings->index();
@@ -363,7 +363,7 @@ class IndexManager
     protected function deleteOldIndices($baseName, $indexToKeep)
     {
         // Récupère la connexion elastic search
-        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
+        $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
 
         // Récupère la liste de tous les index qui existent
         // Au lieu d'utiliser le endpoint _settings qui renvoie trop d'informations, on utilise /_alias
@@ -411,7 +411,7 @@ class IndexManager
     protected function createAlias($alias, $index)
     {
         // Récupère la connexion elastic search
-        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
+        $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
 
         $request = [
             'actions' => [
@@ -433,7 +433,7 @@ class IndexManager
      * Il n'y a pas d'attribution automatique d'ID : vous devez fournir l'ID du document à indexer.
      *
      * @param string $type Le type du document.
-     * @param scalar $id L'identifiant du document.
+     * @param int $id L'identifiant du document.
      * @param array $document Les données du document.
      * @param string $esType Nom du mapping ElasticSearch à utiliser si différent de $type.
      */
@@ -481,7 +481,7 @@ class IndexManager
      * Aucune erreur n'est générée si le document indiqué n'existe pas dans l'index Elastic Search.
      *
      * @param string $type Le type du document.
-     * @param scalar $id L'identifiant du document.
+     * @param int $id L'identifiant du document.
      * @param string $esType Nom du mapping ElasticSearch à utiliser si différent de $type.
      */
     public function delete($type, $id, $esType = null)
@@ -863,7 +863,7 @@ class IndexManager
     public function ping()
     {
         // Récupère la connexion elastic search
-        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
+        $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
 
         try {
             $status = $es->get('/{index}');

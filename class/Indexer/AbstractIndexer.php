@@ -96,7 +96,7 @@ abstract class AbstractIndexer implements Indexer
     /**
      * Supprime de l'index de recherche le contenu passé en paramètre.
      *
-     * @param object|scalar $content Le contenu ou l'id du contenu à supprimer.
+     * @param object|int $content Le contenu ou l'id du contenu à supprimer.
      * @param IndexManager $indexManager Le gestionnaire d'index docalist-search.
      */
     protected function remove($content, IndexManager $indexManager)
@@ -106,7 +106,7 @@ abstract class AbstractIndexer implements Indexer
 
     public function getSearchFilter()
     {
-        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
 
         return $dsl->term('in', $this->getCollection());
     }

@@ -29,7 +29,7 @@ use Docalist\Search\Indexer;
 
 // Crée la liste des types disponibles (options de la checklist)
 $types = [];
-foreach($indexers as $indexer) {  /** @var Indexer $indexer */
+foreach($indexers as $indexer) {  /* @var Indexer $indexer */
     $types[$indexer->getCategory()][$indexer->getType()] = $indexer->getLabel();
 }
 ?>

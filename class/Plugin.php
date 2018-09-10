@@ -208,7 +208,7 @@ class Plugin
      */
     public function theCurrentFilters($format = null, $separator = null, $wrapper = null)
     {
-        /** @var SearchRequest $request */
+        /* @var SearchRequest $request */
 /*
         $request = docalist('docalist-search-engine')->getSearchRequest();
 

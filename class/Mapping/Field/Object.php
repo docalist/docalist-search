@@ -309,7 +309,7 @@ class Object extends Field
         $mapping = parent::getMapping();
 
         // Ajoute les champs de l'objet
-        foreach($mapping['properties'] as &$field) { /** @var Field $field */
+        foreach($mapping['properties'] as &$field) { /* @var Field $field */
             $field = $field->getMapping();
         }
 

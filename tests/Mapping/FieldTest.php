@@ -20,18 +20,18 @@ class FieldTest extends WP_UnitTestCase
 {
     public function testGetName()
     {
-        $field = $this->getMockForAbstractClass(Field::class, ['field']); /** @var Field $field */
+        $field = $this->getMockForAbstractClass(Field::class, ['field']); /* @var Field $field */
         $this->assertSame('field', $field->getName());
         $this->assertSame([], $field->getDefaultParameters(), $field);
     }
 
     public function testGetParameters()
     {
-        $field = $this->getMockForAbstractClass(Field::class, ['field']); /** @var Field $field */
+        $field = $this->getMockForAbstractClass(Field::class, ['field']); /* @var Field $field */
         $this->assertSame($field->getDefaultParameters(), $field->getParameters());
 
         $params = ['type' => 'text', 'analyzer' => 'text'];
-        $field = $this->getMockForAbstractClass(Field::class, ['field', $params]); /** @var Field $field */
+        $field = $this->getMockForAbstractClass(Field::class, ['field', $params]); /* @var Field $field */
         $this->assertSame($params, $field->getParameters());
     }
 }

@@ -146,7 +146,7 @@ class SearchUrl
      */
     private function getIndexedTypes()
     {
-        $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
+        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
 
         return $indexManager->getTypes();
     }
@@ -200,7 +200,7 @@ class SearchUrl
      */
     protected function getPaginationBase()
     {
-        $wp_rewrite = docalist('wordpress-rewrite'); /** @var WP_Rewrite $wp_rewrite */
+        $wp_rewrite = docalist('wordpress-rewrite'); /* @var WP_Rewrite $wp_rewrite */
 
         return $wp_rewrite->using_permalinks() ? $wp_rewrite->pagination_base : false;
     }
@@ -428,8 +428,8 @@ class SearchUrl
         // Sinon on initialise
 
         // Récupère le service DSL et le service QueryParser
-        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
-        $parser = docalist('query-parser'); /** @var Parser $parser */
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        $parser = docalist('query-parser'); /* @var Parser $parser */
 
         // Par défaut, la requête portera sur tous les types qui ont été indiqués dans le constructeur
         // Si l'url contient des paramètres 'in', on les traduit en nom de CPT et cela restreint la liste

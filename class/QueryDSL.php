@@ -247,7 +247,7 @@ interface QueryDSL
     /**
      * Crée une requête qui retourne les documents ayant l'un des ID indiqués.
      *
-     * @param scalar|array $id Les ID recherchés.
+     * @param int|array $id Les ID recherchés.
      * @param string $type Optionnel, le type elasticsearch.
      * @param array $parameters Paramètres additionnels de la requête.
      *

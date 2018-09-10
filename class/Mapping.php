@@ -107,7 +107,7 @@ class Mapping extends Object
 
         // Complète le mapping avec les templates de champs dynamiques
         $templates = [];
-        foreach($mapping['dynamic_templates'] as $name => $field) { /** @var Field $field */
+        foreach($mapping['dynamic_templates'] as $name => $field) { /* @var Field $field */
             $templates[$name] = [
                 'path_match' => $name,
                 'mapping' => $field->getMapping()

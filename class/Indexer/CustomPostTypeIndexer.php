@@ -127,7 +127,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
 
     public function buildIndexSettings(array $settings)
     {
-        $mapping = docalist('mapping-builder'); /** @var MappingBuilder $mapping */
+        $mapping = docalist('mapping-builder'); /* @var MappingBuilder $mapping */
         $mapping->reset()->setDefaultAnalyzer('fr-text'); // todo : rendre configurable
 
         $mapping->addField('in')->keyword();
@@ -245,7 +245,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
 
     public function indexAll(IndexManager $indexManager)
     {
-        $wpdb = docalist('wordpress-database'); /** @var wpdb $wpdb */
+        $wpdb = docalist('wordpress-database'); /* @var wpdb $wpdb */
         $offset = 0;
         $limit = 1000;
 
@@ -282,12 +282,12 @@ class CustomPostTypeIndexer extends AbstractIndexer
         }
     }
 
-    protected function getID($post) /** @var WP_Post $post */
+    protected function getID($post) /* @var WP_Post $post */
     {
         return $post->ID;
     }
 
-    protected function map($post) /** @var WP_Post $post */
+    protected function map($post) /* @var WP_Post $post */
     {
         $document = [];
 
@@ -344,7 +344,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
 
                 $document[$field] = [];
                 $hierarchy && $document[$hierarchy] = [];
-                foreach($terms as $term) { /** @var WP_Term $term */
+                foreach($terms as $term) { /* @var WP_Term $term */
                     $document[$field][] = $term->slug;
 
                     if ($hierarchy) {
@@ -389,7 +389,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
         }
 
         // L'utilisateur ne peut voir que les posts publics et ceux dont il est auteur
-        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
         $filter = $dsl->terms('status', $public);
         is_user_logged_in() && $filter = $dsl->bool([
             $dsl->should($filter),
@@ -402,7 +402,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
 
     public function getSearchFilter()
     {
-        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
 
         $type = parent::getSearchFilter();
         $visibility = $this->getVisibilityFilter();

@@ -15,6 +15,7 @@ namespace Docalist\Search;
 
 use Docalist\AdminPage;
 use Docalist\Http\CallbackResponse;
+use Docalist\Http\ViewResponse;
 use InvalidArgumentException;
 use Exception;
 
@@ -146,7 +147,7 @@ class SettingsPage extends AdminPage
      */
     public function actionServerStatus()
     {
-        /** @var IndexManager $indexManager */
+        /* @var IndexManager $indexManager */
         $indexManager = docalist('docalist-search-index-manager');
 
         switch ($indexManager->ping()) {
@@ -226,7 +227,7 @@ class SettingsPage extends AdminPage
             $this->view('docalist-search:settings/reindex')->sendContent();
 
             // Lance la réindexation
-            $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
+            $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
             $indexManager->createIndex();
         });
 
@@ -249,7 +250,7 @@ class SettingsPage extends AdminPage
         // Teste si la recherche peut être activée
         $error = '';
         if (! $this->settings->enabled()) {
-            /** @var IndexManager $indexManager */
+            /* @var IndexManager $indexManager */
             $indexManager = docalist('docalist-search-index-manager');
             $ping = $indexManager->ping();
 

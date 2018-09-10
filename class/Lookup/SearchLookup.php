@@ -124,7 +124,7 @@ class SearchLookup implements LookupInterface
         }
 
         // Récupère la base wordpress
-        $wpdb = docalist('wordpress-database'); /** @var wpdb $wpdb */
+        $wpdb = docalist('wordpress-database'); /* @var wpdb $wpdb */
 
         $where = 'ID IN (' . implode(',', $codes) . ')';
 

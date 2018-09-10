@@ -48,7 +48,7 @@ trait TypesTrait
     public function setTypes(array $types = [])
     {
         if (empty($types)) {
-            $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
+            $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
             $types = $indexManager->getTypes();
         }
 
@@ -69,8 +69,8 @@ trait TypesTrait
             return [];
         }
 
-        $indexManager = docalist('docalist-search-index-manager'); /** @var IndexManager $indexManager */
-        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
+        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
 
         // Retourne une clause simple si on a un seul filtre
         if (count($this->types) === 1) {

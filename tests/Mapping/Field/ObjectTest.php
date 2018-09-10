@@ -109,7 +109,7 @@ class ObjectTest extends WP_UnitTestCase
         $object = new Object('test');
 
         // Crée le champ avec ses paramètres par défaut
-        $field = $object->$method('field'); /** @var Field $field */
+        $field = $object->$method('field'); /* @var Field $field */
 
         // Vérifie que la méthode retourne bien un objet du bon type
         $this->assertSame($class, get_class($field));
@@ -128,7 +128,7 @@ class ObjectTest extends WP_UnitTestCase
         // Si on passe des paramètres, vérifie qu'ils sont fusionnés avec les paramètres par défaut
         // Remarque : on peut modifier tous les paramètres, y compris le type de champ
         $parameters = ['type' => 'thing', 'my-param' => 'z'];
-        $field = $object->$method('field2', $parameters); /** @var Field $field */
+        $field = $object->$method('field2', $parameters); /* @var Field $field */
         $expected = array_merge($field->getDefaultParameters(), $parameters);
         $this->assertSame($expected, $field->getParameters());
     }

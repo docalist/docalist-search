@@ -13,6 +13,7 @@
  */
 namespace Docalist\Search\SearchRequest;
 
+use Docalist\Search\QueryDSL;
 use Docalist\Search\SearchRequest\Query\TypesTrait;
 use Docalist\Search\SearchRequest\Query\QueriesTrait;
 use Docalist\Search\SearchRequest\Query\FiltersTrait;
@@ -31,7 +32,7 @@ trait QueryTrait
      */
     protected function buildQueryClause(array & $request)
     {
-        $dsl = docalist('elasticsearch-query-dsl'); /** @var QueryDSL $dsl */
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
         $clauses = [];
 
         // Queries

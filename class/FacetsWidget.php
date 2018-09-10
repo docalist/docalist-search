@@ -15,7 +15,9 @@ namespace Docalist\Search;
 
 use stdClass as StdClass;
 use DateTime;
+use WP_Roles;
 use WP_Widget;
+use Docalist\Data\Database;
 use Docalist\Forms\Container;
 use Exception;
 
@@ -77,14 +79,14 @@ class FacetsWidget extends WP_Widget
     public function widget($context, $settings)
     {
         // Récupère la SearchRequest en cours
-        /** @var SearchRequest $request */
+        /* @var SearchRequest $request */
         $request = apply_filters('docalist_search_get_request', null);
         if (! $request) {
             // echo "<p>Aucune facette n'est disponible (no request)</p>";
             return;
         }
 
-        /** @var SearchResponse $results */
+        /* @var SearchResponse $results */
         $results = apply_filters('docalist_search_get_results', null);
         if (! $results) {
             // echo "<p>Aucune facette n'est disponible (no results)</p>";
@@ -244,7 +246,7 @@ class FacetsWidget extends WP_Widget
                 // Bascule automatique de la recherche générale à la recherche sur une base
                 $url = null;
                 if ($field === '_type') {
-                    $database = docalist('docalist-data')->database($value); /** @var Database $database */
+                    $database = docalist('docalist-data')->database($value); /* @var Database $database */
 
                     if ($database) {
                         $url = $database->searchPageUrl();
@@ -333,7 +335,7 @@ class FacetsWidget extends WP_Widget
         // - get_editable_roles (dans user.php) : liste des rôles
         // - wp_dropdown_roles (template.php) : traduction des noms
 
-        $wp_roles = docalist('wordpress-roles'); /** @var WP_Roles $wp_roles */
+        $wp_roles = docalist('wordpress-roles'); /* @var WP_Roles $wp_roles */
 
         // Récupère la liste de tous les rôles existants
         $roles = $wp_roles->get_names();

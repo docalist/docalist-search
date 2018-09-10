@@ -16,6 +16,7 @@ namespace Docalist\Search;
 use Docalist\Search\SearchRequest;
 use WP_Query;
 use Exception;
+use wpdb;
 
 /**
  * La classe qui gère les recherches.
@@ -312,7 +313,7 @@ class SearchEngine
 
         // Indique à WordPress la requête SQL à exécuter pour récupérer les posts
         add_filter('posts_request', function ($sql) use ($id) { // !!! pas appellé si suppress_filters=true
-            $wpdb = docalist('wordpress-database'); /** @var wpdb $wpdb */
+            $wpdb = docalist('wordpress-database'); /* @var wpdb $wpdb */
 
             // Aucun hit : retourne sql=null pour que wpdb::query() ne fasse aucune requête
             if (empty($id)) {

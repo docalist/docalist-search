@@ -159,7 +159,7 @@ trait AggregationsTrait
      *
      * @param string $name Le nom de l'agrégation à retourner.
      *
-     * @return Agregation|null Retourne l'agrégation demandée ou null si aucune agrégation n'a le nom indiqué.
+     * @return Aggregation|null Retourne l'agrégation demandée ou null si aucune agrégation n'a le nom indiqué.
      * (compatibilité ascendante : l'agrégation retournée peut aussi être un tableau)
      */
     public function getAggregation($name)
@@ -232,7 +232,7 @@ trait AggregationsTrait
                 continue;
             }
 
-            /** @var Aggregation $aggregation */
+            /* @var Aggregation $aggregation */
             $aggregations[$name] = $aggregation->getDefinition();
 
 /*

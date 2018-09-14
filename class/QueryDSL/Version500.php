@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2015 Daniel Ménard
+ * Copyright (C) 2013-2018 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -26,6 +26,6 @@ class Version500 extends Version200
     // Dispo en natif depuis ES >= 5.0
     public function matchNone(array $parameters = [])
     {
-        return ['match_none' => []];
+        return ['match_none' => (object) []];
     }
 }

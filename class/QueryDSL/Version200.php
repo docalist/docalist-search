@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2017 Daniel Ménard
+ * Copyright (C) 2013-2018 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -38,7 +38,7 @@ class Version200 implements QueryDSL
         ]);
 
         // Ok
-        return ['match_all' => $parameters];
+        return ['match_all' => (object) $parameters];
     }
 
     public function matchNone(array $parameters = []) // n'existe pas avec ES < 5.0

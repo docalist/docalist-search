@@ -11,7 +11,7 @@
  * @subpackage  Tests\Biblio\UserData
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
-namespace Docalist\Tests\Search\QueryParser;
+namespace Docalist\Search\Tests;
 
 use WP_UnitTestCase;
 use Docalist\Search\SearchUrl;

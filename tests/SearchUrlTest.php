@@ -273,30 +273,6 @@ class SearchUrlTest extends WP_UnitTestCase
     }
 
     /**
-     * Vérifie qu'une exception est levée si on appelle toggleFilter avec autre chose qu'un nom de filtre.
-     *
-     * @dataProvider badFilterProvider
-     *
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessage is not a filter
-     */
-    public function testToggleFilterNotAFilter($filter)
-    {
-        (new SearchUrl())->toggleFilter($filter);
-    }
-
-    public function badFilterProvider()
-    {
-        return [
-            ['title'],          // champ existant mais ce n'est pas un filtre
-            ['slug'],           // champ existant mais ce n'est pas un filtre
-            ['topicfilter'],    // ne se termine pas par ".filter"
-            ['topic_filter'],   // ne se termine pas par ".filter"
-            ['topic.ilter'],    // ne se termine pas par ".filter"
-        ];
-    }
-
-    /**
      * Teste la méthode getUrlForPage()
      *
      * @dataProvider pageProvider

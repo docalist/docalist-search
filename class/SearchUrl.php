@@ -140,18 +140,6 @@ class SearchUrl
     }
 
     /**
-     * Retourne la liste des contenus indexés (nom des CPT).
-     *
-     * @return string[]
-     */
-    private function getIndexedTypes()
-    {
-        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
-
-        return $indexManager->getTypes();
-    }
-
-    /**
      * Modifie l'url en cours.
      *
      * Remarque : toutes les autres propriétés de l'objet (baseUrl, parameters, request) sont réinitialisées.

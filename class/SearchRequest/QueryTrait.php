@@ -46,7 +46,8 @@ trait QueryTrait
         }
 
         // Crée le filtre permettant de limiter la recherche aux types de contenus indiqués : type1 OR type2...
-        $clauses[] = $this->getTypesFilterClause();
+        $clause = $this->getTypesFilterClause();
+        !empty($clause) && $clauses[] = $clause;
 
         // Global Filters
         foreach ($this->getFilters('hidden-filter') as $filter) {

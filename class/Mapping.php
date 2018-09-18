@@ -91,7 +91,7 @@ class Mapping extends Object
 
         // S'il existe déjà un template avec ce nom, erreur
         if (isset($this->parameters['dynamic_templates'][$name])) {
-            throw new InvalidArgumentException("A template named '$name' already exists in '". $ $this->getName() . "'");
+            throw new InvalidArgumentException("A template named '$name' already exists in '". $this->getName() . "'");
         }
 
         // Ok
@@ -107,7 +107,7 @@ class Mapping extends Object
 
         // Complète le mapping avec les templates de champs dynamiques
         $templates = [];
-        foreach($mapping['dynamic_templates'] as $name => $field) { /* @var Field $field */
+        foreach ($mapping['dynamic_templates'] as $name => $field) { /* @var Field $field */
             $templates[$name] = [
                 'path_match' => $name,
                 'mapping' => $field->getMapping()

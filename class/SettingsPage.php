@@ -50,10 +50,10 @@ class SettingsPage extends AdminPage
         $filter = 'plugin_action_links_docalist-search/docalist-search.php';
         add_filter($filter, function ($actions) {
             $action = sprintf(
-                    '<a href="%s" title="%s">%s</a>',
-                    esc_attr($this->getUrl()),
-                    $this->menuTitle(),
-                    __('Réglages', 'docalist-biblio')
+                '<a href="%s" title="%s">%s</a>',
+                esc_attr($this->getUrl()),
+                $this->menuTitle(),
+                __('Réglages', 'docalist-biblio')
             );
             array_unshift($actions, $action);
 
@@ -120,25 +120,25 @@ class SettingsPage extends AdminPage
      *
      * @throws InvalidArgumentException en cas d'erreur.
      */
-     protected function validateSettings()
-     {
-         // Vérifie qu'on a une url
-         $url = $this->settings->url();
-         if (empty($url)) {
-             throw new InvalidArgumentException(
-                 __("Vous devez indiquer l'url du cluster elasticsearch.", 'docalist-search')
-             );
-         }
+    protected function validateSettings()
+    {
+        // Vérifie qu'on a une url
+        $url = $this->settings->url();
+        if (empty($url)) {
+            throw new InvalidArgumentException(
+                __("Vous devez indiquer l'url du cluster elasticsearch.", 'docalist-search')
+            );
+        }
 
         // Stocke le numéro de version de elasticsearch
-         $version = docalist('elasticsearch')->getVersion();
-         if (is_null($version)) {
-             throw new InvalidArgumentException(
-                 __("Impossible d'obtenir la version de elasticsearch, verifiez l'url indiquée.", 'docalist-search')
-             );
+        $version = docalist('elasticsearch')->getVersion();
+        if (is_null($version)) {
+            throw new InvalidArgumentException(
+                __("Impossible d'obtenir la version de elasticsearch, verifiez l'url indiquée.", 'docalist-search')
+            );
         }
         $this->settings->esversion = $version;
-     }
+    }
 
     /**
      * Est-ce que le serveur ES répond ?
@@ -153,24 +153,15 @@ class SettingsPage extends AdminPage
         switch ($indexManager->ping()) {
             case 0:
                 $msg = __("L'url %s ne répond pas.", 'docalist-search');
+                return printf($msg, $this->settings->url());
 
-                return printf($msg,
-                    $this->settings->url()
-                );
             case 1:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s n'existe pas.", 'docalist-search');
+                return printf($msg, $this->settings->url(), $this->settings->index());
 
-                return printf($msg,
-                    $this->settings->url(),
-                    $this->settings->index()
-                );
             case 2:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s existe.", 'docalist-search');
-
-                return printf($msg,
-                    $this->settings->url(),
-                    $this->settings->index()
-                );
+                return printf($msg, $this->settings->url(), $this->settings->index());
         }
 
         // Etat du cluster pour l'index indiqué (status green, etc.)
@@ -327,7 +318,7 @@ class SettingsPage extends AdminPage
         ]);
 
         $fields = [];
-        foreach($response->aggregations->fields->buckets as $bucket) {
+        foreach ($response->aggregations->fields->buckets as $bucket) {
             $field = $bucket->key;
             // On ne peut avoir de "field data" pour le champ source, ni pour un champ de type "completion"
             if ($field === '_source' || substr($field, -8) === '.suggest') {

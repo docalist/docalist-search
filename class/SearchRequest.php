@@ -161,7 +161,7 @@ class SearchRequest
         $searchResponse = new SearchResponse($this);
 
         // Fournit le résultat obtenu à chaque agrégation et remplace le résultat brut par l'objet Aggregation
-        foreach($this->aggregations as $name => $aggregation) {
+        foreach ($this->aggregations as $name => $aggregation) {
             if ($aggregation instanceof Aggregation) {
                 $result = isset($data->aggregations->$name) ? $data->aggregations->$name : null;
                 $data->aggregations->$name = $aggregation->setSearchResponse($searchResponse)->setResult($result);
@@ -212,8 +212,10 @@ class SearchRequest
         // scroll : https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-scroll.html
         // preference : https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-preference.html
 
-        // explain : pas en querystring https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-explain.html
-        // version : pas en querystring https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-version.html
+        // explain : pas en querystring
+        // https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-explain.html
+        // version : pas en querystring
+        // https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-version.html
 
         // Génère une exception s'il reste des options qu'on ne gère pas
         if (!empty($options)) {

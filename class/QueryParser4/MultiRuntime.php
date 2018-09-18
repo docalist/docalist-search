@@ -26,8 +26,7 @@ class MultiRuntime extends Runtime
     {
         $result = [];
 
-        foreach($this->runtimes as $key => $runtime)
-        {
+        foreach ($this->runtimes as $key => $runtime) {
             $result[$key] = $runtime->doNumber($number);
         }
 
@@ -39,10 +38,9 @@ class MultiRuntime extends Runtime
     {
         $result = [];
 
-        foreach($this->runtimes as $key => $runtime)
-        {
+        foreach ($this->runtimes as $key => $runtime) {
             $parameters = [];
-            foreach($arguments as $arg) {
+            foreach ($arguments as $arg) {
                 $parameters[] = $arg[$key];
             }
 //            echo "call $key::$name(", var_export($parameters, true), ')<br />';

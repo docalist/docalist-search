@@ -68,7 +68,7 @@ trait SourceTrait
                 return $this->setSource(false);
             }
 
-            if(count($source) === 1) {
+            if (count($source) === 1) {
                 return $this->setSource(reset($source));
             }
 

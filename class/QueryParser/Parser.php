@@ -154,10 +154,8 @@ class Parser
     protected function parseExpression($field, array & $queries)
     {
         $default = $love = $hate = [];
-        for(;;)
-        {
-            switch($this->token)
-            {
+        for (;;) {
+            switch ($this->token) {
                 case Lexer::T_END:
                     break 2;
 
@@ -224,8 +222,7 @@ class Parser
      */
     protected function parseCompound($field, array & $queries)
     {
-        switch($this->token)
-        {
+        switch ($this->token) {
             case Lexer::T_TERM:
             case Lexer::T_AND:  // explication : la requête commence par un mot-clé. On le traite comme un terme
             case Lexer::T_OR:   // car ça peut être le début d'une phrase (exemple : near death experience)
@@ -233,11 +230,12 @@ class Parser
                 do {
                     $terms[] = $this->tokenText;
                     $this->read();
-//                     if (    ($this->token === Lexer::T_AND && $this->nextToken === Lexer::T_TERM && $this->defaultOp === 'and')
-//                         ||  ($this->token === Lexer::T_OR && $this->nextToken === Lexer::T_TERM && $this->defaultOp === 'or')
-//                        ) {
-//                         $this->read();
-//                    }
+//                  if (
+//                  ($this->token === Lexer::T_AND && $this->nextToken === Lexer::T_TERM && $this->defaultOp === 'and')
+//              ||  ($this->token === Lexer::T_OR && $this->nextToken === Lexer::T_TERM && $this->defaultOp === 'or')
+//                  ) {
+//                      $this->read();
+//                  }
 //                  break;
                 } while ($this->token === Lexer::T_TERM);
 

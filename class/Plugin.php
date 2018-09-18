@@ -43,7 +43,7 @@ class Plugin
         load_plugin_textdomain('docalist-search', false, 'docalist-search/languages');
 
         // Ajoute notre répertoire "views" au service "docalist-views"
-        add_filter('docalist_service_views', function(Views $views) {
+        add_filter('docalist_service_views', function (Views $views) {
             return $views->addDirectory('docalist-search', DOCALIST_SEARCH_DIR . '/views');
         });
 
@@ -71,7 +71,7 @@ class Plugin
             },
             'mapping-builder' => function () {
                 $version = $this->settings->esversion();
-                if( is_null($version) || $version === '0.0.0') {
+                if (is_null($version) || $version === '0.0.0') {
                     throw new Exception('Service mapping-builder is not available, elasticsearch url is not set');
                 }
                 return new ElasticsearchMappingBuilder($version);
@@ -79,15 +79,15 @@ class Plugin
             'docalist-search-index-manager' => new IndexManager($this->settings),
             'docalist-search-engine' => new SearchEngine($this->settings),
 
-            'index-lookup' => function() {
+            'index-lookup' => function () {
                 return new IndexLookup();
             },
 
-            'search-lookup' => function() {
+            'search-lookup' => function () {
                 return new SearchLookup();
             },
 
-            'query-parser' => function() {
+            'query-parser' => function () {
                 return new Parser();
             },
         ]);

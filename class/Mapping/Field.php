@@ -94,5 +94,4 @@ abstract class Field
      * - suggest / suggestable
      * - weight
      */
-
 }

@@ -51,7 +51,7 @@ trait AggregationsTrait
         $this->clearAggregations();
 
         // Ajoute toutes les agrégations passées en paramètre
-        foreach($aggregations as $name => $aggregation) {
+        foreach ($aggregations as $name => $aggregation) {
             // Compatibilité ascendante
             if (is_array($aggregation)) {
                 $this->addAggregation($name, $aggregation);
@@ -175,7 +175,7 @@ trait AggregationsTrait
     public function clearAggregations()
     {
         // Supprime toutes les agrégations et leur signale qu'elles ne font plus partie de cette SearchRequest
-        foreach(array_keys($this->aggregations) as $name) {
+        foreach (array_keys($this->aggregations) as $name) {
             $this->removeAggregation($name);
         }
 

@@ -80,5 +80,4 @@ class QueryBuilder extends Runtime
     {
         return '-(' . $expression . ')';
     }
-
 }

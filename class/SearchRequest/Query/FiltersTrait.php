@@ -132,7 +132,7 @@ trait FiltersTrait
     {
         // Si type est vide, on teste tous les types de filtres et on retourne true si on en trouve au moins un
         if (empty($type)) {
-            foreach($this->filters as $filters) {
+            foreach ($this->filters as $filters) {
                 if (!empty($filters)) {
                     return true;
                 }

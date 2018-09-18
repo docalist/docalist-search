@@ -53,15 +53,15 @@ class QueryParser extends PrattParser
 // '+' = the require operator
 // '-' = the prohibit operator
 
-//     0	non-binding operators like ;
-//     10	assignment operators like =
-//     20	?
-//     30	|| &&
-//     40	relational operators like ===
-//     50	+ -
-//     60	* /
-//     70	unary operators like !
-//     80	. [ (
+//     0    non-binding operators like ;
+//     10   assignment operators like =
+//     20   ?
+//     30   || &&
+//     40   relational operators like ===
+//     50   + -
+//     60   * /
+//     70   unary operators like !
+//     80   . [ (
 
 /*
     const T_RANGE = 14;             // L'opérateur "range" (start..end)

@@ -206,7 +206,7 @@ class Lexer
 
                 // Extrait les mots de la phrase. Si la phrase est vide (" "), on l'ignore.
                 if (preg_match_all(self::$word, $match[0], $match)) {
-                    foreach($match[0] as $match) {
+                    foreach ($match[0] as $match) {
                         $tokens[] = [self::T_PHRASE, $match];
                     }
                     $tokens[] = [self::T_NONE, null];

@@ -42,7 +42,7 @@ interface MappingBuilder
      *
      * @return string Le nom de l'analyseur par défaut ('text', 'fr-text', 'en-text'...)
      */
-    public  function getDefaultAnalyzer();
+    public function getDefaultAnalyzer();
 
     /**
      * Définit l'analyseur par défaut utilisé pour les champs de type texte.

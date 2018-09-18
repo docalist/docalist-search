@@ -80,7 +80,7 @@ class SearchEngine
         );
 
         // Fournit un tri par défaut
-        add_filter('docalist_search_get_default_sort', function($sort, SearchRequest $request) {
+        add_filter('docalist_search_get_default_sort', function ($sort, SearchRequest $request) {
             // Par défaut, elasticsearch trie par pertinence. Mais si la requête ne comporte aucune clause
             // de recherche (que des filtres), ça na pas trop de sens. Dans ce cas, on force un tri par date
             // de creation décroissante si aucun tri n'a été défini.
@@ -91,14 +91,14 @@ class SearchEngine
         }, 10, 2);
 
         // Définit les critères de tri standard
-        add_filter('docalist_search_get_sort', function($clauses, $sort) {
+        add_filter('docalist_search_get_sort', function ($clauses, $sort) {
             empty($clauses) && $clauses = $this->getSort($sort);
 
             return $clauses;
         }, 10, 2);
 
         // Fournit un titre aux critères de tri standard
-        add_filter('docalist_search_get_sort_title', function($sort) {
+        add_filter('docalist_search_get_sort_title', function ($sort) {
             return $this->getSortTitle($sort);
         }, 10, 2);
     }
@@ -113,8 +113,7 @@ class SearchEngine
      */
     protected function getSort($sort)
     {
-        switch($sort)
-        {
+        switch ($sort) {
             // Pertinence
             case null:
             case 'score':
@@ -154,8 +153,7 @@ class SearchEngine
      */
     protected function getSortTitle($sort)
     {
-        switch($sort)
-        {
+        switch ($sort) {
             // Pertinence
             case null:
             case 'score':
@@ -250,7 +248,10 @@ class SearchEngine
         // Permet aux plugins de créer une requête et d'indiquer s'il faut ou non afficher les résultats
         // obtenus ($displayResults, troisième paramètre du filtre, passé par référence, à true par défaut)
         $displayResults = true;
-        $this->searchRequest = apply_filters_ref_array('docalist_search_create_request', [null, $query, & $displayResults]);
+        $this->searchRequest = apply_filters_ref_array(
+            'docalist_search_create_request',
+            [null, $query, & $displayResults]
+        );
 
         // Si on n'a pas de requête à exécuter, on ne fait rien
         if (is_null($this->searchRequest)) {
@@ -269,7 +270,13 @@ class SearchEngine
         if ($debug) {
             printf(
                 "<pre>%s</pre>",
-                strtr(json_encode((array)($this->searchRequest), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), ['\u0000*' => '', '\u0000' => ''])
+                strtr(
+                    json_encode(
+                        (array)($this->searchRequest),
+                        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
+                    ),
+                    ['\u0000*' => '', '\u0000' => '']
+                )
             );
         }
 
@@ -312,7 +319,8 @@ class SearchEngine
         }
 
         // Indique à WordPress la requête SQL à exécuter pour récupérer les posts
-        add_filter('posts_request', function ($sql) use ($id) { // !!! pas appellé si suppress_filters=true
+        // !!! pas appellé si suppress_filters=true
+        add_filter('posts_request', function ($sql) use ($id) {
             $wpdb = docalist('wordpress-database'); /* @var wpdb $wpdb */
 
             // Aucun hit : retourne sql=null pour que wpdb::query() ne fasse aucune requête
@@ -334,7 +342,8 @@ class SearchEngine
 
         // Une fois que WordPress a chargé les posts, vérifie qu'on a tous les documents et indique à WordPress
         // le nombre total de réponses trouvées.
-        add_filter('posts_results', function (array $posts = null, WP_Query $query) use ($id) { //!!! pas appellé si supress_filters=true
+        // !!! pas appellé si supress_filters=true
+        add_filter('posts_results', function (array $posts = null, WP_Query $query) use ($id) {
             if (count($id) !== (is_null($posts) ? 0 : count($posts))) {
                 echo "<p>WARNING : L'index docalist-search est désynchronisé.</p>";
                 // TODO : à améliorer (cf. plugin "simple notices")

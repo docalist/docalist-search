@@ -242,7 +242,7 @@ class PrattParser
     protected function getNextToken()
     {
         $match = null;
-        for(;;) {
+        for (;;) {
             foreach ($this->symbols as $id => $symbol) {
                 $re = '~' . $symbol[3] . '~' . self::PCRE_MODIFIERS;
                 if (preg_match($re, $this->string, $match, 0, $this->position)) {
@@ -280,7 +280,7 @@ class PrattParser
         $this->position = 0;
 
         $tokens = [];
-        for(;;) {
+        for (;;) {
             $token = $this->getNextToken();
             $tokens[] = $token;
             if ($token[0] === 'eof') {

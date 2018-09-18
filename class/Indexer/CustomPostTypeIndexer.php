@@ -147,7 +147,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
         }
 
         // Taxonomies associées à ce post_type
-        foreach($this->getIndexedTaxonomies() as $taxonomy => $field) {
+        foreach ($this->getIndexedTaxonomies() as $taxonomy => $field) {
             $mapping->addField($field)->keyword();
             if (is_taxonomy_hierarchical($taxonomy)) {
                 $mapping->addField($field . '-hierarchy')->text('hierarchy');
@@ -174,7 +174,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
     {
         if (is_null($this->indexedTaxonomies)) {
             $this->indexedTaxonomies = [];
-            foreach(get_object_taxonomies($this->getType(), 'objects') as $name => $taxonomy) {
+            foreach (get_object_taxonomies($this->getType(), 'objects') as $name => $taxonomy) {
                 $field = $this->getTaxonomyField($taxonomy);
                 !empty($field) && $this->indexedTaxonomies[$name] = $field;
             }
@@ -199,7 +199,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
      *
      * @return string|NULL Retourne un nom de champ ou null si la taxonomie indiquée ne doit pas être indexée.
      */
-    protected function getTaxonomyField(/* WP_Taxonomy */ $taxonomy)
+    protected function getTaxonomyField(/* WP_Taxonomy */$taxonomy)
     {
         if ($taxonomy->public && $taxonomy->publicly_queryable) {
             return ($taxonomy->name === 'post_tag') ? 'tag' : $taxonomy->name;
@@ -213,7 +213,8 @@ class CustomPostTypeIndexer extends AbstractIndexer
         $statuses = array_flip($this->getStatuses());
         $type = $this->getType();
 
-        add_action('transition_post_status',
+        add_action(
+            'transition_post_status',
             function ($newStatus, $oldStatus, WP_Post $post) use ($indexManager, $type, $statuses) {
                 // Si ce n'est pas un de nos contenus, terminé
                 if ($post->post_type !== $type) {
@@ -230,10 +231,12 @@ class CustomPostTypeIndexer extends AbstractIndexer
                     return $this->remove($post, $indexManager);
                 }
             },
-            10, 3
+            10,
+            3
         );
 
-        add_action('deleted_post',
+        add_action(
+            'deleted_post',
             function ($id) use ($indexManager) {
                 $post = get_post($id);
                 if ($post->post_type === $this->getType()) {
@@ -338,18 +341,18 @@ class CustomPostTypeIndexer extends AbstractIndexer
         }
 
         // Taxonomies associées à ce post
-        foreach($this->getIndexedTaxonomies() as $taxonomy => $field) {
+        foreach ($this->getIndexedTaxonomies() as $taxonomy => $field) {
             if (is_array($terms = get_the_terms($post, $taxonomy))) {
                 $hierarchy = is_taxonomy_hierarchical($taxonomy) ? ($field . '-hierarchy') : false;
 
                 $document[$field] = [];
                 $hierarchy && $document[$hierarchy] = [];
-                foreach($terms as $term) { /* @var WP_Term $term */
+                foreach ($terms as $term) { /* @var WP_Term $term */
                     $document[$field][] = $term->slug;
 
                     if ($hierarchy) {
                         $path = $term->slug;
-                        foreach(get_ancestors($term->term_id, $taxonomy, 'taxonomy') as $ancestor) {
+                        foreach (get_ancestors($term->term_id, $taxonomy, 'taxonomy') as $ancestor) {
                             $term = get_term($ancestor, $taxonomy);
                             $path = $term->slug . '/' . $path;
                         }

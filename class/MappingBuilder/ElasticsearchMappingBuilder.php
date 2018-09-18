@@ -118,7 +118,7 @@ class ElasticsearchMappingBuilder implements MappingBuilder
     // Interface MappingBuilder
     // -------------------------------------------------------------------------
 
-    public  function getDefaultAnalyzer()
+    public function getDefaultAnalyzer()
     {
         return $this->defaultAnalyzer;
     }
@@ -479,7 +479,8 @@ class ElasticsearchMappingBuilder implements MappingBuilder
             'yyyy/MM/dd', 'yyyy/MM',
             'yyyy.MM.dd', 'yyyy.MM',
             'yyyyMMdd'  , 'yyyyMM' ,
-            'yyyy', // important : doit être en dernier sinon "19870101" est reconnu comme une année yyyy et non comme le 01/01/1987
+            'yyyy',     // important : doit être en dernier
+                        // sinon "19870101" est reconnu comme une année yyyy et non comme le 01/01/1987
 
             // little endian
             'dd-MM-yyyy', 'MM-yyyy',

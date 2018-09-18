@@ -94,7 +94,7 @@ class SearchLookup implements LookupInterface
 
         // Construit un tuple (code,label) pour chaque hit obtenu
         $result = [];
-        foreach($response->hits->hits as $hit) {
+        foreach ($response->hits->hits as $hit) {
             $result[] = [
                 'code' => $hit->_id,
                 'label' => $hit->_source->posttitle ?: ('ID #' . $hit->_id),

@@ -88,13 +88,13 @@ class QueryBuilder implements Builder
     public function bool(array $should = [], array $must = [], array $not = [])
     {
         $queries = [];
-        foreach($should as $query) {
+        foreach ($should as $query) {
             $queries[] = $this->dsl->should($query);
         }
-        foreach($must as $query) {
+        foreach ($must as $query) {
             $queries[] = $this->dsl->must($query);
         }
-        foreach($not as $query) {
+        foreach ($not as $query) {
             $queries[] = $this->dsl->mustNot($query);
         }
 

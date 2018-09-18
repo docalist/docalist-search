@@ -280,7 +280,7 @@ class SearchUrl
 
         // Transforme en tableau les filtres multivalués dont les valeurs sont séparées par des virgules
         $this->parameters = [];
-        foreach($parameters as $name => $value) {
+        foreach ($parameters as $name => $value) {
             // Les paramètres "privés" de l'url (ceux qui ne concernent pas la recherche) sont stockés tels quels
             if ($name[0] === '_') {
                 $this->parameters[$name] = $value;
@@ -357,7 +357,8 @@ class SearchUrl
      *
      * @return string
      */
-    protected function buildQueryString(array $parameters) {
+    protected function buildQueryString(array $parameters)
+    {
         // "/" may appear unencoded as data within the query :
         // https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax
         //
@@ -369,14 +370,14 @@ class SearchUrl
             return '';
         }
         $query = '' ;
-        foreach($parameters as $key => $value) {
+        foreach ($parameters as $key => $value) {
             $query .= '&' . $this->encodeURIComponent($key);
             if ($value === '' || is_null($value)) {
                 continue;
             }
             $query .= '=';
             if (is_array($value)) {
-                foreach($value as &$item) {
+                foreach ($value as &$item) {
                     $item = $this->encodeURIComponent($item);
                 }
                 $value = implode(self::SEPARATOR, $value);
@@ -439,12 +440,12 @@ class SearchUrl
         $this->request = new SearchRequest();
 
         // Initialise la requête à partir des arguments de l'url
-        foreach($this->parameters as $name => $value) {
+        foreach ($this->parameters as $name => $value) {
             if ($name[0] === '_') {
                 continue;
             }
 
-            switch($name) {
+            switch ($name) {
                 case self::PAGE: // Numéro de la page en cours
                     $this->request->setPage($value);
                     break;
@@ -472,10 +473,9 @@ class SearchUrl
                 default:
                     // Teste s'il s'agit d'un filtre et récupère sa combinatoire
                     if ($op = $this->isFilter($name)) {
-
                         // Croisés en "et" : la requête doit matcher chacun des termes indiqués
                         if ($op === 'and') {
-                            foreach((array) $value as $value) {
+                            foreach ((array) $value as $value) {
                                 $this->request->addFilter($dsl->term($name, $value));
                             }
                         }
@@ -499,7 +499,7 @@ class SearchUrl
 
         // Définit la liste des types interrogés
         $validTypes = $this->getTypes();
-        if (! empty($types) && !empty($validTypes)) { // in ne peut pas être plus large que les types du constructeur
+        if (!empty($types) && !empty($validTypes)) { // in ne peut pas être plus large que les types du constructeur
             $types = array_intersect($validTypes, $types);
         }
         $this->request->setTypes($types ?: $validTypes);
@@ -613,7 +613,6 @@ class SearchUrl
 
         // On a déjà des valeurs pour le filtre indiqué
         if (isset($args[$name])) {
-
             // On nous a demandé de supprimer toutes les valeurs existantes de ce filtre
             if (is_null($value)) {
                 unset($args[$name]);
@@ -644,7 +643,7 @@ class SearchUrl
                         unset($args[$name][$pos]);
                         if (empty($args[$name])) {
                             unset($args[$name]);
-                        } elseif(count($args[$name]) === 1) {
+                        } elseif (count($args[$name]) === 1) {
                             $args[$name] = reset($args[$name]);
                         }
                     }
@@ -771,6 +770,6 @@ class SearchUrl
      * 'creation+' : return ['creation' => ['order' => 'asc']] // asc = par défaut, inutile
      * 'creation-' : return ['creation' => ['order' => 'desc']]
      * 'ref+' : return ['ref' => ['order' => 'asc', 'missing' => '_last']]
-     * 'createdby+' : return ['first-author' => ['order' => 'asc'], 'creation' => ['order' => 'desc']] // auteur croissant puis date décroissante
+     * 'createdby+' : return ['first-author' => ['order' => 'asc'], 'creation' => ['order' => 'desc']]
      */
 }

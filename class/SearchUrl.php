@@ -459,12 +459,13 @@ class SearchUrl
 
                 case 'in':
                     // 'in' contient des collections ('posts', 'pages', 'event'...) qu'il faut convertir en types (CPT)
+                    // Si ce n'est pas une collection qu'on connait, on stocke tel quel (pseudo types comme "basket")
                     $collections = docalist('docalist-search-index-manager')->getCollections();
                     foreach ((array) $value as $value) {
-                        if (!isset($collections[$value])) { // la collection n'existe pas, ignore en silence
-                            continue;
+                        if (isset($collections[$value])) { // il s'agit d'une collection, convertit en nom de CPT
+                            $value = $collections[$value]->getType();
                         }
-                        $types[] = $collections[$value]->getType();
+                        $types[] = $value;
                     }
                     break;
 
@@ -497,9 +498,11 @@ class SearchUrl
         }
 
         // Définit la liste des types interrogés
-        $validTypes = $this->getTypes() ?: $this->getIndexedTypes();
-        $types = empty($types) ? $validTypes : array_intersect($validTypes, $types);
-        $this->request->setTypes($types);
+        $validTypes = $this->getTypes();
+        if (! empty($types) && !empty($validTypes)) { // in ne peut pas être plus large que les types du constructeur
+            $types = array_intersect($validTypes, $types);
+        }
+        $this->request->setTypes($types ?: $validTypes);
 
         // Définit la représentation sous forme d'équation de la requête
         $this->request->setEquation($this->getEquation());

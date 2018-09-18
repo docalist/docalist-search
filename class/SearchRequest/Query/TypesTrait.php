@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2017 Daniel Ménard
+ * Copyright (C) 2013-2018 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -69,22 +69,61 @@ trait TypesTrait
             return [];
         }
 
-        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
         $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
 
         // Retourne une clause simple si on a un seul filtre
         if (count($this->types) === 1) {
-            $type = reset($this->types);
-            return $dsl->filter($indexManager->getIndexer($type)->getSearchFilter());
+            $filter = $this->getTypeQuery(reset($this->types));
+
+            return $dsl->filter($filter);
         }
 
         // Si on a plusieurs filtres, on les combine dans une clause "bool"
         $filters = [];
         foreach ($this->types as $type) {
-            $filter = $indexManager->getIndexer($type)->getSearchFilter();
+            $filter = $this->getTypeQuery($type);
             $filters[] = $dsl->should($filter);
         }
 
         return $dsl->filter($dsl->bool($filters));
+    }
+
+    /**
+     * Convertit le nom de type passé en paramètre en requête ElasticSearch.
+     *
+     * Le type indiqué peut être soit le nom d'un post type indexé ("post", "page", etc.) soit un "pseudo type".
+     *
+     * S'il s'agit d'un post-type, la méthode récupère l'indexeur associé et appelle la méthode getSearchFilter()
+     * pour récupérer la requête à utiliser.
+     *
+     * Sinon, la méthode déclenche le filtre "docalist_search_type_query". Si quelqu'un répond et génère une
+     * requête, celle-ci est retournée telle quelle (par exemple le module basket retourne une clause ids qui
+     * liste tous les documents sélectionnés).
+     *
+     * Si aucune requête ne peut être générée pour le type indiqué, la méthode retourne une requête matchNone() qui
+     * aura pour effet de générer une recherche "zéro réponses".
+     *
+     * @param string $type Le type recherché.
+     *
+     * @return array La clause ElasticSearch générée.
+     */
+    private function getTypeQuery(string $type)
+    {
+        // Teste s'il s'agit d'un post_type indexé
+        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+        $indexers = $indexManager->getAvailableIndexers();
+        if (isset($indexers[$type])) {
+            return $indexers[$type]->getSearchFilter();
+        }
+
+        // Génère l'événement "docalist_search_type_query" et retourne la requête générée
+        $filter = apply_filters('docalist_search_type_query', [], $type);
+        if (! empty($filter)) {
+            return $filter;
+        }
+
+        // Nom de type inconnu, génère une requête matchNone
+        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        return $dsl->matchNone();
     }
 }

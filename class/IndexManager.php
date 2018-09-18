@@ -373,7 +373,7 @@ class IndexManager
         // Détermine la liste des index à supprimer
         $delete = [];
         $baseName .= '-'; // les alias sont de la forme basename-datetime
-        foreach ($indices as $index => $aliases) {
+        foreach (array_keys($indices) as $index) {
             // Si c'est l'index qu'on veut garder, continue
             if ($index === $indexToKeep) {
                 continue;

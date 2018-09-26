@@ -1,15 +1,15 @@
 {
 	"type": "wordpress-plugin",
 	"name": "docalist/docalist-search",
-	"description": "Docalist : Search Engine.",
-    "homepage": "http://docalist.org/",
-	"license": "GPL-2.0",
+	"description": "Docalist : Moteur de recherche.",
+    "homepage": "https://docalist.org/",
+	"license": "GPL-2.0-or-later",
 
 	"authors": [ 
         {
             "name": "Daniel Ménard",
             "email": "daniel.menard@laposte.net",
-            "homepage": "http://docalist.org/"
+            "homepage": "https://docalist.org/"
         }
     ],
 
@@ -25,5 +25,25 @@
 	"require": {
 		"composer/installers": "~1.0",
 		"php": ">=7.2"
-	}
+	},
+    "autoload" : {
+        "psr-4" : {
+            "Docalist\\Search\\" : "class"
+        }
+    },
+    "autoload-dev" : {
+        "psr-4" : {
+            "Docalist\\Search\\Tests\\" : "tests"
+        }
+    },
+    "config" : {
+        "sort-packages" : true,
+        "optimize-autoloader" : true,
+        "classmap-authoritative" : true
+    },
+    "extra" : {
+        "branch-alias" : {
+            "dev-master" : "0.12-dev"
+        }
+    }   
 }

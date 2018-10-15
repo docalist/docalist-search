@@ -370,10 +370,26 @@ class IndexManager
         // qui nous retourne la liste des index et pour chaque index la liste de ses alias.
         $indices = $es->get('/_alias/');
 
+        // On obtient un objet de la forme :
+        // {
+        //     "wp_prisme_index1": {
+        //         "aliases": {
+        //             "wp_prisme": {},
+        //             "wp_prisme_write": {}
+        //         }
+        //     },
+        //     "autre_index": {
+        //         "aliases": {}
+        //     }
+        // }
+
+        // On ne veut que les clés
+        $indices = array_keys((array) $indices);
+
         // Détermine la liste des index à supprimer
         $delete = [];
         $baseName .= '-'; // les alias sont de la forme basename-datetime
-        foreach (array_keys($indices) as $index) {
+        foreach ($indices as $index) {
             // Si c'est l'index qu'on veut garder, continue
             if ($index === $indexToKeep) {
                 continue;

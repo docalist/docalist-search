@@ -87,14 +87,6 @@ class ElasticsearchMappingBuilder implements MappingBuilder
     protected $textType;
 
     /**
-     * Code à utiliser pour un champ de type "keyword".
-     * Avec ES >= 5, c'est "keyword", avant c'était "string".
-     *
-     * @var string
-     */
-    protected $keywordType;
-
-    /**
      * Construit un générateur de mappings.
      *
      * @param string $esVersion Version de elasticsearch.
@@ -105,10 +97,8 @@ class ElasticsearchMappingBuilder implements MappingBuilder
 
         if (version_compare($esVersion, '4.99', '>=')) { // minimum '5.0.0-alpha' (5-alpha < 5)
             $this->textType = 'text';
-            $this->keywordType = 'keyword';
         } else {
             $this->textType = 'string';
-            $this->keywordType = 'string';
         }
 
         $this->reset()->setDefaultAnalyzer('text');
@@ -369,10 +359,16 @@ class ElasticsearchMappingBuilder implements MappingBuilder
 
     public function filter()
     {
-        $this->last['fields']['filter'] = [
-            'type' => $this->keywordType,
-            'index' => 'not_analyzed',
-        ];
+        if (version_compare($this->esVersion, '5', '<')) {
+            $this->last['fields']['filter'] = [
+                'type' => 'string',
+                'index' => 'not_analyzed',
+            ];
+        } else {
+            $this->last['fields']['filter'] = [
+                'type' => 'keyword',
+            ];
+        }
 
         return $this;
     }

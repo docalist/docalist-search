@@ -432,11 +432,6 @@ class ElasticsearchMappingBuilder implements MappingBuilder
             // https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic.html
             'dynamic' => true,
 
-            // Le champ _all n'est pas utilisé
-            // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-all-field.html
-            '_all' => ['enabled' => false],
-            'include_in_all' => false,
-
             // La détection de dates et de nombres est désactivée
             // https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-field-mapping.html#date-detection
             'date_detection' => false,
@@ -453,6 +448,15 @@ class ElasticsearchMappingBuilder implements MappingBuilder
             // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-types.html
             'properties' => [],
         ];
+
+        // Le champ _all n'est pas utilisé dans docalist-search
+        // Avec ES >= 6, il est deprecated (non activé, on n'a rien à faire)
+        // Avec ES 2 ou 5, il est actif par défaut, on le désactive
+        // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-all-field.html
+        if (version_compare($this->esVersion, '6', '<')) {
+            $this->mapping['_all'] = ['enabled' => false];
+            $this->mapping['include_in_all'] = false;
+        }
 
         return $this->done();
     }

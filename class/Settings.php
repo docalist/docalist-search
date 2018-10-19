@@ -225,4 +225,24 @@ class Settings extends TypeSettings
             ],
         ];
     }
+
+    /**
+     * Annule le chargement des setting s'ils sont trop anciens et génère une admin notice.
+     */
+    public function assign($value)
+    {
+        if (isset($value['server']) || isset($value['indexer'])) {
+            if (is_admin() && !wp_doing_ajax()) {
+                docalist('admin-notices')->error(
+                    'Vos paramètres docalist-search sont trop anciens et ne peuvent pas être utilisés.
+                     Allez sur la page réglages docalist-search pour paramétrer à nouveau le moteur de recherche.',
+                    'docalist-search'
+                );
+
+            }
+            $value = $this->getDefaultValue();
+        }
+
+        return parent::assign($value);
+    }
 }

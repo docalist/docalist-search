@@ -46,7 +46,6 @@ use Docalist\Forms\Form;
     <?php
         $form = new Form();
         $form->select('searchpage')->setOptions(pagesList())->setFirstOption(false);
-        $form->checkbox('enabled');
         $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
 
         $form->bind($settings)->display();

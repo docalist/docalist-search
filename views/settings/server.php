@@ -99,6 +99,9 @@ use Docalist\Forms\Form;
         $form->input('bulkMaxSize')->setAttribute('type', 'number')->addClass('small-text');
         $form->input('bulkMaxCount')->setAttribute('type', 'number');//->addClass('regular-text');
 
+
+        $form->tag('h2.title', __('Activation', 'docalist-search'));
+
         // Propose de désactiver l'indexation en temps réelle si elle est activée
         $realtime = $form->checkbox('realtime');
         !$this->settings->realtime() && $realtime
@@ -107,6 +110,8 @@ use Docalist\Forms\Form;
                 "Cette option sera disponible une fois l'index créé.",
                 'docalist-search'
             ));
+
+        $form->checkbox('enabled');
 
         $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
 

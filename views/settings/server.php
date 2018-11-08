@@ -45,7 +45,7 @@ use Docalist\Forms\Form;
             'https://www.google.com/search?q=elasticsearch+hosting'                         // %3
         );
         $form->tag('p.description', $description);
-        $form->input('url')->addClass('regular-text');
+        $form->input('url')->addClass('large-text');
         if (isset($settings->esversion) && $settings->esversion() !== '0.0.0') {
             $form->input('esversion')->addClass('regular-text')->setAttribute('disabled');
         }

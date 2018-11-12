@@ -1,41 +1,57 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * This file is part of the "Docalist Search" plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2012-2017 Daniel Ménard
+ * Copyright (C) 2012-2018 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
- *
- * @package     Docalist
- * @subpackage  Search
- * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * LICENSE file that was distributed with this source code.
  */
 namespace Docalist\Search\Lookup;
 
 use Docalist\Lookup\LookupInterface;
 use wpdb;
+use InvalidArgumentException;
 
 /**
  * Lookup sur les titres des posts et des notices.
  *
  * Permet de récupérer le POST ID d'une notice dont on indique le début du titre.
  * Utilisé pour les lookups sur les champs de type Relation.
+ *
+ * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 class SearchLookup implements LookupInterface
 {
-    public function hasMultipleSources()
-    {
-        return true;
-    }
-
-    public function getCacheMaxAge()
+    /**
+     * {@inheritDoc}
+     */
+    public function getCacheMaxAge(): int
     {
         return 0; // Pas de cache
     }
 
-    public function getDefaultSuggestions($source = '')
+    /**
+     * Génère une exception si le nom de l'index a interroger n'a pas été indiqué dans le paramètre source.
+     *
+     * @param string $source Paramètre source à tester.
+     *
+     * @throws InvalidArgumentException
+     */
+    private function checkSource(string $source): void
     {
+        if (empty($source)) {
+            throw new InvalidArgumentException('source is required');
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getDefaultSuggestions(string $source = ''): array
+    {
+        $this->checkSource($source);
+
         // On récupère le titre des notices qui ont été mises à jour récemment
         $query = [
             'size' => 100,
@@ -55,8 +71,13 @@ class SearchLookup implements LookupInterface
         return $this->processResponse($response);
     }
 
-    public function getSuggestions($search, $source = '')
+    /**
+     * {@inheritDoc}
+     */
+    public function getSuggestions(string $search, string $source = ''): array
     {
+        $this->checkSource($source);
+
         // On recherche les suggestions sur le champ "posttitle" uniquement en utilisant une match_phrase_prefix
         // La source (obligatoire) indique le filtre qui est appliqué à la recherche (query-string avec default_op=OR)
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/query-dsl-match-query.html#query-dsl-match-query-phrase-prefix
@@ -85,7 +106,7 @@ class SearchLookup implements LookupInterface
      * @param object $response
      * @return array
      */
-    protected function processResponse($response)
+    protected function processResponse(object $response): array
     {
         // Aucune réponse ?
         if (! isset($response->hits->hits)) {
@@ -105,12 +126,17 @@ class SearchLookup implements LookupInterface
         return $result;
     }
 
-    public function convertCodes(array $data, $source = '')
+    /**
+     * {@inheritDoc}
+     */
+    public function convertCodes(array $data, string $source = ''): array
     {
         // Sanity check
         if (empty($data)) {
             return $data;
         }
+
+        $this->checkSource($source);
 
         // Construit la clause WHERE ... IN (...)
         $codes = [];

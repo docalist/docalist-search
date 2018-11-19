@@ -21,6 +21,7 @@ use Docalist\Search\Lookup\SearchLookup;
 use Docalist\Search\MappingBuilder\ElasticsearchMappingBuilder;
 use Docalist\Search\QueryParser\Parser;
 use Exception;
+use Docalist\Services;
 
 /**
  * Plugin Docalist Search.
@@ -69,18 +70,21 @@ class Plugin
                     return new QueryDSL\Version200();
                 }
             },
-            'mapping-builder' => function () {
+            'elasticsearch-version' => function() {
                 $version = $this->settings->esversion();
                 if (is_null($version) || $version === '0.0.0') {
-                    throw new Exception('Service mapping-builder is not available, elasticsearch url is not set');
+                    throw new Exception('Elasticsearch version is not available, check settings.');
                 }
-                return new ElasticsearchMappingBuilder($version);
+                return $version;
+            },
+            'mapping-builder' => function (Services $services) {
+                return new ElasticsearchMappingBuilder($services->get('elasticsearch-version'));
             },
             'docalist-search-index-manager' => new IndexManager($this->settings),
             'docalist-search-engine' => new SearchEngine($this->settings),
 
-            'index-lookup' => function () {
-                return new IndexLookup();
+            'index-lookup' => function (Services $services) {
+                return new IndexLookup($services->get('elasticsearch-version'));
             },
 
             'search-lookup' => function () {

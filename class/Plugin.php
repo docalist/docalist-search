@@ -22,6 +22,7 @@ use Docalist\Search\MappingBuilder\ElasticsearchMappingBuilder;
 use Docalist\Search\QueryParser\Parser;
 use Exception;
 use Docalist\Services;
+use Docalist\Search\Widget\DisplayAggregations;
 
 /**
  * Plugin Docalist Search.
@@ -115,6 +116,7 @@ class Plugin
         // Déclare notre widget "Search Facets"
         add_action('widgets_init', function () {
             register_widget(__NAMESPACE__ . '\FacetsWidget');
+            register_widget(DisplayAggregations::class);
         });
 
         // Définit les lookups de type "index"

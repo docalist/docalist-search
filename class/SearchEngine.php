@@ -161,24 +161,24 @@ class SearchEngine
 
             // Date de création
             case 'creation':
-                return __('Date de publication (ancien -> récent)', 'docalist-search');
+                return __('Date de création du post (ancien -> récent)', 'docalist-search');
 
             case 'creation-':
-                return __('Date de publication (récent -> ancien)', 'docalist-search');
+                return __('Date de création du post (récent -> ancien)', 'docalist-search');
 
             // Date de mise à jour
             case 'lastupdate':
-                return __('Date de mise à jour (ancien -> récent)', 'docalist-search');
+                return __('Date de mise à jour du post (ancien -> récent)', 'docalist-search');
 
             case 'lastupdate-':
-                return __('Date de mise à jour (récent -> ancien)', 'docalist-search');
+                return __('Date de mise à jour du post (récent -> ancien)', 'docalist-search');
 
             // Titre
             case 'posttitle':
-                return __('Titre (A -> Z)', 'docalist-search');
+                return __('Titre du post (A -> Z)', 'docalist-search');
 
             case 'posttitle-':
-                return __('Titre (Z -> A)', 'docalist-search');
+                return __('Titre du post (Z -> A)', 'docalist-search');
         }
 
         return $sort; // tri non reconnu

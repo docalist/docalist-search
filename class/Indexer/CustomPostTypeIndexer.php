@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2012-2017 Daniel Ménard
+ * Copyright (C) 2012-2018 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -137,6 +137,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
         $mapping->addField('slug')->text();
         $mapping->addField('createdby')->keyword();
         $mapping->addField('creation')->dateTime();
+        $mapping->addField('creation-hierarchy')->hierarchy();
         $mapping->addField('lastupdate')->dateTime();
         $mapping->addField('posttitle')->text();
         $mapping->addField('posttitle-sort')->keyword();
@@ -315,6 +316,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
 
         // Date de création
         $document['creation'] = $post->post_date;
+        $document['creation-hierarchy'] = date('Y/m/d', strtotime($post->post_date));
 
         // Date de modification
         $document['lastupdate'] = $post->post_modified;

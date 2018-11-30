@@ -2,7 +2,7 @@
 /**
  * This file is part of the "Docalist Search" plugin.
  *
- * Copyright (C) 2013-2017 Daniel Ménard
+ * Copyright (C) 2013-2018 Daniel Ménard
  *
  * For copyright and license information, please view the
  * LICENSE.txt file that was distributed with this source code.
@@ -38,12 +38,27 @@ class TableEntriesAggregation extends TermsAggregation
         $this->setTables($tables);
     }
 
+    public function getDefaultOptions()
+    {
+        $options = parent::getDefaultOptions();
+
+        // Tag à utiliser pour marquer le libellé des buckets invalides (ceux qui ne figurent pas dans la table)
+        $options['bucket.invalid.tag']  = 'span';
+
+        // Classe css des libellés de buckets invalides (non utilisé si 'bucket.invalid.tag' est vide)
+        $options['bucket.invalid.css']  = 'invalid-table-entry';
+
+        return $options;
+    }
+
     public function getBucketLabel(stdClass $bucket)
     {
+        // Cas spécial "missing"
         if ($bucket->key === static::MISSING) {
             return $this->getMissingLabel();
         }
 
+        // Récupère le libellé de l'entrée dans les tables d'autorité indiquées
         foreach ($this->getTables() as $table) {
             $label = $table->find('label', 'code=' . $table->quote($bucket->key));
             if ($label !== false) {
@@ -51,6 +66,10 @@ class TableEntriesAggregation extends TermsAggregation
             }
         }
 
-        return $bucket->key;
+        // Entrée non trouvée, on le signale avec le tag et la classe css indiquées en option
+        $tag = $this->getOption('bucket.invalid.tag');
+        $css = $this->getOption('bucket.invalid.css');
+
+        return $tag ? $this->renderTag($tag, $css ? ['class' => $css] : [], $bucket->key) : $bucket->key;
     }
 }

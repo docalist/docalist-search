@@ -50,7 +50,7 @@ interface Indexer
     /**
      * Retourne le code à utiliser pour désigner une collection de contenus de ce type.
      *
-     * @eturn string Retourne le code utilisé pour initialiser le champ 'in' lors de l'indexation.
+     * @return string Retourne le code utilisé pour initialiser le champ 'in' lors de l'indexation.
      */
     public function getCollection();
 

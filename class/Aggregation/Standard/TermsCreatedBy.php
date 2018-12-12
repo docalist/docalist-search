@@ -35,7 +35,7 @@ class TermsCreatedBy extends TermsAggregation
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;
         !isset($options['title']) && $options['title'] = __('Auteur du post', 'docalist-search');
-        $options['multiselect'] = true;
+        !isset($options['multiselect']) && $options['multiselect'] = true;
         parent::__construct('createdby', $parameters, $options);
     }
 

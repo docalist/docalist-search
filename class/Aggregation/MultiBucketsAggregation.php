@@ -36,15 +36,19 @@ abstract class MultiBucketsAggregation extends BucketAggregation
     {
         $options = parent::getDefaultOptions();
 
+        $options['collapsible']  = true;           // Par défaut, les facettes ne sont pas repliables
+        $options['collapsed']  = true;              // Mais si elles sont repliables, elles sont repliées par défaut
+
         $options['container.css']  = 'facet';
+
         $options['content.tag']  = 'ul';
 
         $options['bucket.tag']  = 'li';             // Tag à utiliser pour les buckets
         $options['bucket.css']  = false;            // Génère ou non un attribut "class" pour chaque bucket
         $options['bucket.label.tag']  = 'span';     // Tag à utiliser pour le libellé des buckets  (vide : pas de tag)
-        $options['bucket.label.css']  = '';     // Css pour le libellé
+        $options['bucket.label.css']  = '';         // Css pour le libellé
         $options['bucket.count.tag']  = 'em';       // Tag à utiliser pour le count des buckets (vide : pas de count)
-        $options['bucket.count.css']  = '';       // Css pour le count
+        $options['bucket.count.css']  = '';         // Css pour le count
 
         return $options;
     }
@@ -52,6 +56,78 @@ abstract class MultiBucketsAggregation extends BucketAggregation
     protected function renderResult()
     {
         return $this->renderBuckets($this->getBuckets());
+    }
+
+    /**
+     * Ajoute une classe dans l'attribut passé en paramètre.
+     *
+     * La méthode évite d'avoir à tester si l'attribut dans lequel on veut ajouter une classe existe déjà ou pas
+     * (on le passe par référence).
+     *
+     * Exemples :
+     *
+     * $attributes = ['class' => 'large'];
+     * addclass($attributes['class'], 'visible'); // -> result : 'large visible'
+     *
+     * $attributes = [];
+     * addclass($attributes['class'], 'visible'); // -> result : 'visible', pas de warning
+     *
+     * $attributes = [class => '   '];
+     * addclass($attributes['class'], '  '); // -> result : '', trim appliqué
+     *
+     * @param string $destination
+     * @param string $class
+     */
+    private function addclass(?string & $destination, string $class): void
+    {
+        $destination = ltrim($destination . ' ' . $class);
+    }
+
+    protected function getContainerAttributes()
+    {
+        $attributes = parent::getContainerAttributes();
+        $this->options['collapsible'] && $this->addclass($attributes['class'], 'collapsible');
+
+        return $attributes;
+    }
+
+    protected function getContentAttributes()
+    {
+        $attributes = parent::getContentAttributes();
+        $this->options['collapsible'] && $this->addclass($attributes['class'], 'collapsible-content');
+
+        return $attributes;
+    }
+
+    protected function renderTitle()
+    {
+        // Si la facette n'est pas repliable, rien à faire
+        if (!$this->options['collapsible']) {
+            return parent::renderTitle();
+        }
+
+        // Détermine l'ID de la checkbox et de l'attribut "for" du label
+        $id = $this->getName();
+
+        // Génère une checkbox
+        $checkbox = $this->renderTag('input', [
+            'type' => "checkbox",
+            'hidden' => 'hidden',
+            'class' => 'collapse',
+            'id' => $id,
+            'checked' => $this->options['collapsed'] && !$this->isActive()
+        ]);
+
+        // Génère un tag <label> contenant le titre
+        $label = $this->renderTag('label', ['for' => $id], $this->options['title']);
+
+        // Génère le titre
+        $tag = $this->options['title.tag'];
+        $class = $this->options['title.css'];
+        $title = $this->renderTag($tag, $class ? ['class' => $class] : [], $label);
+
+        // Retourne la checkbox + le titre modifié
+        return $checkbox . $title;
     }
 
     /**

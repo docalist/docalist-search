@@ -220,7 +220,7 @@ abstract class BaseAggregation implements Aggregation
             'title.before'      => true,    // Position du titre : true = avant le contenu, false = après.
 
             'content.tag'       => 'pre',   // Tag à utiliser pour le contenu de l'agrégation.
-            'content.css'       =>'',      // Classes css du tag contenu.
+            'content.css'       => '',      // Classes css du tag contenu.
 
             'data'              => false,   // Génère ou non des attributs "data-xxx".
         ];
@@ -398,9 +398,21 @@ abstract class BaseAggregation implements Aggregation
 
         // Génère le contenu avec le tag indiqué dans les options
         $tag = $this->options['content.tag'];
+        $attributes = $this->getContentAttributes();
+
+        return $this->renderTag($tag, $attributes, $result);
+    }
+
+    /**
+     * Retourne les attributs à générer pour le tag ouvrant du contenu.
+     *
+     * @return string[]
+     */
+    protected function getContentAttributes()
+    {
         $class = $this->options['content.css'];
 
-        return $this->renderTag($tag, $class ? ['class' => $class] : [], $result);
+        return $class ? ['class' => $class] : [];
     }
 
     /**

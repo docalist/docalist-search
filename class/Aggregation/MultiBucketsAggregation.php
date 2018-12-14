@@ -36,7 +36,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
     {
         $options = parent::getDefaultOptions();
 
-        $options['collapsible']  = true;           // Par défaut, les facettes ne sont pas repliables
+        $options['collapsible']  = false;           // Par défaut, les facettes ne sont pas repliables
         $options['collapsed']  = true;              // Mais si elles sont repliables, elles sont repliées par défaut
 
         $options['container.css']  = 'facet';

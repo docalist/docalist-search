@@ -151,7 +151,7 @@ class CustomPostTypeIndexer extends AbstractIndexer
         foreach ($this->getIndexedTaxonomies() as $taxonomy => $field) {
             $mapping->addField($field)->keyword();
             if (is_taxonomy_hierarchical($taxonomy)) {
-                $mapping->addField($field . '-hierarchy')->text('hierarchy');
+                $mapping->addField($field . '-hierarchy')->hierarchy();
             }
         }
 

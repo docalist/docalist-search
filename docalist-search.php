@@ -8,11 +8,11 @@
  * LICENSE.txt file that was distributed with this source code.
  *
  * Plugin Name: Docalist Search
- * Plugin URI:  http://docalist.org
+ * Plugin URI:  https://docalist.org
  * Description: An ElasticSearch-based search engine for WordPress.
- * Version:     3.0.0
+ * Version:     3.0.1
  * Author:      Daniel Ménard
- * Author URI:  http://docalist.org/
+ * Author URI:  https://docalist.org/
  * Text Domain: docalist-search
  * Domain Path: /languages
  *
@@ -25,7 +25,7 @@ namespace Docalist\Search;
 /**
  * Version du plugin.
  */
-define('DOCALIST_SEARCH_VERSION', '3.0.0'); // Garder synchro avec la version indiquée dans l'entête
+define('DOCALIST_SEARCH_VERSION', '3.0.1'); // Garder synchro avec la version indiquée dans l'entête
 
 /**
  * Path absolu du répertoire dans lequel le plugin est installé.

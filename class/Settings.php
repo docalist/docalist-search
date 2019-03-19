@@ -41,7 +41,7 @@ class Settings extends TypeSettings
 {
     protected $id = 'docalist-search-settings';
 
-    public static function loadSchema()
+    public static function loadSchema(): array
     {
         // Nom par défaut de l'index : préfixe des tables wordpress + nom de la base (ex wp_prisme)
         // Evite que deux sites sur le même serveur partagent par erreur le même index
@@ -229,7 +229,7 @@ class Settings extends TypeSettings
     /**
      * Annule le chargement des setting s'ils sont trop anciens et génère une admin notice.
      */
-    public function assign($value)
+    public function assign($value): void
     {
         if (isset($value['server']) || isset($value['indexer'])) {
             if (is_admin() && !wp_doing_ajax()) {
@@ -243,6 +243,6 @@ class Settings extends TypeSettings
             $value = $this->getDefaultValue();
         }
 
-        return parent::assign($value);
+        parent::assign($value);
     }
 }

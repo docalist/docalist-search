@@ -17,25 +17,28 @@ use Docalist\Type\Settings as TypeSettings;
 use Docalist\Type\Text;
 use Docalist\Type\Integer;
 use Docalist\Type\Boolean;
+use Docalist\Type\Composite;
+use Docalist\Type\Collection;
 
 /**
  * Options de configuration du plugin.
  *
- * @property Text       $url                Url complète du serveur Elasticsearch.
- * @property Text       $esversion          Numéro de version de Elasticsearch.
- * @property Text       $index              Nom de l'index Elasticsearch utilisé.
- * @property Integer    $shards             Nombre de shards de l'index.
- * @property Integer    $replicas           Nombre de replicas par shard.
- * @property Integer    $connecttimeout     Timeout de connexion, en secondes.
- * @property Integer    $timeout            Timeout des requêtes, en secondes.
- * @property Boolean    $compressrequest    Compresser les requêtes.
- * @property Boolean    $compressresponse   Compresser les réponses.
- * @property Text[]     $types              Contenus à indexer.
- * @property Integer    $bulkMaxSize        Taille maximale du buffer (Mo).
- * @property Integer    $bulkMaxCount       Nombre maximum de documents dans le buffer.
- * @property Boolean    $realtime           Indexation en temps réel activée.
- * @property Integer    $searchpage         ID de la page "liste des réponses".
- * @property Boolean    $enabled            Indique si la recherche est activée.
+ * @property Text       $url                    Url complète du serveur Elasticsearch.
+ * @property Text       $esversion              Numéro de version de Elasticsearch.
+ * @property Text       $index                  Nom de l'index Elasticsearch utilisé.
+ * @property Integer    $shards                 Nombre de shards de l'index.
+ * @property Integer    $replicas               Nombre de replicas par shard.
+ * @property Integer    $connecttimeout         Timeout de connexion, en secondes.
+ * @property Integer    $timeout                Timeout des requêtes, en secondes.
+ * @property Boolean    $compressrequest        Compresser les requêtes.
+ * @property Boolean    $compressresponse       Compresser les réponses.
+ * @property Text[]     $types                  Contenus à indexer.
+ * @property Integer    $bulkMaxSize            Taille maximale du buffer (Mo).
+ * @property Integer    $bulkMaxCount           Nombre maximum de documents dans le buffer.
+ * @property Boolean    $realtime               Indexation en temps réel activée.
+ * @property Integer    $searchpage             ID de la page "liste des réponses".
+ * @property Boolean    $enabled                Indique si la recherche est activée.
+ * @property Collection $defaultSearchFields    Champs de recherche par défaut.
  */
 class Settings extends TypeSettings
 {
@@ -222,6 +225,33 @@ class Settings extends TypeSettings
                     'description' => __('Activer la recherche Docalist Search.', 'docalist-search'),
                     'default' => false,
                 ],
+
+                /*
+                 * Champs par défaut et pondération
+                 */
+                'defaultSearchFields' => [
+                    'type' => Composite::class,
+                    'label' => __('Champs de recherche par défaut', 'docalist-search'),
+                    'description' => __(
+                        "Liste des champs sur lesquels portera la recherche si la requête de l'utilisateur ne
+                        mentionne aucun champ. Pour ajuster la pertinence des réponses obtenues, vous pouvez
+                        indiquer pour chaque champ un poids (>= 1) qui traduit l'importance de ce champ par
+                        rapport aux autres (exemple : title=2, content=1, topic=5).",
+                        'docalist-search'
+                    ),
+                    'repeatable' => true,
+                    'fields' => [
+                        'field' => [
+                            'type' => Text::class,
+                            'label' => __('Champ', 'docalist-search'),
+                        ],
+                        'weight' => [
+                            'type' => Integer::class,
+                            'label' => __('Poids', 'docalist-search'),
+                        ],
+                    ],
+
+                ],
             ],
         ];
     }
@@ -244,5 +274,22 @@ class Settings extends TypeSettings
         }
 
         parent::assign($value);
+    }
+
+    /**
+     * Retourne la liste des champs de recherche par défaut avec leur poids respectifs.
+     *
+     * @return string[] Un tableau de la forme ['posttitle^2', 'content', 'name', 'topic^5'].
+     */
+    public function getDefaultSearchFields(): array
+    {
+        $fields = [];
+        foreach ($this->defaultSearchFields as $field) {
+            $name = $field->field->getPhpValue();
+            $weight = $field->weight->getPhpValue();
+            $weight > 1 && $name .= '^' . $weight;
+            $fields[] = $name;
+        }
+        return $fields;
     }
 }

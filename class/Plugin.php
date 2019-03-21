@@ -93,7 +93,7 @@ class Plugin
             },
 
             'query-parser' => function () {
-                return new Parser();
+                return new Parser($this->settings->getDefaultSearchFields());
             },
         ]);
 

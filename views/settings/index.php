@@ -62,7 +62,7 @@ use Docalist\Search\SettingsPage;
         </a>
     </h2>
     <p class="description">
-        <?= __("Choix de la page des réponses, activation de la recherche Docalist Search.", 'docalist-search') ?>
+        <?= __("Choix de la page des réponses et champs de recherche par défaut.", 'docalist-search') ?>
     </p>
 
     <h2 style="margin-top: 5em;">

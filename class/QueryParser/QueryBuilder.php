@@ -28,9 +28,23 @@ class QueryBuilder implements Builder
      */
     protected $dsl;
 
-    public function __construct()
+    /**
+     * Nom et pondération des champs de recherche par défaut.
+     *
+     * @var array Un tableau de la forme champ => poids.
+     */
+    protected $defaultSearchFields;
+
+    /**
+     * Initialise le builder.
+     *
+     * @param array $defaultSearchFields Un tableau indiquant la liste des champs par défaut.
+     * Exemple : ['posttitle^2', 'content', 'name', 'topic^5'].
+     */
+    public function __construct(array $defaultSearchFields)
     {
         $this->dsl = docalist('elasticsearch-query-dsl');
+        $this->defaultSearchFields = $defaultSearchFields;
     }
 
     /**
@@ -39,10 +53,10 @@ class QueryBuilder implements Builder
      * @return string[] Un tableau listant les champs interrogés et leur pondération.
      * Exemple : ['posttitle^2', 'content', 'name', 'topic^5']
      */
-    private function getDefaultFields(): array
+    private function getDefaultSearchFields(): array
     {
-        return ['posttitle^3', 'content', 'name^4', 'author^3', 'topic^5', 'othertitle^2', 'corporation^2'];
-        // TODO: passer par un filtre WP
+        return $this->defaultSearchFields ?: ['posttitle'];
+        //return ['posttitle^3', 'content', 'name^4', 'author^3', 'topic^5', 'othertitle^2', 'corporation^2'];
     }
 
     public function match($field, array $terms)
@@ -57,20 +71,20 @@ class QueryBuilder implements Builder
         //   (resolve ?)
         // - canRange($name) : indique si le champ supporte ou non les requêtes de type range ?
         // + gestion de "triggers" : by:me -> createdby:login, today -> date en cours, etc.
-        ($field === '') && $field = $this->getDefaultFields();
+        ($field === '') && $field = $this->getDefaultSearchFields();
         return $this->dsl->multiMatch($field, implode(' ', $terms), 'best_fields', ['operator' => 'and']);
     }
 
     public function phrase($field, array $terms)
     {
-        ($field === '') && $field = $this->getDefaultFields();
+        ($field === '') && $field = $this->getDefaultSearchFields();
         return $this->dsl->multiMatch($field, implode(' ', $terms), 'phrase', []);
 //        return $this->dsl->match($field, implode(' ', $terms), 'match_phrase');
     }
 
     public function prefix($field, $prefix)
     {
-        ($field === '') && $field = $this->getDefaultFields();
+        ($field === '') && $field = $this->getDefaultSearchFields();
         return $this->dsl->multiMatch($field, $prefix, 'phrase_prefix', []);
         // return $this->dsl->prefix($field, $prefix); // ne supporte pas plusieurs champs
     }

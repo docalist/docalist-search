@@ -46,6 +46,18 @@ use Docalist\Forms\Form;
     <?php
         $form = new Form();
         $form->select('searchpage')->setOptions(pagesList())->setFirstOption(false);
+
+        $fields = $form->table('defaultSearchFields')
+            ->setRepeatable();
+        $fields
+            ->entryPicker('field')
+            ->setOptions($this->getAllFields());
+
+        $fields
+            ->input('weight')
+            ->setAttribute('type', 'number')
+            ->setAttribute('min', '1');
+
         $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
 
         $form->bind($settings)->display();

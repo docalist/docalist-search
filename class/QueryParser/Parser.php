@@ -89,12 +89,22 @@ class Parser
     protected $builder;
 
     /**
+     * Nom et pondération des champs de recherche par défaut.
+     *
+     * @var array Un tableau de la forme champ => poids.
+     */
+    protected $defaultSearchFields;
+
+    /**
      * Initialise l'analyseur.
      *
+     * @param array $defaultSearchFields Un tableau indiquant la liste des champs par défaut.
+     * Exemple : ['posttitle^2', 'content', 'name', 'topic^5'].
      */
-    public function __construct()
+    public function __construct(array $defaultSearchFields)
     {
         $this->lexer = new Lexer();
+        $this->defaultSearchFields = $defaultSearchFields;
     }
 
     /**
@@ -117,7 +127,7 @@ class Parser
      */
     public function parse($string, $field = '_all', $operator = 'and')
     {
-        return $this->parseString(new QueryBuilder(), $string, $field, $operator);
+        return $this->parseString(new QueryBuilder($this->defaultSearchFields), $string, $field, $operator);
     }
 
     public function explain($string, $field = '_all', $operator = 'and')

@@ -101,6 +101,7 @@ class SettingsPage extends AdminPage
                 if (isset($_POST['realtime']) && $_POST['realtime'] === '') {
                     $settings->realtime = false;
                 }
+                $this->settings->enabled = (bool) $_POST['enabled'];
 
                 $this->validateSettings();
 
@@ -286,12 +287,11 @@ class SettingsPage extends AdminPage
         if ($this->isPost()) {
             $_POST = wp_unslash($_POST);
             $this->settings->searchpage = (int) $_POST['searchpage'];
-            $this->settings->enabled = (bool) $_POST['enabled'];
+            $this->settings->defaultSearchFields = $this->validateFields((array) $_POST['defaultSearchFields']);
 
-            // $settings->validate();
             $this->settings->save();
 
-            return $this->redirect($this->getUrl('Index'), 303);
+            return $this->redirect($this->getUrl('SearchSettings'), 303);
         }
 
         return $this->view('docalist-search:settings/search', [
@@ -300,32 +300,65 @@ class SettingsPage extends AdminPage
         ]);
     }
 
-    protected function getAllFields()
+    protected function validateFields(array $defaultSearchFields): array
     {
-        // On fait une recherche * en demandant une agrégation sur le champ spécial _field_names
-        // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-field-names-field.html
-        $response = docalist('elasticsearch')->get('/{index}/_search', [
-            'size' => 0,
-            'aggs' => [
-                'fields' => [ // Nom de l'agrégation générée
-                    'terms' => [
-                        'field' => '_field_names',
-                        'size' => 1000,
-                        'order' => [ '_term' => 'asc' ],
-                    ],
-                ],
-            ]
-        ]);
-
-        $fields = [];
-        foreach ($response->aggregations->fields->buckets as $bucket) {
-            $field = $bucket->key;
-            // On ne peut avoir de "field data" pour le champ source, ni pour un champ de type "completion"
-            if ($field === '_source' || substr($field, -8) === '.suggest') {
+        $result = [];
+        foreach ($defaultSearchFields as $defaultSearchField) {
+            $field = $defaultSearchField['field'] ?? '';
+            if (empty($field)) {
                 continue;
             }
-            $fields[] = $field;
+            $weight = (int) ($defaultSearchField['weight'] ?? 1);
+            $weight < 1 && $weight = 1;
+            $result[$field] = ['field' => $field, 'weight' => $weight];
         }
+
+        return $result;
+    }
+
+    protected function getAllFields()
+    {
+        $mapping = docalist('elasticsearch')->get('/{index}/_mapping');
+        /*
+         * La réponse obtenue est de la forme suivante :
+         * {
+         *     "wp_prisme-1552505198219": {
+         *         "mappings": {
+         *             "type1": {
+         *                 "properties": {
+         *                     "champ1": {
+         *                     },
+         *                     "champ2": {
+         *                        "fields": {
+         *                            "sous-champ1": {},
+         *                            "sous-champ2": {}
+         *                        }
+         *                     }
+         *                 }
+         *             }
+         *         }
+         *     }
+         * }
+         */
+        // On obtient un objet qui contient une seule propriété (le nom de l'index => mapping)
+        $mapping = (array) $mapping;
+        $mapping = reset($mapping);
+        $mapping = (array) $mapping->mappings;
+
+        $fields = [];
+        foreach ($mapping as $mapping) {
+            foreach ((array) $mapping->properties as $name => $mapping) {
+                $fields[$name] = $name;
+                if (isset($mapping->fields)) {
+                    foreach ($mapping->fields as $subfield => $mapping) {
+                        $fullname = $name . '.' . $subfield;
+                        $fields[$fullname] = $fullname;
+                    }
+                }
+            }
+        }
+
+        ksort($fields); // trie par ordre alphabétique
 
         return $fields;
     }
@@ -338,7 +371,7 @@ class SettingsPage extends AdminPage
                     'query' => $query,
                 ],
             ],
-            'fielddata_fields' => $this->getAllFields(),
+            'docvalue_fields' => $this->getAllFields(),
         ]);
 
         return $this->view('docalist-search:debug/field-data', [

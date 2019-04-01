@@ -7,6 +7,8 @@
  * For copyright and license information, please view the
  * LICENSE file that was distributed with this source code.
  */
+declare(strict_types=1);
+
 namespace Docalist\Search\Aggregation\Bucket;
 
 use Docalist\Search\Aggregation\MultiBucketsAggregation;
@@ -292,7 +294,7 @@ class TermsAggregation extends MultiBucketsAggregation
         // Déplace tous les buckets qui ne sont pas des tags racine comme enfant de leur tag parent
         foreach ($buckets as $key => $bucket) {
             // Récupère les différents segments qui composent la clé du bucket
-            $parts = explode('/', $key);
+            $parts = explode('/', (string) $key);
 
             // Si c'est un tag racine (un seul segment), terminé
             if (count($parts) < 2) {

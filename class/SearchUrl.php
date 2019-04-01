@@ -7,6 +7,8 @@
  * For copyright and license information, please view the
  * LICENSE file that was distributed with this source code.
  */
+declare(strict_types=1);
+
 namespace Docalist\Search;
 
 use Docalist\Search\QueryParser\Parser;
@@ -364,11 +366,11 @@ class SearchUrl
             $query .= '=';
             if (is_array($value)) {
                 foreach ($value as &$item) {
-                    $item = $this->encodeURIComponent($item);
+                    $item = $this->encodeURIComponent((string) $item);
                 }
                 $value = implode(self::SEPARATOR, $value);
             } else {
-                $value = $this->encodeURIComponent($value);
+                $value = $this->encodeURIComponent((string) $value);
             }
             $query .= $value;
         }

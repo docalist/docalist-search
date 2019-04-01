@@ -7,6 +7,8 @@
  * For copyright and license information, please view the
  * LICENSE file that was distributed with this source code.
  */
+declare(strict_types=1);
+
 namespace Docalist\Search\Aggregation;
 
 use stdClass;
@@ -226,7 +228,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         $tag = $this->options['bucket.count.tag'];
         $css = $this->options['bucket.count.css'];
 
-        return $tag ? $this->renderTag($tag, $css ? ['class' => $css] : [], $bucket->doc_count) : '';
+        return $tag ? $this->renderTag($tag, $css ? ['class' => $css] : [], (string) $bucket->doc_count) : '';
     }
 
     /**

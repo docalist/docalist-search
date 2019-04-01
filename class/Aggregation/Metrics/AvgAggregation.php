@@ -1,15 +1,11 @@
 <?php
 /**
- * This file is part of the "Docalist Search" plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2013-2016 Daniel Ménard
+ * Copyright (C) 2012-2019 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
- *
- * @package     Docalist
- * @subpackage  Search
- * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * LICENSE file that was distributed with this source code.
  */
 namespace Docalist\Search\Aggregation\Metrics;
 
@@ -19,6 +15,8 @@ use Docalist\Search\Aggregation\SingleMetricAggregation;
  * Une agrégation qui retourne la moyenne d'un champ (numérique).
  *
  * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/search-aggregations-metrics-avg-aggregation.html
+ *
+ * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 class AvgAggregation extends SingleMetricAggregation
 {

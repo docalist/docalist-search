@@ -1,15 +1,11 @@
 <?php
 /**
- * This file is part of the "Docalist Search" plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2013-2017 Daniel Ménard
+ * Copyright (C) 2012-2019 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
- *
- * @package     Docalist
- * @subpackage  Search
- * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * LICENSE file that was distributed with this source code.
  */
 namespace Docalist\Search\SearchRequest;
 
@@ -23,6 +19,7 @@ use InvalidArgumentException;
  * et il faut maintenant utiliser les objets Aggregagtion. Néanmoins, ce trait maintient la compatibilité ascendante :
  * plusieurs méthodes ont un paramètre name qui n'est pas utilisé (ni requis).
  *
+ * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 trait AggregationsTrait
 {

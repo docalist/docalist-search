@@ -1,15 +1,11 @@
 <?php
 /**
- * This file is part of the "Docalist Search" plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2012-2015 Daniel Ménard
+ * Copyright (C) 2012-2019 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
- *
- * @package     Docalist
- * @subpackage  Search
- * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * LICENSE file that was distributed with this source code.
  */
 namespace Docalist\Search\Indexer;
 
@@ -25,6 +21,8 @@ use Docalist\Search\IndexManager;
  * disponible (par exemple, on a indexé une base documentaire puis on désactive docalist-biblio). Cette classe sert
  * à gérer ce cas : au lieu de générer une erreur fatale, l'indexeur manquant est remplacé par un NullIndexer et une
  * admin notice est générée.
+ *
+ * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 class NullIndexer extends AbstractIndexer
 {

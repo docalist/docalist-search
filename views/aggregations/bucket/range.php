@@ -1,15 +1,11 @@
 <?php
 /**
- * This file is part of the 'Docalist Search' plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2016-2016 Daniel Ménard
+ * Copyright (C) 2012-2019 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
- *
- * @package     Docalist
- * @subpackage  Search
- * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * LICENSE file that was distributed with this source code.
  */
 namespace Docalist\Search\Views\Aggregation\Metrics;
 
@@ -23,6 +19,8 @@ use Docalist\Search\Aggregation\Bucket\RangeAggregation;
  *                                      pas générer de tag container.
  * @var string|false        $title      Optionnel, titre de la facette (celui de l'agrégation par défaut), ou false
  *                                      pour ne pas générer de titre.
+ *
+ * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 
 // On ne génère rien si on n'a pas de buckets

@@ -1,11 +1,11 @@
 <?php
 /**
- * This file is part of the "Docalist Search" plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2012-2017 Daniel Ménard
+ * Copyright (C) 2012-2019 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
+ * LICENSE file that was distributed with this source code.
  *
  * Plugin Name: Docalist Search
  * Plugin URI:  https://docalist.org
@@ -16,8 +16,6 @@
  * Text Domain: docalist-search
  * Domain Path: /languages
  *
- * @package     Docalist
- * @subpackage  Search
  * @author      Daniel Ménard <daniel.menard@laposte.net>
  */
 namespace Docalist\Search;

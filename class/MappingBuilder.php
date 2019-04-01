@@ -1,15 +1,11 @@
 <?php
 /**
- * This file is part of the "Docalist Search" plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2012-2016 Daniel Ménard
+ * Copyright (C) 2012-2019 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
- *
- * @package     Docalist
- * @subpackage  Core
- * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * LICENSE file that was distributed with this source code.
  */
 namespace Docalist\Search;
 
@@ -32,6 +28,8 @@ use InvalidArgumentException;
  *
  * Le mapping généré peut être obtenu avec <code>$mapper->getMapping()</code> qui retourne un tableau
  * contenant les paramètres générés.
+ *
+ * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 interface MappingBuilder
 {

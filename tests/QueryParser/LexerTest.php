@@ -1,21 +1,20 @@
 <?php
 /**
- * This file is part of the "Docalist Biblio UserData" plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2016-2016 Daniel Ménard
+ * Copyright (C) 2012-2019 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
- *
- * @package     Docalist
- * @subpackage  Tests\Biblio\UserData
- * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * LICENSE file that was distributed with this source code.
  */
 namespace Docalist\Tests\Search\QueryParser;
 
 use WP_UnitTestCase;
 use Docalist\Search\QueryParser\Lexer as L;
 
+/**
+ * @author Daniel Ménard <daniel.menard@laposte.net>
+ */
 class LexerTest extends WP_UnitTestCase
 {
     /**

@@ -1,15 +1,11 @@
 <?php
 /**
- * This file is part of the "Docalist Search" plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2011-2016 Daniel Ménard
+ * Copyright (C) 2012-2019 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
- *
- * @package     Docalist
- * @subpackage  Search
- * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * LICENSE file that was distributed with this source code.
  */
 namespace Docalist\Search\QueryParser;
 
@@ -26,6 +22,8 @@ namespace Docalist\Search\QueryParser;
  *   C'est ce qui est utilisé quand on appelle la méthode explain() du QueryParser.
  *
  * Cette interface définit les différentes méthodes que doivent implémenter les builders.
+ *
+ * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 interface Builder
 {

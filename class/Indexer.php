@@ -1,15 +1,11 @@
 <?php
 /**
- * This file is part of the "Docalist Search" plugin.
+ * This file is part of Docalist Search.
  *
- * Copyright (C) 2012-2017 Daniel Ménard
+ * Copyright (C) 2012-2019 Daniel Ménard
  *
  * For copyright and license information, please view the
- * LICENSE.txt file that was distributed with this source code.
- *
- * @package     Docalist
- * @subpackage  Search
- * @author      Daniel Ménard <daniel.menard@laposte.net>
+ * LICENSE file that was distributed with this source code.
  */
 namespace Docalist\Search;
 
@@ -23,6 +19,8 @@ use Docalist\Search\IndexManager;
  *
  * Chaque indexeur gère un seul type de contenu et dispose de méthodes permettant de convertir ce contenu en document
  * ElasticSearch, d'indexer / mettre à jour / supprimer un contenu, de réindexer la totalité des contenus de ce type.
+ *
+ * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 interface Indexer
 {

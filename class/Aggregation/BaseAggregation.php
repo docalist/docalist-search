@@ -88,95 +88,128 @@ abstract class BaseAggregation implements Aggregation
         !empty($options) && $this->setOptions($options);
     }
 
-    public function getType()
+    /**
+     * {@inheritDoc}
+     */
+    final public function getType(): string
     {
         return static::TYPE;
     }
 
-    public function setName($name)
+    /**
+     * {@inheritDoc}
+     */
+    final public function setName($name): void
     {
         $this->name = $name;
-
-        return $this;
     }
 
-    public function getName()
+    /**
+     * {@inheritDoc}
+     */
+    final public function getName(): string
     {
         return $this->name;
     }
 
-    public function setParameters(array $parameters)
+    /**
+     * {@inheritDoc}
+     */
+    final public function setParameters(array $parameters): void
     {
         $this->parameters = $parameters;
-
-        return $this;
     }
 
-    public function getParameters()
+    /**
+     * {@inheritDoc}
+     */
+    final public function getParameters(): array
     {
         return $this->parameters;
     }
 
-    public function setParameter($name, $value)
+    /**
+     * {@inheritDoc}
+     */
+    final public function setParameter(string $name, $value): void
     {
         if (is_null($value)) {
             unset($this->parameters[$name]);
 
-            return $this;
+            return;
         }
 
         $this->parameters[$name] = $value;
-
-        return $this;
     }
 
-    public function getParameter($name)
+    /**
+     * {@inheritDoc}
+     */
+    final public function getParameter(string $name)
     {
         return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
     }
 
-    public function hasParameter($name)
+    /**
+     * {@inheritDoc}
+     */
+    final public function hasParameter(string $name): bool
     {
         return isset($this->parameters[$name]);
     }
 
-    public function getDefinition()
+    /**
+     * {@inheritDoc}
+     */
+    public function getDefinition(): array
     {
         return [$this->getType() => $this->getParameters() ?: (object) []];
     }
 
-    public function setResult(stdClass $result)
+    /**
+     * {@inheritDoc}
+     */
+    public function setResult(stdClass $result): void
     {
         $this->result = $result;
-
-        return $this;
     }
 
-    public function getResult($name = null)
+    /**
+     * {@inheritDoc}
+     */
+    final public function getResult($name = null)
     {
         return is_null($name) ? $this->result : (isset($this->result->$name) ? $this->result->$name : null);
     }
 
-    public function setSearchRequest(SearchRequest $searchRequest = null)
+    /**
+     * {@inheritDoc}
+     */
+    public function setSearchRequest(?SearchRequest $searchRequest): void
     {
         $this->searchRequest = $searchRequest;
-
-        return $this;
     }
 
-    public function getSearchRequest()
+    /**
+     * {@inheritDoc}
+     */
+    final public function getSearchRequest(): ?SearchRequest
     {
         return $this->searchRequest;
     }
 
-    public function setSearchResponse(SearchResponse $searchResponse)
+    /**
+     * {@inheritDoc}
+     */
+    public function setSearchResponse(?SearchResponse $searchResponse): void
     {
         $this->searchResponse = $searchResponse;
-
-        return $this;
     }
 
-    public function getSearchResponse()
+    /**
+     * {@inheritDoc}
+     */
+    final public function getSearchResponse(): ?SearchResponse
     {
         return $this->searchResponse;
     }
@@ -205,7 +238,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return array
      */
-    public function getDefaultOptions()
+    public function getDefaultOptions(): array
     {
         $title = $this->getType() . ' ' . $this->getParameter('field');
         return [
@@ -226,26 +259,34 @@ abstract class BaseAggregation implements Aggregation
         ];
     }
 
-    public function setOptions(array $options = [])
+    /**
+     * {@inheritDoc}
+     */
+    final public function setOptions(array $options = []): void
     {
         $this->options = $options + $this->options;
-
-        return $this;
     }
 
-    public function getOptions()
+    /**
+     * {@inheritDoc}
+     */
+    final public function getOptions(): array
     {
         return $this->options;
     }
 
-    public function setOption($option, $value)
+    /**
+     * {@inheritDoc}
+     */
+    final public function setOption(string $option, $value): void
     {
         $this->options[$option] = $value;
-
-        return $this;
     }
 
-    public function getOption($option)
+    /**
+     * {@inheritDoc}
+     */
+    final public function getOption(string $option)
     {
         return isset($this->options[$option]) ? $this->options[$option] : null;
     }
@@ -254,17 +295,21 @@ abstract class BaseAggregation implements Aggregation
     // Affichage
     // ----------------------------------------------------------------------------------------------------
 
-    public function display(array $options = [])
+    /**
+     * {@inheritDoc}
+     */
+    final public function display(array $options = []): void
     {
         echo $this->render($options);
-
-        return $this;
     }
 
-    public function render(array $options = [])
+    /**
+     * {@inheritDoc}
+     */
+    public function render(array $options = []): string
     {
         // Tient compte des options d'affichage passées en paramètre
-        $this->setOptions($options);
+        !empty($options) && $this->setOptions($options);
 
         // Génère le résultat, terminé si l'agrégation n'a rien généré
         if ('' === $content = $this->renderContent()) {
@@ -345,7 +390,10 @@ abstract class BaseAggregation implements Aggregation
         return $attributes;
     }
 
-    public function isActive()
+    /**
+     * {@inheritDoc}
+     */
+    final public function isActive(): bool
     {
         $field = $this->getParameter('field');
         if (is_null($field)) {

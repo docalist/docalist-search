@@ -38,7 +38,10 @@ class TableEntriesAggregation extends TermsAggregation
         $this->setTables($tables);
     }
 
-    public function getDefaultOptions()
+    /**
+     * {@inheritDoc}
+     */
+    public function getDefaultOptions(): array
     {
         $options = parent::getDefaultOptions();
 

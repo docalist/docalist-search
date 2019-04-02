@@ -163,8 +163,10 @@ class SearchRequest
         // Fournit le résultat obtenu à chaque agrégation et remplace le résultat brut par l'objet Aggregation
         foreach ($this->aggregations as $name => $aggregation) {
             if ($aggregation instanceof Aggregation) {
-                $result = isset($data->aggregations->$name) ? $data->aggregations->$name : null;
-                $data->aggregations->$name = $aggregation->setSearchResponse($searchResponse)->setResult($result);
+                $result = $data->aggregations->$name ?: null;
+                $aggregation->setSearchResponse($searchResponse);
+                $aggregation->setResult($result);
+                $data->aggregations->$name = $aggregation;
             }
         }
 

@@ -25,7 +25,10 @@ class GlobalAggregation extends SingleBucketAggregation
 {
     const TYPE = 'global';
 
-    public function render(array $options = [])
+    /**
+     * {@inheritDoc}
+     */
+    public function render(array $options = []): string
     {
         /*
          * Une agrégation de type 'global' ne génère rien elle-même : elle se contente d'afficher

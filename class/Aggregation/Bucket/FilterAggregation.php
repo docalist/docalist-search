@@ -36,7 +36,10 @@ class FilterAggregation extends SingleBucketAggregation
         parent::__construct($filter, $options);
     }
 
-    public function render(array $options = [])
+    /**
+     * {@inheritDoc}
+     */
+    public function render(array $options = []): string
     {
         /*
          * Une agrégation de type 'filter' ne génère rien elle-même : elle se contente d'afficher

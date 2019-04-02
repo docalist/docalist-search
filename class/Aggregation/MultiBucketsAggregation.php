@@ -32,7 +32,10 @@ abstract class MultiBucketsAggregation extends BucketAggregation
      */
     protected $bucketsLevel = -1;
 
-    public function getDefaultOptions()
+    /**
+     * {@inheritDoc}
+     */
+    public function getDefaultOptions(): array
     {
         $options = parent::getDefaultOptions();
 

@@ -26,26 +26,24 @@ interface Aggregation
      *
      * @return string Le type de l'agrégation (identifiant elasticsearch).
      */
-    public function getType();
+    public function getType(): string;
 
     /**
      * Définit le nom de l'agrégation.
      *
-     * Remarque : chaque agrégation doit avoir un nom (unique) qui permet de l'identifier dans la liste des
-     * agrégations et par défaut il s'agit de la classe de l'objet agrégation.
+     * Chaque agrégation doit avoir un nom (unique) qui permet de l'identifier dans la liste des agrégations de la
+     * requête.
      *
      * @param string $name Nom de l'agrégation.
-     *
-     * @return self
      */
-    public function setName($name);
+    public function setName(string $name): void;
 
     /**
      * Retourne le nom de l'agrégation.
      *
-     * @return string Le nom de l'agrégation (ou sa classe si aucun nom n'a été défini).
+     * @return string Le nom de l'agrégation.
      */
-    public function getName();
+    public function getName(): string;
 
     /**
      * Définit les paramètres de l'agrégation.
@@ -54,27 +52,23 @@ interface Aggregation
      *
      * Remarque : aucun test n'est fait pour vérifier la validité des paramètres fournis. S'ils sont erronés,
      * elasticsearch générera une erreur.
-     *
-     * @return self
      */
-    public function setParameters(array $parameters);
+    public function setParameters(array $parameters): void;
 
     /**
      * Retourne les paramètres de l'agrégation.
      *
      * @return array
      */
-    public function getParameters();
+    public function getParameters(): array;
 
     /**
      * Définit un paramètre de l'agrégation.
      *
      * @param string $name  Nom du paramètre à modifier.
      * @param mixed  $value Valeur à associer.
-     *
-     * @return self
      */
-    public function setParameter($name, $value);
+    public function setParameter(string $name, $value): void;
 
     /**
      * Retourne la valeur d'un paramètre de l'agrégation.
@@ -83,7 +77,7 @@ interface Aggregation
      *
      * @return mixed La valeur du paramètre ou null si le paramètre n'est pas définit.
      */
-    public function getParameter($name);
+    public function getParameter(string $name);
 
     /**
      * Indique si le paramètre indiqué existe dans l'agrégation.
@@ -92,23 +86,21 @@ interface Aggregation
      *
      * @return bool
      */
-    public function hasParameter($name);
+    public function hasParameter(string $name): bool;
 
     /**
      * Retourne la définition de l'agrégation.
      *
      * @return array Un tableau DSL décrivant l'agrégation.
      */
-    public function getDefinition();
+    public function getDefinition(): array;
 
     /**
      * Définit le résultat de l'agrégation.
      *
      * @param stdClass $result Le résultat généré par elasticsearch pour cette agrégation.
-     *
-     * @return self
      */
-    public function setResult(stdClass $result);
+    public function setResult(stdClass $result): void;
 
     /**
      * Retourne le résultat de l'agrégation.
@@ -129,41 +121,37 @@ interface Aggregation
     /**
      * Définit l'objet SearchRequest dans lequel figure cette agrégation.
      *
-     * @param SearchRequest $searchRequest
-     *
-     * @return self
+     * @param SearchRequest|null $searchRequest
      */
-    public function setSearchRequest(SearchRequest $searchRequest = null);
+    public function setSearchRequest(?SearchRequest $searchRequest): void;
 
     /**
      * Retourne l'objet SearchRequest dans lequel figure cette agrégation.
      *
-     * @return SearchRequest
+     * @return SearchRequest|null
      */
-    public function getSearchRequest();
+    public function getSearchRequest(): ?SearchRequest;
 
     /**
      * Définit l'objet SearchResponse qui contient les résultats de cette agrégation.
      *
-     * @param SearchResponse $searchResponse
-     *
-     * @return self
+     * @param SearchResponse|null $searchResponse
      */
-    public function setSearchResponse(SearchResponse $searchResponse);
+    public function setSearchResponse(?SearchResponse $searchResponse): void;
 
     /**
      * Retourne l'objet SearchResponse qui contient les résultats de cette agrégation.
      *
-     * @return SearchResponse
+     * @return SearchResponse|null
      */
-    public function getSearchResponse();
+    public function getSearchResponse(): ?SearchResponse;
 
     /**
      * Retourne les options d'affichage par défaut.
      *
      * @return array
      */
-    public function getDefaultOptions();
+    public function getDefaultOptions(): array;
 
     /**
      * Définit les options d'affichage.
@@ -171,27 +159,23 @@ interface Aggregation
      * Les options passées en paramètre sont fusionnées avec les options d'affichage déjà définies.
      *
      * @param array $options
-     *
-     * @return self
      */
-    public function setOptions(array $options = []);
+    public function setOptions(array $options = []): void;
 
     /**
      * Retourne les options d'affichage.
      *
      * @return array
      */
-    public function getOptions();
+    public function getOptions(): array;
 
     /**
      * Définit une option d'affichage.
      *
      * @param string    $option Nom de l'option.
      * @param mixed     $value  Nouvelle valeur de l'option.
-     *
-     * @return self
      */
-    public function setOption($option, $value);
+    public function setOption(string $option, $value): void;
 
     /**
      * Retourne la valeur actuelle d'une option d'affichage.
@@ -200,16 +184,14 @@ interface Aggregation
      *
      * @return mixed|null La valeur de l'option demandée ou null si l'option n'est pas définie.
      */
-    public function getOption($option);
+    public function getOption(string $option);
 
     /**
      * Affiche l'agrégation.
      *
      * @param array $options Options d'affichage (fusionnées avec les options en cours).
-     *
-     * @return self
      */
-    public function display(array $options = []);
+    public function display(array $options = []): void;
 
     /**
      * Identique à display() mais retourne le résultat au lieu de l'afficher.
@@ -218,7 +200,7 @@ interface Aggregation
      *
      * @return string
      */
-    public function render(array $options = []);
+    public function render(array $options = []): string;
 
     /**
      * Indique si l'agrégation est active.
@@ -228,5 +210,5 @@ interface Aggregation
      *
      * @return bool
      */
-    public function isActive();
+    public function isActive(): bool;
 }

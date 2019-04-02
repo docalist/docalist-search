@@ -75,7 +75,10 @@ class StatsAggregation extends MultiMetricsAggregation
         return $this->getResult('avg');
     }
 
-    public function getDefaultOptions()
+    /**
+     * {@inheritDoc}
+     */
+    public function getDefaultOptions(): array
     {
         $options = parent::getDefaultOptions();
         $options['container.tooltip'] = __('{count} fiche(s), min {min}, max {max}, moyenne {avg}', 'docalist-search');

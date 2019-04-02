@@ -117,8 +117,12 @@ abstract class BucketAggregation extends BaseAggregation
         return isset($this->aggregations[$name]) ? $this->aggregations[$name] : null;
     }
 
-    // On surcharge pour générer la définition des sous-agrégations éventuelles.
-    public function getDefinition()
+    /**
+     * {@inheritDoc}
+     *
+     * On surcharge getDefinition() pour générer la définition des sous-agrégations éventuelles.
+     */
+    public function getDefinition(): array
     {
         $definition = parent::getDefinition();
 
@@ -133,27 +137,32 @@ abstract class BucketAggregation extends BaseAggregation
         return $definition;
     }
 
-    // On surcharge pour transmettre la requête qui a généré l'agrégation à toutes les sous-agrégations.
-    public function setSearchRequest(SearchRequest $searchRequest = null)
+    /**
+     * {@inheritDoc}
+     *
+     * On surcharge setSearchRequest() pour transmettre la requête qui a généré l'agrégation à toutes les
+     * sous-agrégations.
+     */
+    public function setSearchRequest(?SearchRequest $searchRequest): void
     {
         parent::setSearchRequest($searchRequest);
         foreach ($this->getAggregations() as $aggregation) {
             $aggregation->setSearchRequest($searchRequest);
         }
-
-        return $this;
     }
 
-    // On surcharge pour transmettre la réponse obtenue à toutes les sous-agrégations.
-    public function setSearchResponse(SearchResponse $searchResponse)
+    /**
+     * {@inheritDoc}
+     *
+     * On surcharge setSearchResponse() pour transmettre la réponse obtenue à toutes les sous-agrégations.
+     */
+    public function setSearchResponse(?SearchResponse $searchResponse): void
     {
         parent::setSearchResponse($searchResponse);
 
         foreach ($this->getAggregations() as $aggregation) {
             $aggregation->setSearchResponse($searchResponse);
         }
-
-        return $this;
     }
 
     /**

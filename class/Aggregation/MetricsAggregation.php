@@ -33,7 +33,10 @@ abstract class MetricsAggregation extends BaseAggregation
         parent::__construct($parameters, $options);
     }
 
-    public function getDefaultOptions()
+    /**
+     * {@inheritDoc}
+     */
+    public function getDefaultOptions(): array
     {
         $options = parent::getDefaultOptions();
         $options['title.tag'] = 'em';

@@ -97,7 +97,7 @@ class TermsAggregation extends MultiBucketsAggregation
     /**
      * {@inheritDoc}
      */
-    public function getDefaultOptions()
+    public function getDefaultOptions(): array
     {
         $options = parent::getDefaultOptions();
 
@@ -113,7 +113,7 @@ class TermsAggregation extends MultiBucketsAggregation
     /**
      * {@inheritDoc}
      */
-    public function getDefinition()
+    public function getDefinition(): array
     {
         // Un flag qui nous permet d'éviter une boucle infinie si on appelle global->getDefinition()
         static $recurse = false;
@@ -249,7 +249,7 @@ class TermsAggregation extends MultiBucketsAggregation
     /**
      * {@inheritDoc}
      */
-    public function setResult(stdClass $result)
+    public function setResult(stdClass $result): void
     {
         // Si on a une sous-agrégation "multiselect", il faut aller chercher les buckets dedans
         if (isset($result->multiselect)) {
@@ -262,7 +262,7 @@ class TermsAggregation extends MultiBucketsAggregation
         }
 
         // Stocke le résultat
-        return parent::setResult($result);
+        parent::setResult($result);
     }
 
     /**

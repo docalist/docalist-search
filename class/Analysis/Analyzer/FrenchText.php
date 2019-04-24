@@ -12,6 +12,9 @@ declare(strict_types=1);
 namespace Docalist\Search\Analysis\Analyzer;
 
 use Docalist\Search\Analysis\Analyzer\CustomAnalyzer;
+use Docalist\Search\Analysis\TokenFilter\French\FrenchElision;
+use Docalist\Search\Analysis\TokenFilter\French\FrenchStop;
+use Docalist\Search\Analysis\TokenFilter\French\FrenchStemMinimal;
 
 /**
  * Analyseur "french_text" : permet une recherche "plein texte" sur un contenu en français (titre, résumé...)
@@ -44,11 +47,11 @@ class FrenchText extends CustomAnalyzer
     public function getTokenFilters(): array
     {
         return [
-            'lowercase',            // Convertit le texte en minuscules
-            'french_elision',       // Supprime les élisions (c', d', l'...)
-            'french_stop',          // Supprime les mots-vides
-            'french_stem_minimal',  // Stemming minimal
-            'asciifolding',         // Supprime les accents (important : apprès le stemming, teste les accents)
+            'lowercase',                    // Convertit le texte en minuscules
+            FrenchElision::getName(),       // Supprime les élisions (c', d', l'...)
+            FrenchStop::getName(),          // Supprime les mots-vides
+            FrenchStemMinimal::getName(),   // Stemming minimal
+            'asciifolding',                 // Supprime les accents (après le stemming, teste les accents)
         ];
 
         // Remarques :

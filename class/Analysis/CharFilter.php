@@ -14,7 +14,7 @@ namespace Docalist\Search\Analysis;
 use Docalist\Search\Analysis\Component;
 
 /**
- * Interface d'un filtre de caractères.
+ * Un composant d'analyse qui filtre les caractères.
  *
  * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analyzer-anatomy.html
  *

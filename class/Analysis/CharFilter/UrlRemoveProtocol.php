@@ -18,12 +18,12 @@ use Docalist\Search\Analysis\CharFilter;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class UrlRemoveProtocol implements CharFilter
+final class UrlRemoveProtocol implements CharFilter
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'url_remove_protocol';
     }
@@ -31,7 +31,7 @@ class UrlRemoveProtocol implements CharFilter
     /**
      * {@inheritDoc}
      */
-    public function getDefinition(): array
+    final public function getDefinition(): array
     {
         return [
             'type' => 'pattern_replace',

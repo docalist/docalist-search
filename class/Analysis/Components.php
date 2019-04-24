@@ -59,14 +59,14 @@ use Docalist\Search\Analysis\Tokenizer\UrlTokenizer;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class Components
+final class Components
 {
     /**
      * Retourne la liste des analyseurs pré-définis de docalist-search.
      *
      * @return string[] Un tableau de la forme "nom" => "nom de classe php de type Analyzer".
      */
-    public static function getAnalyzers(): array
+    final public static function getAnalyzers(): array
     {
         return [
             EnglishText::getName() => EnglishText::class,
@@ -86,7 +86,7 @@ class Components
      *
      * @return string[] Un tableau de la forme "nom" => "nom de classe php de type CharFilter".
      */
-    public static function getCharFilters(): array
+    final public static function getCharFilters(): array
     {
         return [
             UrlNormalizeSep::getName() => UrlNormalizeSep::class,
@@ -100,7 +100,7 @@ class Components
      *
      * @return string[] Un tableau de la forme "nom" => "nom de classe php de type TokenFilter".
      */
-    public static function getTokenFilters(): array
+    final public static function getTokenFilters(): array
     {
         return [
             EnglishPossessives::getName() => EnglishPossessives::class,
@@ -138,7 +138,7 @@ class Components
      *
      * @return string[] Un tableau de la forme "nom" => "nom de classe php de type Tokenizer".
      */
-    public static function getTokenizers(): array
+    final public static function getTokenizers(): array
     {
         return [
             UrlTokenizer::getName() => UrlTokenizer::class,

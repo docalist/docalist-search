@@ -21,12 +21,12 @@ use Docalist\Search\Analysis\TokenFilter\English\EnglishStem;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class EnglishText extends CustomAnalyzer
+final class EnglishText extends CustomAnalyzer
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'english_text';
     }
@@ -34,7 +34,7 @@ class EnglishText extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getCharFilters(): array
+    final public function getCharFilters(): array
     {
         return [
             'html_strip',           // Supprime les tags html
@@ -44,7 +44,7 @@ class EnglishText extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getTokenFilters(): array
+    final public function getTokenFilters(): array
     {
         return [
             'lowercase',                    // Convertit le texte en minuscules

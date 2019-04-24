@@ -18,12 +18,12 @@ use Docalist\Search\Analysis\Tokenizer;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class UrlTokenizer implements Tokenizer
+final class UrlTokenizer implements Tokenizer
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'url_tokenizer';
     }
@@ -31,7 +31,7 @@ class UrlTokenizer implements Tokenizer
     /**
      * {@inheritDoc}
      */
-    public function getDefinition(): array
+    final public function getDefinition(): array
     {
         return [
             'type' => 'keyword',

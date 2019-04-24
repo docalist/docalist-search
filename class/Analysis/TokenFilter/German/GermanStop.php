@@ -21,12 +21,12 @@ use Docalist\Search\Analysis\TokenFilter;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class GermanStop implements TokenFilter
+final class GermanStop implements TokenFilter
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'german_stop';
     }
@@ -34,7 +34,7 @@ class GermanStop implements TokenFilter
     /**
      * {@inheritDoc}
      */
-    public function getDefinition(): array
+    final public function getDefinition(): array
     {
         return [
             'type' => 'stop',

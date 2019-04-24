@@ -22,12 +22,12 @@ use Docalist\Search\Analysis\TokenFilter;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class SpanishStemLight implements TokenFilter
+final class SpanishStemLight implements TokenFilter
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'spanish_stem_light';
     }
@@ -35,7 +35,7 @@ class SpanishStemLight implements TokenFilter
     /**
      * {@inheritDoc}
      */
-    public function getDefinition(): array
+    final public function getDefinition(): array
     {
         return [
             'type' => 'stemmer',

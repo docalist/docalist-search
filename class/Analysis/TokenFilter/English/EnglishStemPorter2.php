@@ -20,12 +20,12 @@ use Docalist\Search\Analysis\TokenFilter;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class EnglishStemPorter2 implements TokenFilter
+final class EnglishStemPorter2 implements TokenFilter
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'english_stem_porter2';
     }
@@ -33,7 +33,7 @@ class EnglishStemPorter2 implements TokenFilter
     /**
      * {@inheritDoc}
      */
-    public function getDefinition(): array
+    final public function getDefinition(): array
     {
         return [
             'type' => 'stemmer',

@@ -18,12 +18,12 @@ use Docalist\Search\Analysis\Analyzer\CustomAnalyzer;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class Suggest extends CustomAnalyzer
+final class Suggest extends CustomAnalyzer
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'suggest';
     }
@@ -31,7 +31,7 @@ class Suggest extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getTokenizer(): string
+    final public function getTokenizer(): string
     {
         return 'keyword';
     }
@@ -39,7 +39,7 @@ class Suggest extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getTokenFilters(): array
+    final public function getTokenFilters(): array
     {
         return [
             'lowercase',        // Convertit le texte en minuscules

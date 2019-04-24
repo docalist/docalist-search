@@ -18,12 +18,12 @@ use Docalist\Search\Analysis\Analyzer\CustomAnalyzer;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class Hierarchy extends CustomAnalyzer
+final class Hierarchy extends CustomAnalyzer
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'hierarchy';
     }
@@ -31,7 +31,7 @@ class Hierarchy extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getTokenizer(): string
+    final public function getTokenizer(): string
     {
         return 'path_hierarchy';
     }

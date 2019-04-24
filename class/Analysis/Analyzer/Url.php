@@ -24,12 +24,12 @@ use Docalist\Search\Analysis\Tokenizer\UrlTokenizer;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class Url extends CustomAnalyzer
+final class Url extends CustomAnalyzer
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'url';
     }
@@ -37,7 +37,7 @@ class Url extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getCharFilters(): array
+    final public function getCharFilters(): array
     {
         return [
             UrlRemoveProtocol::getName(),   // Supprime le protocole (http://, https://, ftp://...)
@@ -49,7 +49,7 @@ class Url extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getTokenizer(): string
+    final public function getTokenizer(): string
     {
         return UrlTokenizer::getName();
     }
@@ -57,7 +57,7 @@ class Url extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getTokenFilters(): array
+    final public function getTokenFilters(): array
     {
         return [
             'lowercase',    // Convertit le texte en minuscules

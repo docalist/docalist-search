@@ -21,12 +21,12 @@ use Docalist\Search\Analysis\TokenFilter\French\FrenchStemMinimal;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class FrenchText extends CustomAnalyzer
+final class FrenchText extends CustomAnalyzer
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'french_text';
     }
@@ -34,7 +34,7 @@ class FrenchText extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getCharFilters(): array
+    final public function getCharFilters(): array
     {
         return [
             'html_strip',           // Supprime les tags html
@@ -44,7 +44,7 @@ class FrenchText extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getTokenFilters(): array
+    final public function getTokenFilters(): array
     {
         return [
             'lowercase',                    // Convertit le texte en minuscules

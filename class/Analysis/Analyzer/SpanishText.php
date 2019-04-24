@@ -20,12 +20,12 @@ use Docalist\Search\Analysis\TokenFilter\Spanish\SpanishStemLight;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class SpanishText extends CustomAnalyzer
+final class SpanishText extends CustomAnalyzer
 {
     /**
      * {@inheritDoc}
      */
-    public static function getName(): string
+    final public static function getName(): string
     {
         return 'spanish_text';
     }
@@ -33,7 +33,7 @@ class SpanishText extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getCharFilters(): array
+    final public function getCharFilters(): array
     {
         return [
             'html_strip',           // Supprime les tags html
@@ -43,7 +43,7 @@ class SpanishText extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    public function getTokenFilters(): array
+    final public function getTokenFilters(): array
     {
         return [
             'lowercase',                    // Convertit le texte en minuscules

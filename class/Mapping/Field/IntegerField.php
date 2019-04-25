@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace Docalist\Search\Mapping\Field;
 
-use Docalist\Search\Mapping\Field;
+use Docalist\Search\Mapping\Field\NumericField;
 
 /**
  * Un entier signé sur 32 bits compris entre -2^31 et 2^31-1.

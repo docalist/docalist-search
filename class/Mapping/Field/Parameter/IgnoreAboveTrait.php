@@ -12,9 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Mapping\Field\Parameter;
 
 use Docalist\Search\Mapping\Field\Parameter\IgnoreAbove;
-use Docalist\Search\Mapping\Options;
 use InvalidArgumentException;
-use Docalist\Search\Mapping\Field;
 
 /**
  * Implémentation de l'interface IgnoreAbove.
@@ -71,10 +69,9 @@ trait IgnoreAboveTrait
     /**
      * Applique le paramètre au mapping.
      *
-     * @param array     $mapping    Mapping à modifier.
-     * @param Options   $options    Options du mapping.
+     * @param array $mapping Mapping à modifier.
      */
-    final protected function applyIgnoreAbove(array & $mapping, Options $options): void
+    final protected function applyIgnoreAbove(array & $mapping): void
     {
         !empty($this->ignoreAbove) && $mapping['ignore_above'] = $this->ignoreAbove;
     }

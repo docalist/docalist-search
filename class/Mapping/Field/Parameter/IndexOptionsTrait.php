@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Mapping\Field\Parameter;
 
 use Docalist\Search\Mapping\Field\Parameter\IndexOptions;
-use Docalist\Search\Mapping\Options;
 use InvalidArgumentException;
 
 /**
@@ -79,10 +78,9 @@ trait IndexOptionsTrait
     /**
      * Applique le paramètre au mapping.
      *
-     * @param array     $mapping    Mapping à modifier.
-     * @param Options   $options    Options du mapping.
+     * @param array $mapping Mapping à modifier.
      */
-    final protected function applyIndexOptions(array & $mapping, Options $options): void
+    final protected function applyIndexOptions(array & $mapping): void
     {
         !empty($this->indexOptions) && $mapping['index_options'] = $this->indexOptions;
     }

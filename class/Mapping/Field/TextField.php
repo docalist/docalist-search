@@ -77,8 +77,8 @@ final class TextField extends Field implements Analyzer, IndexOptions, Similarit
 
         // Applique les autres paramètres
         $this->applyAnalyzer($mapping, $options);
-        $this->applyIndexOptions($mapping, $options);
-        $this->applySimilarity($mapping, $options);
+        $this->applyIndexOptions($mapping);
+        $this->applySimilarity($mapping);
 
         // Ok
         return $mapping;

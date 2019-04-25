@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Mapping\Field\Parameter;
 
 use Docalist\Search\Mapping\Field\Parameter\Similarity;
-use Docalist\Search\Mapping\Options;
 use InvalidArgumentException;
 
 /**
@@ -66,10 +65,9 @@ trait SimilarityTrait
     /**
      * Applique le paramètre au mapping.
      *
-     * @param array     $mapping    Mapping à modifier.
-     * @param Options   $options    Options du mapping.
+     * @param array $mapping Mapping à modifier.
      */
-    final protected function applySimilarity(array & $mapping, Options $options): void
+    final protected function applySimilarity(array & $mapping): void
     {
         !empty($this->similarity) && $mapping['similarity'] = $this->similarity;
     }

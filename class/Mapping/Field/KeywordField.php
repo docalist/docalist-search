@@ -87,9 +87,9 @@ final class KeywordField extends Field implements IgnoreAbove, Normalizer, Simil
         }
 
         // Applique les autres paramètres
-        $this->applyIgnoreAbove($mapping, $options);
-        $this->applyNormalizer($mapping, $options);
-        $this->applySimilarity($mapping, $options);
+        $this->applyIgnoreAbove($mapping);
+        $this->applyNormalizer($mapping);
+        $this->applySimilarity($mapping);
 
         // Ok
         return $mapping;

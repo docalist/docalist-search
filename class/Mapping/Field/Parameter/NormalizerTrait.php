@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Mapping\Field\Parameter;
 
 use Docalist\Search\Mapping\Field\Parameter\Normalizer;
-use Docalist\Search\Mapping\Options;
 use InvalidArgumentException;
 
 /**
@@ -66,10 +65,9 @@ trait NormalizerTrait
     /**
      * Applique le paramètre au mapping.
      *
-     * @param array     $mapping    Mapping à modifier.
-     * @param Options   $options    Options du mapping.
+     * @param array $mapping Mapping à modifier.
      */
-    final protected function applyNormalizer(array & $mapping, Options $options): void
+    final protected function applyNormalizer(array & $mapping): void
     {
         !empty($this->normalizer) && $mapping['normalizer'] = $this->normalizer;
     }

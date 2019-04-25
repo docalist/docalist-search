@@ -33,7 +33,7 @@ abstract class NumericField extends Field
     /**
      * {@inheritDoc}
      */
-    final public function getMapping(Options $options): array
+    public function getMapping(Options $options): array // pas "final", surchargée dans ScaledFloatField
     {
         // Génère le mapping de base
         $mapping = parent::getMapping($options);

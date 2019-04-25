@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search;
 
 use Docalist\Search\Indexer;
-use Docalist\Search\Indexer\NullIndexer;
+use Docalist\Search\Indexer\MissingIndexer;
 use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
 use RuntimeException;
@@ -193,22 +193,21 @@ class IndexManager
         // Garantit que la liste des indexeurs disponibles a été initialisée
         $this->getAvailableIndexers();
 
-        // Génère un message d'erreur si aucun indexeur n'est disponible pour le type indiqué
+        // Génère une admin notice si aucun indexeur n'est disponible pour le type indiqué
         if (!isset($this->indexers[$type])) {
             docalist('admin-notices')->warning(
                 sprintf(__('Warning: indexer for type "%s" is not available', 'docalist-search'), $type),
-                'docalist-search'
+                'docalist-search' // titre de la notice
             );
-            $this->indexers[$type] = new NullIndexer();
+            $this->indexers[$type] = new MissingIndexer($type);
         }
 
-        // Génère un message d'erreur si ce n'est pas un Indexer
+        // Génère une exception si ce n'est pas un Indexer
         if (! $this->indexers[$type] instanceof Indexer) {
-            docalist('admin-notices')->error(
-                sprintf(__('Error: invalid indexer for type "%s"', 'docalist-search'), $type),
-                'docalist-search'
-            );
-            $this->indexers[$type] = new NullIndexer();
+            throw new InvalidArgumentException(sprintf(
+                __('Error: invalid indexer for type "%s"', 'docalist-search'),
+                $type
+            ));
         }
 
         // Ok

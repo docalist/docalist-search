@@ -21,6 +21,7 @@ use Docalist\Search\Mapping\Field\DoubleField;
 use Docalist\Search\Mapping\Field\FloatField;
 use Docalist\Search\Mapping\Field\GeopointField;
 use Docalist\Search\Mapping\Field\GeoshapeField;
+use Docalist\Search\Mapping\Field\HalfFloatField;
 use Docalist\Search\Mapping\Field\IntegerField;
 use Docalist\Search\Mapping\Field\IPField;
 use Docalist\Search\Mapping\Field\KeywordField;
@@ -170,6 +171,20 @@ trait BaseFactoryTrait
     public function geoshape(string $name): GeoshapeField
     {
         return $this->addField(new GeoshapeField($name));
+    }
+
+    /**
+     * Ajoute un champ de type 'half_float'.
+     *
+     * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/number.html
+     *
+     * @param string $name Nom du champ
+     *
+     * @return HalfFloatField
+     */
+    public function halfFloat(string $name): HalfFloatField
+    {
+        return $this->addField(new HalfFloatField($name));
     }
 
     /**

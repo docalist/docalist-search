@@ -16,6 +16,8 @@ use Docalist\Search\Mapping\Field\Parameter\Analyzer;
 use Docalist\Search\Mapping\Field\Parameter\AnalyzerTrait;
 use Docalist\Search\Mapping\Field\Parameter\IndexOptions;
 use Docalist\Search\Mapping\Field\Parameter\IndexOptionsTrait;
+use Docalist\Search\Mapping\Field\Parameter\SearchAnalyzer;
+use Docalist\Search\Mapping\Field\Parameter\SearchAnalyzerTrait;
 use Docalist\Search\Mapping\Field\Parameter\Similarity;
 use Docalist\Search\Mapping\Field\Parameter\SimilarityTrait;
 use Docalist\Search\Mapping\Options;
@@ -28,9 +30,9 @@ use InvalidArgumentException;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-final class TextField extends Field implements Analyzer, IndexOptions, Similarity
+final class TextField extends Field implements Analyzer, IndexOptions, SearchAnalyzer, Similarity
 {
-    use AnalyzerTrait, IndexOptionsTrait, SimilarityTrait;
+    use AnalyzerTrait, IndexOptionsTrait, SearchAnalyzerTrait, SimilarityTrait;
 
     // title search
     // https://opensourceconnections.com/blog/2014/12/08/title-search-when-relevancy-is-only-skin-deep/
@@ -53,6 +55,7 @@ final class TextField extends Field implements Analyzer, IndexOptions, Similarit
 
             $this->mergeAnalyzer($other);
             $this->mergeIndexOptions($other);
+            $this->mergeSearchAnalyzer($other);
             $this->mergeSimilarity($other);
         } catch (InvalidArgumentException $e) {
             throw new InvalidArgumentException($other->getName() . ': ' . $e->getMessage());
@@ -78,6 +81,7 @@ final class TextField extends Field implements Analyzer, IndexOptions, Similarit
         // Applique les autres paramètres
         $this->applyAnalyzer($mapping, $options);
         $this->applyIndexOptions($mapping);
+        $this->applySearchAnalyzer($mapping, $options);
         $this->applySimilarity($mapping);
 
         // Ok

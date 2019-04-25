@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Mapping\Field;
 
 use Docalist\Search\Mapping\Field;
-use Docalist\Search\Mapping\Options;
 
 /**
  * Un entier signé sur 32 bits compris entre -2^31 et 2^31-1.
@@ -21,21 +20,13 @@ use Docalist\Search\Mapping\Options;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-final class IntegerField extends Field
+final class IntegerField extends NumericField
 {
     /**
      * {@inheritDoc}
      */
-    final public function getMapping(Options $options): array
+    final protected function getNumericType(): string
     {
-        // Génère le mapping de base
-        $mapping = parent::getMapping($options);
-
-        // Type de champ
-        $mapping['type'] = 'integer';
-        $mapping['ignore_malformed'] = true;
-
-        // Ok
-        return $mapping;
+        return 'integer';
     }
 }

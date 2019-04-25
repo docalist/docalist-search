@@ -194,7 +194,7 @@ trait BaseFactoryTrait
      */
     public function long(string $name): LongField
     {
-        return $this->addField(new IntegerField($name));
+        return $this->addField(new LongField($name));
     }
 
     /**

@@ -11,19 +11,43 @@ declare(strict_types=1);
 
 namespace Docalist\Search\Indexer;
 
+use Docalist\Search\Indexer\CustomPostTypeIndexer;
+
 /**
- * Un indexeur pour les articles de WordPress.
+ * Un indexeur pour les articles WordPress.
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 class PostIndexer extends CustomPostTypeIndexer
 {
-    public function __construct()
+    /**
+     * {@inheritDoc}
+     */
+    public function getType(): string
     {
-        parent::__construct('post', 'posts', __('Contenus WordPress', 'docalist-search'));
+        return 'post';
     }
 
-    public function getLabel()
+    /**
+     * {@inheritDoc}
+     */
+    public function getCollection(): string
+    {
+        return 'posts';
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getCategory(): string
+    {
+        return __('Contenus WordPress', 'docalist-search');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getLabel(): string
     {
         return __('Blog du site', 'docalist-search');
     }

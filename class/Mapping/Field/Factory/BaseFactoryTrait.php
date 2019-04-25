@@ -17,6 +17,7 @@ use Docalist\Search\Mapping\Field\BooleanField;
 use Docalist\Search\Mapping\Field\ByteField;
 use Docalist\Search\Mapping\Field\CompletionField;
 use Docalist\Search\Mapping\Field\DateField;
+use Docalist\Search\Mapping\Field\DoubleField;
 use Docalist\Search\Mapping\Field\FloatField;
 use Docalist\Search\Mapping\Field\GeopointField;
 use Docalist\Search\Mapping\Field\GeoshapeField;
@@ -113,6 +114,20 @@ trait BaseFactoryTrait
     public function date(string $name): DateField
     {
         return $this->addField(new DateField($name));
+    }
+
+    /**
+     * Ajoute un champ de type 'double'.
+     *
+     * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/number.html
+     *
+     * @param string $name Nom du champ
+     *
+     * @return DoubleField
+     */
+    public function double(string $name): DoubleField
+    {
+        return $this->addField(new DoubleField($name));
     }
 
     /**

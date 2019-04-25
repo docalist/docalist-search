@@ -14,6 +14,8 @@ namespace Docalist\Search\Mapping\Field;
 use Docalist\Search\Mapping\Field;
 use Docalist\Search\Mapping\Field\Parameter\Analyzer;
 use Docalist\Search\Mapping\Field\Parameter\AnalyzerTrait;
+use Docalist\Search\Mapping\Field\Parameter\FieldData;
+use Docalist\Search\Mapping\Field\Parameter\FieldDataTrait;
 use Docalist\Search\Mapping\Field\Parameter\IndexOptions;
 use Docalist\Search\Mapping\Field\Parameter\IndexOptionsTrait;
 use Docalist\Search\Mapping\Field\Parameter\SearchAnalyzer;
@@ -30,9 +32,9 @@ use InvalidArgumentException;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-final class TextField extends Field implements Analyzer, IndexOptions, SearchAnalyzer, Similarity
+final class TextField extends Field implements Analyzer, FieldData, IndexOptions, SearchAnalyzer, Similarity
 {
-    use AnalyzerTrait, IndexOptionsTrait, SearchAnalyzerTrait, SimilarityTrait;
+    use AnalyzerTrait, FieldDataTrait, IndexOptionsTrait, SearchAnalyzerTrait, SimilarityTrait;
 
     // title search
     // https://opensourceconnections.com/blog/2014/12/08/title-search-when-relevancy-is-only-skin-deep/
@@ -42,7 +44,10 @@ final class TextField extends Field implements Analyzer, IndexOptions, SearchAna
      */
     final public function getSupportedFeatures(): array
     {
-        return [self::FULLTEXT];
+        return [
+            self::FULLTEXT,
+            self::AGGREGATE,    // Requiert fielddata, exception sinon
+        ];
     }
 
     /**
@@ -54,6 +59,7 @@ final class TextField extends Field implements Analyzer, IndexOptions, SearchAna
             parent::mergeWith($other);
 
             $this->mergeAnalyzer($other);
+            $this->mergeFieldData($other);
             $this->mergeIndexOptions($other);
             $this->mergeSearchAnalyzer($other);
             $this->mergeSimilarity($other);
@@ -78,8 +84,14 @@ final class TextField extends Field implements Analyzer, IndexOptions, SearchAna
             $mapping['index'] = false;
         }
 
+        // Pour faire une agrégation sur un champ "text", il faut que les fielddata soient activés
+        if ($this->hasFeature(self::AGGREGATE) && !$this->hasFieldData()) {
+            throw new InvalidArgumentException('Aggregating on a text field requires fielddata');
+        }
+
         // Applique les autres paramètres
         $this->applyAnalyzer($mapping, $options);
+        $this->applyFieldData($mapping);
         $this->applyIndexOptions($mapping);
         $this->applySearchAnalyzer($mapping, $options);
         $this->applySimilarity($mapping);

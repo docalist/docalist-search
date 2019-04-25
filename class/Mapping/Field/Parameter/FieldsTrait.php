@@ -99,7 +99,6 @@ trait FieldsTrait
                 $analyzers += $field->getAnalyzers();
             }
         }
-        var_dump($analyzers); //die();
 
         return $analyzers;
     }
@@ -120,7 +119,6 @@ trait FieldsTrait
                 $normalizers += $field->getNormalizers();
             }
         }
-        var_dump($normalizers); //die();
 
         return $normalizers;
     }

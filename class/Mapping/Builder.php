@@ -176,7 +176,6 @@ class Builder
             $name = $analyzer->getTokenizer();
             $tokenizer = $this->options->getTokenizer($name);
             !is_null($tokenizer) && $tokenizers[$name] = $tokenizer;
-
         }
 
         return $tokenizers;

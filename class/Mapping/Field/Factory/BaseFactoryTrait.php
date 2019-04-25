@@ -14,6 +14,7 @@ namespace Docalist\Search\Mapping\Field\Factory;
 use Docalist\Search\Mapping\Field;
 use Docalist\Search\Mapping\Field\BinaryField;
 use Docalist\Search\Mapping\Field\BooleanField;
+use Docalist\Search\Mapping\Field\ByteField;
 use Docalist\Search\Mapping\Field\CompletionField;
 use Docalist\Search\Mapping\Field\DateField;
 use Docalist\Search\Mapping\Field\FloatField;
@@ -25,6 +26,7 @@ use Docalist\Search\Mapping\Field\KeywordField;
 use Docalist\Search\Mapping\Field\LongField;
 use Docalist\Search\Mapping\Field\ObjectField;
 use Docalist\Search\Mapping\Field\NestedField;
+use Docalist\Search\Mapping\Field\ShortField;
 use Docalist\Search\Mapping\Field\TextField;
 
 /**
@@ -69,6 +71,20 @@ trait BaseFactoryTrait
     public function boolean(string $name): BooleanField
     {
         return $this->addField(new BooleanField($name));
+    }
+
+    /**
+     * Ajoute un champ de type 'byte'.
+     *
+     * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/number.html
+     *
+     * @param string $name Nom du champ
+     *
+     * @return ByteField
+     */
+    public function byte(string $name): ByteField
+    {
+        return $this->addField(new ByteField($name));
     }
 
     /**
@@ -223,6 +239,20 @@ trait BaseFactoryTrait
     public function object(string $name): ObjectField
     {
         return $this->addField(new ObjectField($name));
+    }
+
+    /**
+     * Ajoute un champ de type 'short'.
+     *
+     * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/number.html
+     *
+     * @param string $name Nom du champ
+     *
+     * @return ShortField
+     */
+    public function short(string $name): ShortField
+    {
+        return $this->addField(new ShortField($name));
     }
 
     /**

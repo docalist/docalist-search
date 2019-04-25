@@ -11,8 +11,7 @@ declare(strict_types=1);
 
 namespace Docalist\Search\Mapping\Field;
 
-use Docalist\Search\Mapping\Field;
-use Docalist\Search\Mapping\Options;
+use Docalist\Search\Mapping\Field\NumericField;
 
 /**
  * Un nombre réel à virgule flottante IEEE-754 sur 32 bits en simple précision.
@@ -21,21 +20,13 @@ use Docalist\Search\Mapping\Options;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-final class FloatField extends Field
+final class FloatField extends NumericField
 {
     /**
      * {@inheritDoc}
      */
-    final public function getMapping(Options $options): array
+    final protected function getNumericType(): string
     {
-        // Génère le mapping de base
-        $mapping = parent::getMapping($options);
-
-        // Type de champ
-        $mapping['type'] = 'float';
-        $mapping['ignore_malformed'] = true;
-
-        // Ok
-        return $mapping;
+        return 'float';
     }
 }

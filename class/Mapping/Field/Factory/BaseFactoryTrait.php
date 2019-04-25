@@ -28,6 +28,7 @@ use Docalist\Search\Mapping\Field\KeywordField;
 use Docalist\Search\Mapping\Field\LongField;
 use Docalist\Search\Mapping\Field\ObjectField;
 use Docalist\Search\Mapping\Field\NestedField;
+use Docalist\Search\Mapping\Field\ScaledFloatField;
 use Docalist\Search\Mapping\Field\ShortField;
 use Docalist\Search\Mapping\Field\TextField;
 
@@ -269,6 +270,20 @@ trait BaseFactoryTrait
     public function object(string $name): ObjectField
     {
         return $this->addField(new ObjectField($name));
+    }
+
+    /**
+     * Ajoute un champ de type 'scaled_float'.
+     *
+     * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/number.html
+     *
+     * @param string $name Nom du champ
+     *
+     * @return ScaledFloatField
+     */
+    public function scaledFloat(string $name): ScaledFloatField
+    {
+        return $this->addField(new ScaledFloatField($name));
     }
 
     /**

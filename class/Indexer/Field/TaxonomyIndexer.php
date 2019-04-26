@@ -138,12 +138,11 @@ final class TaxonomyIndexer
     /**
      * Retourne le path d'un terme d'une taxonomie hiérarchique.
      *
-     * @param WP_Term   $term       Terme.
-     * @param string    $separator  Séparateur.
+     * @param WP_Term $term Terme.
      *
      * @return string
      */
-    private static function getTermPath(WP_Term $term, string $separator = '/'): string
+    private static function getTermPath(WP_Term $term): string
     {
         $taxonomy = $term->taxonomy;
         $path = $term->slug;

@@ -13,10 +13,11 @@ namespace Docalist\Search;
 
 use Docalist\Search\Indexer;
 use Docalist\Search\Indexer\MissingIndexer;
-use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
 use RuntimeException;
 use Exception;
+use Docalist\Search\Mapping\Builder;
+use Docalist\Search\Mapping\Options;
 
 /**
  * Gestionnaire d'index docalist-search.
@@ -30,14 +31,7 @@ class IndexManager
      *
      * @var Settings
      */
-    protected $settings;
-
-    /**
-     * Le logger à utiliser.
-     *
-     * @var LoggerInterface
-     */
-    protected $log;
+    private $settings;
 
     /**
      * Liste des indexeurs disponibles.
@@ -46,58 +40,47 @@ class IndexManager
      *
      * @var Indexer[]
      */
-    protected $indexers;
+    private $indexers;
 
     /**
      * Un buffer qui accumulent les documents à envoyer au serveur ES.
      *
-     * Quand on ajoute ou qu'on supprime des documents, les "commandes" correspondantes sont stockées dans le buffer.
-     * A la fin de la requête, ou bien lorsque le buffer atteint sa taille maximale, le buffer est envoyé au server
-     * ES puis il est réinitialisé.
+     * Quand on ajoute ou qu'on supprime des documents, les commandes correspondantes sont stockées
+     * dans le buffer dans le format attendu par l'API "bulk" de Elastic Search :
+     * https://www.elastic.co/guide/en/elasticsearch/reference/master/docs-bulk.html
      *
-     * Dans le buffer, les commandes sont stockées en JSON, dans le format attendu par l'API "bulk" de Elastic Search
-     * (https://www.elastic.co/guide/en/elasticsearch/reference/master/docs-bulk.html).
-     *
-     * Exemple :
-     *
-     * <code>
-     *     {"index":{"_type": "dbbasedoc", "_id":1234}}\n      // indexer cette notice
-     *     {"ref":12,"title":"test1", etc.}\n
-     *     {"delete":{"_type": "post", "_id":13}}\n         // supprimer cet article
-     *     {"index":{"_type": "dbwebs", "_id":5678}}\n // indexer cette ressource
-     *     {"ref":25,"title":"test2", etc.}\n
-     *     etc.
-     * </code>
-     *
+     * Lorsque le buffer atteint sa taille maximale, il est envoyé à elasticsearch puis réinitialisé.
      * La taille maximale du buffer est déterminée par les paramètres "bulkMaxSize" et "bulkMaxCount".
-     * Le buffer est flushé dès que l'une de ces deux limites est atteinte ou bien lorsque la requête se termine
-     * (appel du destructeur de cette classe). Il est également possible de forcer l'envoi des commandes en attente
-     * et de vider le buffer en appellant la méthode flush().
+     * Le buffer est flushé dès que l'une de ces deux limites est atteinte ou bien lorsque la requête
+     * se termine (appel du destructeur de cette classe).
+     *
+     * Il est également possible de forcer l'envoi des commandes en attente et de vider le buffer en
+     * appellant la méthode flush().
      *
      * @var string
      */
-    protected $bulk = '';
+    private $bulk = '';
 
     /**
      * La taille maximale, en octets, autorisée pour le buffer (settings.bulkMaxSize).
      *
      * @var int
      */
-    protected $bulkMaxSize;
+    private $bulkMaxSize;
 
     /**
      * Le nombre maximum de documents autorisés dans le buffer (settings.bulkMaxCount).
      *
      * @var int
      */
-    protected $bulkMaxCount;
+    private $bulkMaxCount;
 
     /**
      * Le nombre actuel de documents stockés dans le buffer.
      *
      * @var int
      */
-    protected $bulkCount = 0;
+    private $bulkCount = 0;
 
     /**
      * Statistiques sur la réindexation.
@@ -106,27 +89,17 @@ class IndexManager
      *
      * cf. updateStat() pour le détail des statistiques générées pour chaque type.
      */
-    protected $stats = [];
+    private $stats = [];
 
     /**
-     * Traduit un type ElasticSearch (_type) en nom de type tel que vu par l'utilisateur.
+     * Vrai si on utilise elasticsearch version 7 ou plus (y compris 7.0.0-alpha, etc.)
      *
-     * Souvent, le type ES et le type utilisateur sont les mêmes (post, page...) mais pour une base doc, ce n'est
-     * pas le cas : le type utilisateur sera (par exemple) "dbprisme" alors que les types ES indiqueront le type
-     * de notice ("dbprisme-article" par exemple).
-     *
-     * Ce tableau est un mapping entre les types ES et le type utilisateur correspondant
-     * (par exemple "dbprisme-article" => "dbprisme" avec l'exemple ci-dessus).
-     *
-     * Le tableau est initialisé au fil de l'eau dans index() et remove() et il est utilisé dans flush() pour
-     * stocker les statistiques de réindexation dans le bon type.
-     *
-     * @var string[]
+     * @var bool
      */
-    protected $esType = [];
+    private $es7;
 
     /**
-     * Construit un nouvel indexeur.
+     * Initialise le gestionnaire d'index.
      *
      * @param Settings $settings
      */
@@ -135,18 +108,19 @@ class IndexManager
         // Stocke les paramètres de l'indexeur
         $this->settings = $settings;
 
-        // Récupère le logger à utiliser
-        $this->log = docalist('logs')->get('indexer');
+        // Détermine la version de elasticsearch
+        $version = $this->settings->esversion->getPhpValue();
+        $this->es7 = version_compare($version, '6.99', '>'); // au moins 7.0.0, 7.0-alpha, 7.0-rc2 ou plus
 
         // Initialise les paramètres du buffer
-        $this->bulkMaxSize = (int) $this->settings->bulkMaxSize() * 1024 * 1024; // en Mo dans la config
-        $this->bulkMaxCount = $this->settings->bulkMaxCount();
+        $this->bulkMaxSize = (int) $this->settings->bulkMaxSize->getPhpValue() * 1024 * 1024; // Mo -> octets
+        $this->bulkMaxCount = $this->settings->bulkMaxCount->getPhpValue();
 
         // Active l'indexation en temps réel
-        if ($this->settings->realtime()) {
+        if ($this->settings->realtime->getPhpValue()) {
             // On utilise l'action wp_loaded pour être sûr que tous les plugins ont installé leurs filtres.
             add_action('wp_loaded', function () {
-                foreach ($this->settings->types() as $type) { // getActiveIndexers()
+                foreach ($this->getTypes() as $type) { // getActiveIndexers()
                     $this->getIndexer($type)->activateRealtime($this);
                 }
             });
@@ -170,7 +144,7 @@ class IndexManager
      *
      * @return Indexer[] Un tableau de la forme type => Indexeur.
      */
-    public function getAvailableIndexers()
+    public function getAvailableIndexers(): array
     {
         if (is_null($this->indexers)) {
             $this->indexers = apply_filters('docalist_search_get_indexers', []);
@@ -188,7 +162,7 @@ class IndexManager
      *
      * @throws InvalidArgumentException Si aucun indexeur n'est disponible pour le type indiqué.
      */
-    public function getIndexer($type)
+    public function getIndexer(string $type): Indexer
     {
         // Garantit que la liste des indexeurs disponibles a été initialisée
         $this->getAvailableIndexers();
@@ -219,9 +193,9 @@ class IndexManager
      *
      * @return string[] Les noms des des types de contenus qui sont indexés.
      */
-    public function getTypes()
+    public function getTypes(): array
     {
-        return $this->settings->types();
+        return $this->settings->types->getPhpValue();
     }
 
     /**
@@ -248,40 +222,31 @@ class IndexManager
      * Les settings contiennent tous les paramètres de l'index : option de configuration, analyseurs, mappings
      * des différents types, etc.
      *
-     * Ils sont générés :
-     * - en partant des fichiers qui figurent dans le répertoire /index-settings
-     * - en ajoutant dans les settings les paramétres qui figure dans la config de docalist-search
-     * - en appellant la méthode buildIndexSettings() pour chacun des indexeurs activés.
-     * - en exécutant le filtre 'docalist_search_get_index_settings' sur le résultat obtenu.
-     *
      * @return array
      */
-    public function getIndexSettings()
+    private function getIndexSettings(): array
     {
-        // Crée le settings de base
-        $settings = require __DIR__ . '/../index-settings/default.php';
+        // On utilise un Mapping Builder pour générer les settings
+        $options = new Options([
+            Options::OPTION_VERSION => $this->settings->esversion->getPhpValue(),
+            Options::OPTION_DEFAULT_ANALYZER => 'french_text', // todo : transférer databaseettings->search
+            Options::OPTION_LITERAL_ANALYZER => 'text', // todo : option à ajouter ?
+        ]);
+        $builder = new Builder($options);
 
-        // Ajoute les paramétres qui figure dans la config de docalist-search
-        $settings['settings']['index']['number_of_shards'] = $this->settings->shards();
-        $settings['settings']['index']['number_of_replicas'] = $this->settings->replicas();
-
-        // Appelle la méthode buildIndexSettings() pour chacun des indexeurs actifs
-        foreach ($this->settings->types() as $type) {
-            $settings = $this->getIndexer($type)->buildIndexSettings($settings);
+        // Fusionne les mappings de tous les types indexés
+        foreach ($this->getTypes() as $type) {
+            $builder->addMapping($this->getIndexer($type)->getMapping());
         }
 
-        // Permet au site, au thème ou à d'autres plugins de modifier les settings générés
-        $settings = apply_filters('docalist_search_get_index_settings', $settings);
-
-        // Ok
-        return $settings;
+        // Retourne les settings générés
+        return $builder->getIndexSettings();
     }
 
     /**
      * Crée l'index ElasticSearch et lance une indexation complète de tous les contenus indexés.
-     *
      */
-    public function createIndex()
+    public function createIndex(): void
     {
         // Récupère la connexion elastic search
         $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
@@ -289,21 +254,20 @@ class IndexManager
         // Récupère le nom de base de l'index
         $base = $this->settings->index();
 
-        // Teste s'il existe déjà un index (on teste si l'alias existe, ce qui revient au même)
-        // $exists = $es->exists("/$base");
-
         // Crée un nom unique pour le nouvel index
         $index = $base . '-' . round(microtime(true) * 1000); // Heure courante (UTC), en millisecondes
 
         // Détermine les settings du nouvel index
         $settings = $this->getIndexSettings();
-        do_action('docalist_search_before_create_index', $index, $settings);
 
-        // Optimise les settings le temps qu'on créer l'index
-        $replicas = $settings['settings']['index']['number_of_replicas'];
-        $refresh = $settings['settings']['index']['refresh_interval'];
+        // Utilise le nombre de shards indiqué en config
+        $settings['settings']['index']['number_of_shards'] = $this->settings->shards();
+
+        // Pas de réplicas et pas de refresh le temps qu'on crée l'index
         $settings['settings']['index']['number_of_replicas'] = 0;
         $settings['settings']['index']['refresh_interval'] = -1;
+
+        do_action('docalist_search_before_create_index', $base, $index);
 
         // Crée le nouvel index
         $this->checkAcknowledged('creating index', $es->put('/' . $index, $settings));
@@ -321,25 +285,22 @@ class IndexManager
         }
 
         // Réindexe tous les contenus
-        $this->reindex($this->settings->types());
+        $this->reindex();
 
         // Rétablit les paramétres normaux de l'index (réplicats, temps de refresh)
-        // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
+        // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/indices-update-settings.html
         $this->checkAcknowledged(
             'setting number_of_replicas and refresh_interval',
             $es->put('/' . $index . '/_settings', [
                 'index' => [
-                    'number_of_replicas' => $replicas,
-                    'refresh_interval' => $refresh
+                    'number_of_replicas' => $this->settings->replicas(),
+                    'refresh_interval' => null // null = rétablir la valeur par défaut (1s)
                 ]
             ])
         );
 
         // Force un refresh
         $es->post('/' . $index . '/_refresh'); // pas vraiment utile, il y aura un auto refresh au bout x secondes
-
-        // Faut-il appeller force_merge (optimize) ?
-        // https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-forcemerge.html
 
         // Crée l'alias "read" (nom de base) et active le nouvel index pour la recherche
         do_action('docalist_search_activate_index', $base, $index);
@@ -356,10 +317,10 @@ class IndexManager
     /**
      * Supprime tous les index de la forme $baseName-* sauf celui indiqué dans $indexToKeep.
      *
-     * @param string $baseName Nom de base des index à supprimer (un tiret de fin est ajouté automatiquement).
-     * @param string $indexToKeep Index à conserver.
+     * @param string $baseName      Nom de base des index à supprimer (un tiret de fin est ajouté automatiquement).
+     * @param string $indexToKeep   Index à conserver.
      */
-    protected function deleteOldIndices($baseName, $indexToKeep)
+    private function deleteOldIndices(string $baseName, string $indexToKeep): void
     {
         // Récupère la connexion elastic search
         $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
@@ -417,13 +378,13 @@ class IndexManager
     /**
      * Crée un alias.
      *
-     * L'alias est supprimé s'il existait déjà et il est recréé pour pointer sur le nouvel index passé en paramètre.
-     * L'opération est atomique.
+     * L'alias est supprimé s'il existait déjà et il est recréé pour pointer sur l'index
+     * indiqué (l'opération est atomique).
      *
-     * @param string $alias Nom de l'alias.
-     * @param string $index Nom du nouvel index.
+     * @param string    $alias  Nom de l'alias.
+     * @param string    $index  Nom de l'index sur lequel doit pointer l'alias.
      */
-    protected function createAlias($alias, $index)
+    private function createAlias(string $alias, string $index): void
     {
         // Récupère la connexion elastic search
         $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
@@ -431,63 +392,50 @@ class IndexManager
         $request = [
             'actions' => [
                 ['remove'   => ['alias' => $alias, 'index' => '*'    ]],
-                ['add'      => ['alias' => $alias, 'index' => $index ]]
+                ['add'      => ['alias' => $alias, 'index' => $index ]],
             ]
         ];
 
         $this->checkAcknowledged('creating alias ' . $alias, $es->post('/_aliases', $request));
-
-        return $this;
     }
 
     /**
      * Ajoute ou met à jour un document dans l'index.
      *
-     * Si le document indiqué existe déjà dans l'index Elastic Search, il est mis à jour, sinon il est créé.
+     * Si le document indiqué existe déjà dans l'index elasticsearch, il est mis à jour, sinon il est créé.
      *
      * Il n'y a pas d'attribution automatique d'ID : vous devez fournir l'ID du document à indexer.
      *
-     * @param string $type Le type du document.
-     * @param int $id L'identifiant du document.
-     * @param array $document Les données du document.
-     * @param string $esType Nom du mapping ElasticSearch à utiliser si différent de $type.
+     * @param string    $type       Type du document.
+     * @param int       $id         ID du document.
+     * @param array     $document   Les données à ajouter dans l'index.
      */
-    public function index($type, $id, array $document, $esType = null)
+    public function index(string $type, int $id, array $document): void
     {
-        // Format d'une commande "bulk index" pour ES
-        static $format = "{\"index\":{\"_type\":%s,\"_id\":%s}}\n%s\n";
+        // Format d'une commande "bulk index"
+        static $format;
 
-        // Vérifie le type et l'id
-        $this->checkType($type)->checkId($id);
+        // Initialise le format de la commande bulk au premier appel
+        if (empty($format)) {
+            // avant es7, la première ligne doit indiquer le type
+            $format = $this->es7 ? '{"index":{"_id":%d}}' : '{"index":{"_id":%d,"_type":"_doc"}}';
 
-        // esType sert à initialiser _type, par défaut est égal à type, différent pour un Database
-        is_null($esType) && $esType = $type;
-        $this->esType[$esType] = $type;
-
-        $this->log && $this->log->info('index({type},{id})', [
-            'type' => $type,
-            '_type' => $esType,
-            'id' => $id,
-            'document' => $document
-        ]);
+            // la seconde ligne de la commande bulk contient le document à indexer
+            $format .= "\n%s\n";
+        }
 
         // Flushe le buffer si nécessaire
         $this->maybeFlush();
 
         // Stocke la commande dans le buffer
-        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
-        $document = json_encode($document, $options);
-        $this->bulk .= sprintf($format, json_encode($esType, $options), json_encode($id, $options), $document);
+        $document = json_encode($document, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $this->bulk .= sprintf($format, $id, $document);
         ++$this->bulkCount;
 
         // Met à jour les statistiques sur la taille des documents
         $size = strlen($document);
-        $this->updateStat($type, 'totalsize', $size);
-        $this->stats[$type]['minsize'] = min($this->stats[$type]['minsize'] ?: PHP_INT_MAX, $size);
-        $this->stats[$type]['maxsize'] = max($this->stats[$type]['maxsize'], $size);
-        // minsize et maxsize existent forcément car on a appellé updateStat()
-
-        $this->updateStat($type, 'nbindex', 1);
+        $this->updateStat($type, 'index', 1);
+        $this->updateStat($type, 'size', $size);
     }
 
     /**
@@ -495,51 +443,41 @@ class IndexManager
      *
      * Aucune erreur n'est générée si le document indiqué n'existe pas dans l'index Elastic Search.
      *
-     * @param string $type Le type du document.
-     * @param int $id L'identifiant du document.
-     * @param string $esType Nom du mapping ElasticSearch à utiliser si différent de $type.
+     * @param string    $type   Type du document.
+     * @param int       $id     ID du document.
      */
-    public function delete($type, $id, $esType = null)
+    public function delete(string $type, int $id): void
     {
-        // Format d'une commande "bulk delete" pour ES
-        static $format = "{\"delete\":{\"_type\":%s,\"_id\":%s}}\n";
+        // Format d'une commande "bulk delete"
+        static $format;
 
-        // Vérifie le type et l'id
-        $this->checkType($type)->checkId($id);
+        // Initialise le format de la commande bulk au premier appel
+        if (empty($format)) {
+            // avant es7, la première ligne doit indiquer le type
+            $format = $this->es7 ? '{"delete":{"_id":%d}}' : '{"delete":{"_id":%d,"_type":"_doc"}}';
 
-        // esType sert à initialiser _type, par défaut est égal à type, différent pour un Database
-        is_null($esType) && $esType = $type;
-        $this->esType[$esType] = $type;
-
-        $this->log && $this->log->info('delete({type},{id})', [
-            'type' => $type,
-            '_type' => $esType,
-            'id' => $id]);
+            // pas de seconde ligne pour une actio delete
+            $format .= "\n";
+        }
 
         // Flushe le buffer si nécessaire
         $this->maybeFlush();
 
         // Stocke la commande dans le buffer
-        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
-        $this->bulk .= sprintf($format, json_encode($esType, $options), json_encode($id, $options));
+        $this->bulk .= sprintf($format, $id);
         ++$this->bulkCount;
-
-        // Met à jour la statistique sur le nombre de documents supprimés
-        $this->updateStat($type, 'nbdelete', 1);
     }
 
     /**
-     * Flushe le buffer si c'est nécessaire, c'est-à-dire si les limites sont atteintes.
-     *
-     * @return self
+     * Flushe le buffer si c'est nécessaire (si les limites sont atteintes).
      */
-    protected function maybeFlush()
+    private function maybeFlush(): void
     {
         if ($this->bulkCount < $this->bulkMaxCount && strlen($this->bulk) < $this->bulkMaxSize) {
-            return $this;
+            return;
         }
 
-        return $this->flush();
+        $this->flush();
     }
 
     /**
@@ -547,17 +485,15 @@ class IndexManager
      *
      * @action "docalist_search_before_flush(count,size)" déclenchée avant que le flush ne commence.
      * @action "docalist_search_after_flush(count,size)" déclenchée une fois le flush terminé.
-     *
-     * @return self
      */
-    public function flush()
+    public function flush(): void
     {
         // Regarde si on a des commandes en attente
-        if (! $this->bulkCount) {
-            return $this;
+        if (0 === $this->bulkCount) {
+            return;
         }
 
-        // Stocke la taille actuelle du buffer
+        // Détermine la taille actuelle du buffer
         $count = $this->bulkCount;
         $size = strlen($this->bulk);
 
@@ -571,14 +507,18 @@ class IndexManager
         }
 
         // Informe qu'on va flusher
-        $this->log && $this->log->info('flush()', ['count' => $count, 'size' => $size]);
         do_action('docalist_search_before_flush', $count, $size);
 
         // Envoie le buffer à ES
+        $time = microtime(true);
         $alias = $this->settings->index() . '_write'; // garder synchro avec createIndex()
         $result = docalist('elasticsearch')->bulk('/' . $alias . '/_bulk', $this->bulk);
+        $time = microtime(true) - $time;
         // @todo : permettre un timeout plus long pour les requêtes bulk
         // @todo si erreur, réessayer ? (par exemple avec un timeout plus long)
+
+        // Informe qu'on a flushé
+        do_action('docalist_search_after_flush', $count, $size, $time);
 
         // La réponse retournée pour une commande bulk a le format suivant :
         // {
@@ -600,26 +540,14 @@ class IndexManager
                             "<p style='color:red'>ElasticSearch error while indexing:<pre>%s</pre></p>",
                             json_encode($item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
                         );
-                        $this->log && $this->log->error('Indexing error', ['item' => $item]);
-                    } else {
-                        $type = $this->esType[$item->_type];
-                        $this->updateStat($type, 'indexed', 1);
-                        if ($item->_version === 1) {
-                            $this->updateStat($type, 'added', 1);
-                        } else {
-                            $this->updateStat($type, 'updated', 1);
-                        }
                     }
                 } elseif (isset($item->delete)) {
-                    $item = $item->delete;
-                    $type = $this->esType[$item->_type];
-                    $this->updateStat($type, 'deleted', 1);
+
                 } else {
                     printf(
                         "<p style='color:red'>Unknown bulk response type:<pre>%s</pre></p>",
                         json_encode($item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
                     );
-                    $this->log && $this->log->error('Unknown bulk response type', ['item' => $item]);
                 }
             }
         } elseif (is_object($result) && isset($result->error)) {
@@ -637,12 +565,6 @@ class IndexManager
         // Réinitialise le buffer
         $this->bulk = '';
         $this->bulkCount = 0;
-
-        // Informe qu'on a flushé
-        do_action('docalist_search_after_flush', $count, $size);
-        $this->log && $this->log->info('flush done', ['count' => $count, 'size' => $size]);
-
-        return $this;
     }
 
     /**
@@ -668,21 +590,15 @@ class IndexManager
      *
      * @return self
      */
-    public function reindex($types = null)
+    private function reindex(): void
     {
-        // Si aucun type n'a été indiqué, on réindexe tout
-        is_null($types) && $types = $this->settings->types();
-
         // Vérifie que les types indiqués sont indexés et récupère leurs libellés
-        $types = (array) $types;
+        $types = $this->getTypes();
         $temp = [];
         foreach ($types as $type) {
-            $this->checkType($type);
             $temp[$type] = $this->getIndexer($type)->getLabel();
         }
         $types = $temp;
-
-        $this->log && $this->log->info('reindex()', ['types' => $types]);
 
         // Informe qu'on va commencer une réindexation
         do_action('docalist_search_before_reindex', $types);
@@ -698,9 +614,6 @@ class IndexManager
         foreach ($types as $type => $label) {
             // Démarre le chronomètre et stocke l'heure de début dans les stats
             $startTime = microtime(true);
-            $this->updateStat($type, 'start', $startTime);
-
-            $this->log && $this->log->debug('start reindex({type})', ['type' => $type]);
 
             // Informe qu'on va réindexer $type
             do_action('docalist_search_before_reindex_type', $type, $label);
@@ -712,31 +625,14 @@ class IndexManager
             $this->flush();
 
             // Met à jour les statistiques sur le temps écoulé
-            $endTime = microtime(true);
-            $this->updateStat($type, 'end', $endTime);
-            $this->updateStat($type, 'time', round($endTime - $startTime, 3));
-
-            // Calcule la taille moyenne des documents
-            if ($nb = $this->stats[$type]['indexed']) {
-                $avg = round($this->stats[$type]['totalsize'] / $nb, 0);
-                $this->updateStat($type, 'avgsize', $avg);
-            }
+            $this->updateStat($type, 'time', microtime(true) - $startTime);
 
             // Informe qu'on a terminé la réindexation de $type
             do_action('docalist_search_after_reindex_type', $type, $label, $this->stats[$type]);
-
-            $this->log && $this->log->debug('done reindex({type})', ['type' => $type]);
         }
-
-        // Calcule les stats globales
-        $this->computeTotalStats();
 
         // Informe que la réindexation de tous les types est terminée
         do_action('docalist_search_after_reindex', $types, $this->stats);
-
-        $this->log && $this->log->info('reindex completed()', ['types' => $types, 'stats' => $this->stats]);
-
-        return $this;
     }
 
     /**
@@ -747,10 +643,10 @@ class IndexManager
      *
      * @return self
      */
-    private function checkAcknowledged($message, $response)
+    private function checkAcknowledged(string $message, $response): void
     {
         if (is_object($response) && isset($response->acknowledged) && $response->acknowledged === true) {
-            return $this;
+            return;
         }
 
         throw new RuntimeException(sprintf(
@@ -761,104 +657,23 @@ class IndexManager
     }
 
     /**
-     * Vérifie que le type passé en paramètre est un type indexé.
-     *
-     * @param string $type Le nom du type à vérifier.
-     *
-     * @return self
-     *
-     * @throws InvalidArgumentException Si le type n'est pas indexé.
-     */
-    private function checkType($type = null)
-    {
-        static $types = null;
-
-        is_null($types) && $types = array_flip($this->settings->types());
-
-        if (! isset($types[$type])) {
-            throw new InvalidArgumentException('Type "' . $type . '" is not indexed');
-        }
-
-        return $this;
-    }
-
-    /**
-     * Vérifie que le paramètre peut être utilisé comme identifiant pour un document Elastic Search.
-     *
-     * @param mixed $id l'identifiant à vérifier
-     *
-     * @return self
-     *
-     * @throws InvalidArgumentException Si l'identifiant n'est pas un scalaire.
-     */
-    private function checkId($id)
-    {
-        if (! is_scalar($id)) {
-            throw new InvalidArgumentException('Invalid document ID');
-        }
-
-        return $this;
-    }
-
-    /**
      * Met à jour une statistique.
      *
-     * @param string $type Le type concerné.
-     * @param string $stat La statistique à mettre à jour.
-     * @param int $increment L'incrément qui sera ajouté à la statistique.
+     * @param string    $type       Le type concerné.
+     * @param string    $stat       La statistique à mettre à jour.
+     * @param int|float $increment  L'incrément qui sera ajouté à la statistique.
      */
-    private function updateStat($type, $stat, $increment)
+    private function updateStat(string $type, string $stat, $increment): void
     {
         if (! isset($this->stats[$type])) {
             $this->stats[$type] = [
-                'nbindex' => 0,     // nombre de fois où la méthode index() a été appellée
-                'nbdelete' => 0,    // nombre de fois où la méthode delete() a été appellée
-
-                'totalsize' => 0,   // Taille totale des docs passés à la méthode index(), tout compris
-                'minsize' => 0,     // Taille du plus petit document indexé
-                'avgsize' => 0,     // Taille moyenne des docs passés à la méthode index() : totalsize / indexed
-                'maxsize' => 0,     // Taille du plus grand document indexé
-
-                'indexed' => 0,     // Nb de docs effectivement indexés (commande index)  = added + updated
-                'deleted' => 0,     // Nb de docs effectivement supprimés (commande delete)
-                'added' => 0,       // Nb de documents indexés par ES qui n'existaient pas encore (= indexed - updated)
-                'updated' => 0,     // Nb de documents indexés par ES qui existaient déjà (= indexed - added)
-
-                'start' => 0,       // Timestamp de début de la réindexation
-                'end' => 0,         // Timestamp de fin de la réindexation
-                'time' => 0,        // Durée de la réindexation (en secondes) =end-start
+                'index' => 0,       // Nombre de documents indexés
+                'size' => 0,        // Taille totale de la version json des documents indexés
+                'time' => 0,        // Durée de la réindexation (en secondes)
             ];
         }
 
         $this->stats[$type][$stat] += $increment;
-    }
-
-    /**
-     * Calcule les statistiques globales (somme des stats par type) et stocke le résultat dans la colonne 'total'.
-     *
-     * @return self
-     */
-    private function computeTotalStats()
-    {
-        // Remarque : array_sum = php >= 5.5 (utiliser wp_list_pluck() sinon)
-        $total = [];
-        $total['nbindex'] = array_sum(array_column($this->stats, 'nbindex'));
-        $total['nbdelete'] = array_sum(array_column($this->stats, 'nbdelete'));
-        $total['totalsize'] = array_sum(array_column($this->stats, 'totalsize'));
-        $total['indexed'] = array_sum(array_column($this->stats, 'indexed'));
-        $total['deleted'] = array_sum(array_column($this->stats, 'deleted'));
-        $total['added'] = array_sum(array_column($this->stats, 'added'));
-        $total['updated'] = array_sum(array_column($this->stats, 'updated'));
-        $total['minsize'] = min(array_column($this->stats, 'minsize'));
-        $total['maxsize'] = max(array_column($this->stats, 'maxsize'));
-        $total['avgsize'] = $total['indexed'] ? round($total['totalsize'] / $total['indexed'], 0) : 0;
-        $total['start'] = min(array_column($this->stats, 'start'));
-        $total['end'] = max(array_column($this->stats, 'end'));
-        $total['time'] = round($total['end'] - $total['start'], 3);
-
-        $this->stats['Total'] = $total;
-
-        return $this;
     }
 
     /**

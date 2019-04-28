@@ -63,7 +63,8 @@ final class PostStatusIndexer
             ->setDescription(__(
                 'Facette et filtre sur le code du statut de publication.',
                 'docalist-search'
-            ));
+            ))
+            ->copyTo(self::SEARCH_FIELD);
 
         $mapping
             ->keyword(self::LABEL_FILTER)
@@ -71,7 +72,8 @@ final class PostStatusIndexer
             ->setLabel(__(
                 'Facette et filtre sur le libellé du statut de publication.',
                 'docalist-search'
-            ));
+            ))
+            ->copyTo(self::SEARCH_FIELD);
     }
 
     /**
@@ -85,7 +87,7 @@ final class PostStatusIndexer
         $object = get_post_status_object($status);
         $label = empty($status) ? $status : $object->label;
 
-        $data[self::SEARCH_FIELD] = [$status, $label];
+        // SEARCH_FIELD : via copy_to
         $data[self::CODE_FILTER] = $status;
         $data[self::LABEL_FILTER] = $label;
     }

@@ -87,13 +87,8 @@ class Builder
      */
     public function getIndexSettings(): array
     {
-        // Paramètres de base de l'index
-        $index = [
-            'settings' => [
-                'number_of_shards' => 1,
-                'number_of_replicas' => 0,
-            ]
-        ];
+        // Les settings générés
+        $index = [];
 
         // Détermine la liste des analyseurs docalist utilisés dans les mappings
         $analyzers = $this->getAnalyzers();
@@ -116,9 +111,16 @@ class Builder
         }
         !empty($analysis) && $index['settings']['analysis'] = $analysis;
 
-        // Génère le mapping
-//        $index['mappings'][$mapping->getName()] = $mapping->getMapping($this->options);
-        $index['mappings'] = $this->mapping->getMapping($this->options);
+        // Génère les mappings
+        $mappings = $this->mapping->getMapping($this->options);
+
+        // Avant la version 7 de elasticsearch, il faut inclure le nom du mapping
+        if (!version_compare($this->options->getVersion(), '6.99', '>')) { // tient compte des versions alpha, rc...
+            $mappings = [$this->mapping->getName() => $mappings];
+        }
+
+        // Stocke les mappings dans les settings de l'index
+        $index['mappings'] = $mappings;
 
         // Ok
         return $index;

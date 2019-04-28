@@ -36,5 +36,5 @@ final class PostModifiedIndexer extends PostDateIndexer
     /**
      * {@inheritdoc}
      */
-    public const HIERARCHY_FILTER = 'filter.lastupdate.hierarchy';
+    public const HIERARCHY_FILTER = 'hierarchy.lastupdate';
 }

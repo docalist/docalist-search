@@ -63,7 +63,8 @@ final class PostTypeIndexer
             ->setDescription(__(
                 'Facette et filtre sur le code du type de publication.',
                 'docalist-search'
-            ));
+            ))
+            ->copyTo(self::SEARCH_FIELD);
 
         $mapping
             ->keyword(self::LABEL_FILTER)
@@ -71,7 +72,8 @@ final class PostTypeIndexer
             ->setLabel(__(
                 'Facette et filtre sur le libellé du type de publication.',
                 'docalist-search'
-            ));
+            ))
+            ->copyTo(self::SEARCH_FIELD);
     }
 
     /**
@@ -83,7 +85,7 @@ final class PostTypeIndexer
      */
     final public static function buildIndexData(string $code, string $label, array & $data): void
     {
-        $data[self::SEARCH_FIELD] = [$code, $label];
+        // SEARCH_FIELD : via copy_to
         $data[self::CODE_FILTER] = $code;
         $data[self::LABEL_FILTER] = $label;
     }

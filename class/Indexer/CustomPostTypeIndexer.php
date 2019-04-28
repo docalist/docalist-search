@@ -83,21 +83,16 @@ abstract class CustomPostTypeIndexer implements Indexer
     }
 
     /**
-     * {@inheritDoc}
+     * Génère les données à indexer pour le post passé en paramètre.
+     *
+     * @param WP_Post $post Post à indexer
+     *
+     * @return array Données à ajouter à l'index.
      */
-    public function map(int $id): array
+    public function map(WP_Post $post): array
     {
         // Cache des taxonomies indexées
         static $taxonomies = null; // différent pour chaque classe, commun pour toutes les instances d'une classe
-
-        // Charge le post indiqué
-        $postType = $this->getType();
-        $post = WP_Post::get_instance($id);
-
-        // Génère une exception s'il n'existe pas
-        if (empty($post)) {
-            throw new InvalidArgumentException('Post not found');
-        }
 
         // Indexe les champs de base obligatoires
         $document = [];
@@ -107,21 +102,21 @@ abstract class CustomPostTypeIndexer implements Indexer
         PostModifiedIndexer::map($post->post_modified, $document);
         PostStatusIndexer::map($post->post_status, $document);
         PostTitleIndexer::map($post->post_title, $document);
-        PostTypeIndexer::map($postType, $this->getLabel(), $document);
+        PostTypeIndexer::map($post->post_type, $this->getLabel(), $document);
 
         // Indexe le champ post_content seulement si le post type le supporte
-        if (post_type_supports($postType, 'editor')) {
+        if (post_type_supports($post->post_type, 'editor')) {
             PostContentIndexer::map($post->post_content, $document);
         }
 
         // Indexe le champ post_excerpt seulement si le post type le supporte
-        if (post_type_supports($postType, 'excerpt')) {
+        if (post_type_supports($post->post_type, 'excerpt')) {
             PostExcerptIndexer::map($post->post_excerpt, $document);
         }
 
         // Indexe le champ post_parent seulement si le type de post est hiérarchique
-        if (is_post_type_hierarchical($postType)) {
-            PostParentIndexer::map($post->post_parent, $document);
+        if (is_post_type_hierarchical($post->post_type)) {
+            PostParentIndexer::map((int) $post->post_parent, $document); // stocké comme une chaine
         }
 
         // Indexe les taxonomies
@@ -168,27 +163,25 @@ abstract class CustomPostTypeIndexer implements Indexer
     }
 
     /**
-     * Indexe le post indiqué.
+     * Indexe un post.
      *
-     * @param int $id ID du post à indexer.
-     *
-     * @param IndexManager $indexManager Le gestionnaire d'index docalist-search.
-     * @param IndexManager $indexManager Le gestionnaire d'index docalist-search.
+     * @param WP_Post       $post           Post à indexer.
+     * @param IndexManager  $indexManager   Le gestionnaire d'index docalist-search.
      */
-    final protected function index(int $id, IndexManager $indexManager): void
+    final protected function index(WP_Post $post, IndexManager $indexManager): void
     {
-        $indexManager->index($this->getType(), $id, $this->map($id));
+        $indexManager->index($this->getType(), (int) $post->ID, $this->map($post)); // ID est stocké comme chaine
     }
 
     /**
-     * Supprime le post indiqué de l'index.
+     * Supprime un post de l'index.
      *
-     * @param int $id ID du post à désindexer.
-     * @param IndexManager $indexManager Le gestionnaire d'index docalist-search.
+     * @param WP_Post       $post           Post à désindexer.
+     * @param IndexManager  $indexManager   Le gestionnaire d'index docalist-search.
      */
-    final protected function remove(int $id, IndexManager $indexManager): void
+    final protected function remove(WP_Post $post, IndexManager $indexManager): void
     {
-        $indexManager->delete($this->getType(), $id);
+        $indexManager->delete($this->getType(), (int) $post->ID); // ID est stocké comme chaine
     }
 
     /**
@@ -202,7 +195,7 @@ abstract class CustomPostTypeIndexer implements Indexer
 
         // Prépare la requête utilisée pour charger les posts par lots de $limit
         $sql = sprintf(
-            "SELECT ID FROM %s WHERE post_type='%s' AND post_status IN ('%s') ORDER BY ID ASC LIMIT %%d OFFSET %%d",
+            "SELECT * FROM %s WHERE post_type='%s' AND post_status IN ('%s') ORDER BY ID ASC LIMIT %%d OFFSET %%d",
             $wpdb->posts,
             $this->getType(),
             implode("','", $this->getIndexedStatuses())
@@ -225,7 +218,10 @@ abstract class CustomPostTypeIndexer implements Indexer
 
             // Indexe tous les posts de ce lot
             foreach ($posts as $post) {
-                $this->index($post->ID, $indexManager);
+                // On a un objet stdClass, il faut qu'on le convertisse en objet WP_Post
+                // On pourrait utiliser get_post(post) mais dans ce cas, il se contente de faire new WP_Post
+                $post = new WP_Post($post);
+                $this->index($post, $indexManager);
             }
 
             // Passe au lot suivant
@@ -269,16 +265,13 @@ abstract class CustomPostTypeIndexer implements Indexer
             'deleted_post',
             function (int $id) use ($indexManager, $type): void {
                 // Avec deleted_post, on n'a que l'id : il faut qu'on charge le post pour vérifier le post_type.
-                // Ca fonctionne (chargement d'un post supprimé) uniquement parce que WP a encore le post en cache
+                // Le post a déjà été supprimé de la base mais on peut quand même le charger car WordPress l'a
+                // encore en cache (clean_post_cache() est appellée après l'action deleted_post).
+
                 $post = get_post($id);
-
-                // Si ce n'est pas un de nos posts, terminé
-                if ($post->post_type !== $type) {
-                    return;
+                if (!empty($post) && $post->post_type === $type) {
+                    $this->remove($post, $indexManager);
                 }
-
-                // Désindexe le post
-                $this->remove($post, $indexManager);
             }
         );
     }

@@ -48,10 +48,10 @@ class PostContentIndexer
      * Indexe les données du champ post_content.
      *
      * @param string    $content    Contenu à indexer.
-     * @param array     $document   Document elasticsearch.
+     * @param array     $data       Document elasticsearch.
      */
-    final public static function map(string $content, array & $document): void
+    final public static function buildIndexData(string $content, array & $data): void
     {
-        !empty($content) && $document[static::SEARCH_FIELD] = $content;
+        !empty($content) && $data[static::SEARCH_FIELD] = $content;
     }
 }

@@ -95,39 +95,39 @@ abstract class CustomPostTypeIndexer implements Indexer
         static $taxonomies = null; // différent pour chaque classe, commun pour toutes les instances d'une classe
 
         // Indexe les champs de base obligatoires
-        $document = [];
-        CollectionIndexer::map($this->getCollection(), $document);
-        PostAuthorIndexer::map((int) $post->post_author, $document); // Dans WP, entier stocké comme une chaine...
-        PostDateIndexer::map($post->post_date, $document);
-        PostModifiedIndexer::map($post->post_modified, $document);
-        PostStatusIndexer::map($post->post_status, $document);
-        PostTitleIndexer::map($post->post_title, $document);
-        PostTypeIndexer::map($post->post_type, $this->getLabel(), $document);
+        $data = [];
+        CollectionIndexer::buildIndexData($this->getCollection(), $data);
+        PostAuthorIndexer::buildIndexData((int) $post->post_author, $data);
+        PostDateIndexer::buildIndexData($post->post_date, $data);
+        PostModifiedIndexer::buildIndexData($post->post_modified, $data);
+        PostStatusIndexer::buildIndexData($post->post_status, $data);
+        PostTitleIndexer::buildIndexData($post->post_title, $data);
+        PostTypeIndexer::buildIndexData($post->post_type, $this->getLabel(), $data);
 
         // Indexe le champ post_content seulement si le post type le supporte
         if (post_type_supports($post->post_type, 'editor')) {
-            PostContentIndexer::map($post->post_content, $document);
+            PostContentIndexer::buildIndexData($post->post_content, $data);
         }
 
         // Indexe le champ post_excerpt seulement si le post type le supporte
         if (post_type_supports($post->post_type, 'excerpt')) {
-            PostExcerptIndexer::map($post->post_excerpt, $document);
+            PostExcerptIndexer::buildIndexData($post->post_excerpt, $data);
         }
 
         // Indexe le champ post_parent seulement si le type de post est hiérarchique
         if (is_post_type_hierarchical($post->post_type)) {
-            PostParentIndexer::map((int) $post->post_parent, $document); // stocké comme une chaine
+            PostParentIndexer::buildIndexData((int) $post->post_parent, $data);
         }
 
         // Indexe les taxonomies
         is_null($taxonomies) && $taxonomies = $this->getIndexedTaxonomies();
         foreach ($taxonomies as $name => $taxonomy) {
             $terms = get_the_terms($post, $taxonomy->name);
-            is_array($terms) && TaxonomyIndexer::map($name, $terms, $taxonomy, $document);
+            is_array($terms) && TaxonomyIndexer::buildIndexData($name, $terms, $taxonomy, $data);
         }
 
         // Ok
-        return $document;
+        return $data;
     }
 
     /**

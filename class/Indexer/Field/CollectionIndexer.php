@@ -49,14 +49,14 @@ final class CollectionIndexer
      * Indexe les données du champ in.
      *
      * @param string    $collection Nom de la collection à indexer.
-     * @param array     $document   Document elasticsearch.
+     * @param array     $data       Document elasticsearch.
      */
-    final public static function map(string $collection, array & $document): void
+    final public static function buildIndexData(string $collection, array & $data): void
     {
         if (empty($collection)) {
             throw new InvalidArgumentException('Collection is required for the field "in"');
         }
 
-        $document[static::SEARCH_FIELD] = $collection;
+        $data[static::SEARCH_FIELD] = $collection;
     }
 }

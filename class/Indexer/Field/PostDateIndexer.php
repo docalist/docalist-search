@@ -78,10 +78,10 @@ class PostDateIndexer // pas final, surchargée par PostModifiedIndexer
     /**
      * Indexe les données du champ post_date.
      *
-     * @param int   $date       Date à indexer (date mysql de la forme "yyyy-mm-dd hh:mm:ss").
-     * @param array $document   Document elasticsearch.
+     * @param int   $date   Date à indexer (date mysql de la forme "yyyy-mm-dd hh:mm:ss").
+     * @param array $data   Document elasticsearch.
      */
-    final public static function map(string $date, array & $document): void
+    final public static function buildIndexData(string $date, array & $data): void
     {
         $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $date);
         if (empty($dateTime)) {
@@ -94,10 +94,10 @@ class PostDateIndexer // pas final, surchargée par PostModifiedIndexer
         $phrase1 = $dateTime->format('Y m d');      // Recherche par phrase ordre y m d ("2019 04 08")
         $phrase2 = $dateTime->format('d m Y');      // Recherche par phrase ordre y m d ("08 04 2019")
 
-        $document[static::SEARCH_FIELD] = [$year, $yearMonth, $yearMonthDay, $phrase1, $phrase2];
+        $data[static::SEARCH_FIELD] = [$year, $yearMonth, $yearMonthDay, $phrase1, $phrase2];
         // TODO : ajouter le nom du mois ?
 
-        $document[static::DATE_FILTER] = $date;
-        $document[static::HIERARCHY_FILTER] = $dateTime->format('Y/m/d');
+        $data[static::DATE_FILTER] = $date;
+        $data[static::HIERARCHY_FILTER] = $dateTime->format('Y/m/d');
     }
 }

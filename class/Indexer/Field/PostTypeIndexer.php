@@ -77,14 +77,14 @@ final class PostTypeIndexer
     /**
      * Indexe les données du champ post_type.
      *
-     * @param string    $type       Code du post_type à indexer.
-     * @param string    $label      Libellé du post_type à indexer.
-     * @param array     $document   Document elasticsearch.
+     * @param string    $type   Code du post_type à indexer.
+     * @param string    $label  Libellé du post_type à indexer.
+     * @param array     $data   Document elasticsearch.
      */
-    final public static function map(string $code, string $label, array & $document): void
+    final public static function buildIndexData(string $code, string $label, array & $data): void
     {
-        $document[self::SEARCH_FIELD] = [$code, $label];
-        $document[self::CODE_FILTER] = $code;
-        $document[self::LABEL_FILTER] = $label;
+        $data[self::SEARCH_FIELD] = [$code, $label];
+        $data[self::CODE_FILTER] = $code;
+        $data[self::LABEL_FILTER] = $label;
     }
 }

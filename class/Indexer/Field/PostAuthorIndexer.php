@@ -93,18 +93,18 @@ final class PostAuthorIndexer
      * Indexe les données du champ post_author.
      *
      * @param int   $userID     ID de l'utilisateur à indexer.
-     * @param array $document   Document elasticsearch.
+     * @param array $data       Document elasticsearch.
      */
-    final public static function map(int $userID, array & $document): void
+    final public static function buildIndexData(int $userID, array & $data): void
     {
         $user = get_user_by('id', $userID);
         if (empty($user)) {
             return;
         }
 
-        $document[self::SEARCH_FIELD] = [$userID, $user->user_login, $user->display_name];
-        $document[self::ID_FILTER] = $userID;
-        $document[self::LOGIN_FILTER] = $user->user_login;
-        $document[self::NAME_FILTER] = $user->display_name;
+        $data[self::SEARCH_FIELD] = [$userID, $user->user_login, $user->display_name];
+        $data[self::ID_FILTER] = $userID;
+        $data[self::LOGIN_FILTER] = $user->user_login;
+        $data[self::NAME_FILTER] = $user->display_name;
     }
 }

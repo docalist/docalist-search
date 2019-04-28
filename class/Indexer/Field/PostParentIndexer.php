@@ -47,11 +47,11 @@ final class PostParentIndexer
     /**
      * Indexe les données du champ post_type.
      *
-     * @param int   $parent     ID du post parent à indexer.
-     * @param array $document   Document elasticsearch.
+     * @param int   $parent ID du post parent à indexer.
+     * @param array $data   Document elasticsearch.
      */
-    final public static function map(int $parent, array & $document): void
+    final public static function buildIndexData(int $parent, array & $data): void
     {
-        $document[self::SEARCH_FIELD] = $parent;
+        $data[self::SEARCH_FIELD] = $parent;
     }
 }

@@ -63,16 +63,16 @@ final class PostTitleIndexer
     /**
      * Indexe les données du champ post_title.
      *
-     * @param string    $title      Titre à indexer.
-     * @param array     $document   Document elasticsearch.
+     * @param string    $title  Titre à indexer.
+     * @param array     $data   Document elasticsearch.
      */
-    final public static function map(string $title, array & $document): void
+    final public static function buildIndexData(string $title, array & $data): void
     {
         if (empty($title)) {
             return;
         }
 
-        $document[static::SEARCH_FIELD] = $title;
-        $document[static::SORT_FIELD] = implode(' ', Tokenizer::tokenize($title));
+        $data[static::SEARCH_FIELD] = $title;
+        $data[static::SORT_FIELD] = implode(' ', Tokenizer::tokenize($title));
     }
 }

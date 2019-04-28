@@ -77,16 +77,16 @@ final class PostStatusIndexer
     /**
      * Indexe les données du champ post_status.
      *
-     * @param string    $status     Code du post_status à indexer.
-     * @param array     $document   Document elasticsearch.
+     * @param string    $status Code du post_status à indexer.
+     * @param array     $data   Document elasticsearch.
      */
-    final public static function map(string $status, array & $document): void
+    final public static function buildIndexData(string $status, array & $data): void
     {
         $object = get_post_status_object($status);
         $label = empty($status) ? $status : $object->label;
 
-        $document[self::SEARCH_FIELD] = [$status, $label];
-        $document[self::CODE_FILTER] = $status;
-        $document[self::LABEL_FILTER] = $label;
+        $data[self::SEARCH_FIELD] = [$status, $label];
+        $data[self::CODE_FILTER] = $status;
+        $data[self::LABEL_FILTER] = $label;
     }
 }

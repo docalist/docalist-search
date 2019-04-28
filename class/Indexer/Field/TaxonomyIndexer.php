@@ -115,9 +115,9 @@ final class TaxonomyIndexer
      * @param string        $name       Nom de base des champs de recherche à générer.
      * @param WP_Term[]     $terms      Termes à indexer (tableau d'objets WP_Term).
      * @param WP_Taxonomy   $taxonomy   Taxonomie à laquelle appartiennent les termes.
-     * @param array         $document   Document elasticsearch.
+     * @param array         $data       Document elasticsearch.
      */
-    final public static function map(string $name, array $terms, WP_Taxonomy $taxonomy, array & $document): void
+    final public static function buildIndexData(string $name, array $terms, WP_Taxonomy $taxonomy, array & $data): void
     {
         $searchField = str_replace('{taxonomy}', $name, self::SEARCH_FIELD);
         $codeFilter = str_replace('{taxonomy}', $name, self::CODE_FILTER);
@@ -125,13 +125,13 @@ final class TaxonomyIndexer
         $hierarchyFilter = $taxonomy->hierarchical ? str_replace('{taxonomy}', $name, self::HIERARCHY_FILTER) : null;
 
         foreach ($terms as $term) {
-            $document[$searchField][] = $term->slug;
-            $document[$searchField][] = $term->name;
+            $data[$searchField][] = $term->slug;
+            $data[$searchField][] = $term->name;
 
-            $document[$codeFilter][] = $term->slug;
-            $document[$labelFilter][] = $term->name;
+            $data[$codeFilter][] = $term->slug;
+            $data[$labelFilter][] = $term->name;
 
-            $hierarchyFilter && $document[$hierarchyFilter][] = self::getTermPath($term);
+            $hierarchyFilter && $data[$hierarchyFilter][] = self::getTermPath($term);
         }
     }
 

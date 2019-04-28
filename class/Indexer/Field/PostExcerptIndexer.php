@@ -48,10 +48,10 @@ class PostExcerptIndexer
      * Indexe les données du champ post_excerpt.
      *
      * @param string    $excerpt    Extrait à indexer.
-     * @param array     $document   Document elasticsearch.
+     * @param array     $data       Document elasticsearch.
      */
-    final public static function map(string $excerpt, array & $document): void
+    final public static function buildIndexData(string $excerpt, array & $data): void
     {
-        !empty($excerpt) && $document[static::SEARCH_FIELD] = $excerpt;
+        !empty($excerpt) && $data[static::SEARCH_FIELD] = $excerpt;
     }
 }

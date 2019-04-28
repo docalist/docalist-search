@@ -62,8 +62,10 @@ final class TaxonomyIndexer
      */
     final public static function buildMapping(string $name, WP_Taxonomy $taxonomy, Mapping $mapping): void
     {
+        $searchField = str_replace('{taxonomy}', $name, self::SEARCH_FIELD);
+
         $mapping
-            ->text(str_replace('{taxonomy}', $name, self::SEARCH_FIELD))
+            ->text($searchField)
             ->setFeatures([Field::FULLTEXT])
             ->setDescription(sprintf(
                 __(
@@ -82,7 +84,8 @@ final class TaxonomyIndexer
                     'docalist-search'
                 ),
                 $taxonomy->label
-            ));
+            ))
+            ->copyTo($searchField);
 
         $mapping
             ->keyword(str_replace('{taxonomy}', $name, self::LABEL_FILTER))
@@ -93,7 +96,8 @@ final class TaxonomyIndexer
                     'docalist-search'
                 ),
                 $taxonomy->label
-            ));
+            ))
+            ->copyTo($searchField);
 
         if ($taxonomy->hierarchical) {
             $mapping
@@ -119,14 +123,12 @@ final class TaxonomyIndexer
      */
     final public static function buildIndexData(string $name, array $terms, WP_Taxonomy $taxonomy, array & $data): void
     {
-        $searchField = str_replace('{taxonomy}', $name, self::SEARCH_FIELD);
         $codeFilter = str_replace('{taxonomy}', $name, self::CODE_FILTER);
         $labelFilter = str_replace('{taxonomy}', $name, self::LABEL_FILTER);
         $hierarchyFilter = $taxonomy->hierarchical ? str_replace('{taxonomy}', $name, self::HIERARCHY_FILTER) : null;
 
         foreach ($terms as $term) {
-            $data[$searchField][] = $term->slug;
-            $data[$searchField][] = $term->name;
+            // SEARCH_FIELD : via copy_to
 
             $data[$codeFilter][] = $term->slug;
             $data[$labelFilter][] = $term->name;

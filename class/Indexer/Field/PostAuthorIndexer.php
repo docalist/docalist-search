@@ -70,7 +70,8 @@ final class PostAuthorIndexer
             ->setDescription(__(
                 "Facette et filtre sur l'ID de l'utilisateur qui a créé le post.",
                 'docalist-search'
-            ));
+            ))
+            ->copyTo(self::SEARCH_FIELD);
 
         $mapping
             ->keyword(self::LOGIN_FILTER)
@@ -78,7 +79,8 @@ final class PostAuthorIndexer
             ->setDescription(__(
                 "Facette et filtre sur le login de l'utilisateur qui a créé le post.",
                 'docalist-search'
-            ));
+            ))
+            ->copyTo(self::SEARCH_FIELD);
 
         $mapping
             ->keyword(self::NAME_FILTER)
@@ -86,7 +88,8 @@ final class PostAuthorIndexer
             ->setDescription(__(
                 "Facette et filtre sur le nom de l'utilisateur qui a créé le post.",
                 'docalist-search'
-            ));
+            ))
+            ->copyTo(self::SEARCH_FIELD);
     }
 
     /**
@@ -102,7 +105,7 @@ final class PostAuthorIndexer
             return;
         }
 
-        $data[self::SEARCH_FIELD] = [$userID, $user->user_login, $user->display_name];
+        // SEARCH_FIELD : via copy_to
         $data[self::ID_FILTER] = $userID;
         $data[self::LOGIN_FILTER] = $user->user_login;
         $data[self::NAME_FILTER] = $user->display_name;

@@ -89,7 +89,7 @@ abstract class CustomPostTypeIndexer implements Indexer
      *
      * @return array Données à ajouter à l'index.
      */
-    public function map(WP_Post $post): array
+    public function getIndexData(WP_Post $post): array
     {
         // Cache des taxonomies indexées
         static $taxonomies = null; // différent pour chaque classe, commun pour toutes les instances d'une classe
@@ -170,7 +170,7 @@ abstract class CustomPostTypeIndexer implements Indexer
      */
     final protected function index(WP_Post $post, IndexManager $indexManager): void
     {
-        $indexManager->index($this->getType(), (int) $post->ID, $this->map($post)); // ID est stocké comme chaine
+        $indexManager->index($this->getType(), (int) $post->ID, $this->getIndexData($post));
     }
 
     /**
@@ -181,7 +181,7 @@ abstract class CustomPostTypeIndexer implements Indexer
      */
     final protected function remove(WP_Post $post, IndexManager $indexManager): void
     {
-        $indexManager->delete($this->getType(), (int) $post->ID); // ID est stocké comme chaine
+        $indexManager->delete($this->getType(), (int) $post->ID);
     }
 
     /**

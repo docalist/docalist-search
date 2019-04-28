@@ -41,7 +41,7 @@ class PostDateIndexer // pas final, surchargée par PostModifiedIndexer
      *
      * @var string
      */
-    public const HIERARCHY_FILTER = 'filter.creation.hierarchy';
+    public const HIERARCHY_FILTER = 'hierarchy.creation';
 
     /**
      * Construit le mapping du champ post_date.

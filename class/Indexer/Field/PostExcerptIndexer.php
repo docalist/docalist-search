@@ -25,7 +25,7 @@ class PostExcerptIndexer
      *
      * @var string
      */
-    public const SEARCH_FIELD = 'excerpt';
+    public const FILTER = 'excerpt';
 
     /**
      * Construit le mapping du champ post_excerpt.
@@ -42,7 +42,7 @@ class PostExcerptIndexer
                 'docalist-search'
             ))
             ->setDescription(__(
-                "Non utilisé pour les références docalsit.",
+                "Non utilisé pour les références docalist.",
                 'docalist-search'
             ));
     }

@@ -12,14 +12,13 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 
 /**
  * Indexeur pour le champ post_content.
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class PostContentIndexer
+final class PostContentIndexer
 {
     /**
      * Nom du champ de recherche.
@@ -37,9 +36,16 @@ class PostContentIndexer
     {
         $mapping
             ->text(self::SEARCH_FIELD)
-            ->setFeatures([Field::FULLTEXT])
+            ->setFeatures(Mapping::FULLTEXT)
+            ->setLabel(__(
+                "Recherche sur le contenu des documents : texte de l'article ou de la page
+                pour les posts WordPress, description ou résumé pour les références docalist.",
+                'docalist-search'
+            ))
             ->setDescription(__(
-                "Recherche sur les mots du contenu du post.",
+                "Exemples : <code>content:mot</code>, <code>content:mot*</code> (troncature),
+                <code>content:\"une expression\"</code> (recherche par phrase en tenant compte
+                de l'ordre des mots).",
                 'docalist-search'
             ));
     }
@@ -52,6 +58,7 @@ class PostContentIndexer
      */
     final public static function buildIndexData(string $content, array & $data): void
     {
+        $content = strip_tags($content);
         !empty($content) && $data[static::SEARCH_FIELD] = $content;
     }
 }

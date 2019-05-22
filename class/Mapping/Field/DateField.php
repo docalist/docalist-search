@@ -32,9 +32,9 @@ final class DateField extends Field
     /**
      * {@inheritDoc}
      */
-    final public function getSupportedFeatures(): array
+    final public function getSupportedFeatures(): int
     {
-        return [self::FILTER, self::EXCLUSIVE, self::AGGREGATE, self::SORT];
+        return self::FILTER | self::EXCLUSIVE | self::AGGREGATE | self::SORT;
     }
 
     /**

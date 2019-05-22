@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Aggregation\Standard;
 
 use Docalist\Search\Aggregation\Bucket\TaxonomyEntriesAggregation;
+use Docalist\Search\Indexer\Field\TaxonomyIndexer;
 
 /**
  * Construit une agrégation de type "terms" sur la taxonomie "post_tag" (champ tag).
@@ -30,6 +31,6 @@ class TermsPostTag extends TaxonomyEntriesAggregation
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;
         !isset($options['title']) && $options['title'] = __('Mots-clés', 'docalist-search');
-        parent::__construct('tag', 'post_tag', $parameters, $options);
+        parent::__construct(TaxonomyIndexer::codeFilter('post_tag'), 'post_tag', $parameters, $options);
     }
 }

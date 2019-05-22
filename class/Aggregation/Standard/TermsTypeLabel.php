@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Aggregation\Standard;
 
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
+use Docalist\Search\Indexer\Field\PostTypeIndexer;
 
 /**
  * Une agrégation standard de type "terms" sur le champ "type-label.filter".
@@ -30,6 +31,6 @@ class TermsTypeLabel extends TermsAggregation
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;
         !isset($options['title']) && $options['title'] = __('Type de document', 'docalist-search');
-        parent::__construct('type-label.filter', $parameters, $options);
+        parent::__construct(PostTypeIndexer::LABEL_FILTER, $parameters, $options);
     }
 }

@@ -13,7 +13,6 @@ namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Indexer\Field\PostDateIndexer;
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 use DateTime;
 
 /**
@@ -37,4 +36,25 @@ final class PostModifiedIndexer extends PostDateIndexer
      * {@inheritdoc}
      */
     public const HIERARCHY_FILTER = 'hierarchy.lastupdate';
+
+    /**
+     * {@inheritdoc}
+     */
+    final public static function buildMapping(Mapping $mapping): void // pas final, surchargée par PostModifiedIndexer
+    {
+        parent::buildMapping($mapping);
+
+        $mapping->getField(static::SEARCH_FIELD)->setLabel(__(
+            "Recherche sur la date de dernière modification du post WordPress ou de la référence docalist.",
+            'docalist-search'
+        ));
+        $mapping->getField(static::DATE_FILTER)->setLabel(__(
+            "Filtre sur la date de dernière modification du post WordPress ou de la référence docalist.",
+            'docalist-search'
+        ));
+        $mapping->getField(static::HIERARCHY_FILTER)->setLabel(__(
+            "Filtre hiérarchique sur la date de dernière modification du post WordPress ou de la référence docalist.",
+            'docalist-search'
+        ));
+    }
 }

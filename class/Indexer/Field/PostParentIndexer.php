@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 
 /**
  * Indexeur pour le champ post_parent.
@@ -22,11 +21,11 @@ use Docalist\Search\Mapping\Field;
 final class PostParentIndexer
 {
     /**
-     * Nom du champ de recherche.
+     * Nom du filtre.
      *
      * @var string
      */
-    public const SEARCH_FIELD = 'parent';
+    public const FILTER = 'parent';
 
     /**
      * Construit le mapping du champ post_type.
@@ -36,10 +35,14 @@ final class PostParentIndexer
     final public static function buildMapping(Mapping $mapping): void
     {
         $mapping
-            ->keyword(self::SEARCH_FIELD)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
+            ->keyword(self::FILTER)
+            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER | Mapping::EXCLUSIVE)
+            ->setLabel(__(
+                "Filtre sur l'ID du post parent d'un post WordPress.",
+                'docalist-search'
+            ))
             ->setDescription(__(
-                "Recherche, facette et filtre sur l'ID du post parent.",
+                "Non utilisé pour les références docalist.",
                 'docalist-search'
             ));
     }
@@ -52,6 +55,6 @@ final class PostParentIndexer
      */
     final public static function buildIndexData(int $parent, array & $data): void
     {
-        $data[self::SEARCH_FIELD] = $parent;
+        $data[self::FILTER] = $parent;
     }
 }

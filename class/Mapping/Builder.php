@@ -81,6 +81,16 @@ class Builder
     }
 
     /**
+     * Retourne le mapping résultat.
+     *
+     * @return Mapping
+     */
+    public function getMapping(): Mapping
+    {
+        return $this->mapping;
+    }
+
+    /**
      * Retourne les settings de l'index.
      *
      * @return array

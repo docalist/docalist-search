@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 
 /**
  * Indexeur pour le champ post_type.
@@ -27,13 +26,6 @@ final class PostTypeIndexer
      * @var string
      */
     public const SEARCH_FIELD = 'type';
-
-    /**
-     * Nom du filtre sur le code.
-     *
-     * @var string
-     */
-    public const CODE_FILTER = 'filter.type.code';
 
     /**
      * Nom du filtre sur le libellé.
@@ -51,29 +43,30 @@ final class PostTypeIndexer
     {
         $mapping
             ->text(self::SEARCH_FIELD)
-            ->setFeatures([Field::FULLTEXT])
+            ->setFeatures(Mapping::FULLTEXT)
+            ->setLabel(__(
+                'Recherche sur le type de post WordPress ou le type de référence docalist.',
+                'docalist-search'
+            ))
             ->setDescription(__(
-                'Recherche sur le code ou le libellé du type de post.',
+                'Contient à la fois le code du type et le libellé associé.
+                Exemples : <code>type:post</code>, <code>type:book</code>,
+                <code>type:"Blog du site"</code>, <code>type:"Article de périodique"</code>,
+                <code>type:org*</code>.',
                 'docalist-search'
             ));
 
         $mapping
-            ->keyword(self::CODE_FILTER)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
-            ->setDescription(__(
-                'Facette et filtre sur le code du type de publication.',
-                'docalist-search'
-            ))
-            ->copyTo(self::SEARCH_FIELD);
-
-        $mapping
             ->keyword(self::LABEL_FILTER)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
+            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER | Mapping::EXCLUSIVE)
             ->setLabel(__(
-                'Facette et filtre sur le libellé du type de publication.',
+                'Filtre sur le libellé du type de post WordPress ou du type de référence docalist.',
                 'docalist-search'
             ))
-            ->copyTo(self::SEARCH_FIELD);
+            ->setDescription(__(
+                "Pour les références docalist, c'est le libellé indiqué dans la grille de base du type.",
+                'docalist-search'
+            ));
     }
 
     /**
@@ -85,8 +78,7 @@ final class PostTypeIndexer
      */
     final public static function buildIndexData(string $code, string $label, array & $data): void
     {
-        // SEARCH_FIELD : via copy_to
-        $data[self::CODE_FILTER] = $code;
+        $data[self::SEARCH_FIELD] = [$code, $label];
         $data[self::LABEL_FILTER] = $label;
     }
 }

@@ -42,12 +42,9 @@ final class TextField extends Field implements Analyzer, FieldData, IndexOptions
     /**
      * {@inheritDoc}
      */
-    final public function getSupportedFeatures(): array
+    final public function getSupportedFeatures(): int
     {
-        return [
-            self::FULLTEXT,
-            self::AGGREGATE,    // Requiert fielddata, exception sinon
-        ];
+        return self::FULLTEXT | self::AGGREGATE; // AGGREGATE requiert fielddata, exception sinon
     }
 
     /**

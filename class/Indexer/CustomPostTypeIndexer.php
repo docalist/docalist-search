@@ -297,17 +297,17 @@ abstract class CustomPostTypeIndexer implements Indexer
 
         // Détermine la liste des statuts publics
         $public = [];
-        foreach ($this->getStatuses() as $status) {
+        foreach ($this->getIndexedStatuses() as $status) {
             $statusObject = get_post_status_object($status);
             $statusObject && $statusObject->public && $public[] = $status;
         }
 
         // L'utilisateur ne peut voir que les posts publics et ceux dont il est auteur
         $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
-        $filter = $dsl->terms('status', $public);
+        $filter = $dsl->terms(PostStatusIndexer::CODE_FILTER, $public);
         is_user_logged_in() && $filter = $dsl->bool([
             $dsl->should($filter),
-            $dsl->should($dsl->term('createdby', wp_get_current_user()->user_login))
+            $dsl->should($dsl->term(PostAuthorIndexer::LOGIN_FILTER, wp_get_current_user()->user_login))
         ]);
 
         // Ok
@@ -321,7 +321,7 @@ abstract class CustomPostTypeIndexer implements Indexer
     {
         $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
 
-        $type = parent::getSearchFilter();
+        $type = $dsl->term(CollectionIndexer::FILTER, $this->getCollection());
         $visibility = $this->getVisibilityFilter();
 
         // Construit un filtre de la forme "type:post AND (status:public OR createdby:user_login)"

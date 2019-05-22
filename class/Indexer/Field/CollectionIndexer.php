@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 use InvalidArgumentException;
 
 /**
@@ -27,7 +26,7 @@ final class CollectionIndexer
      *
      * @var string
      */
-    public const SEARCH_FIELD = 'in';
+    public const FILTER = 'in';
 
     /**
      * Construit le mapping du champ in.
@@ -37,10 +36,16 @@ final class CollectionIndexer
     final public static function buildMapping(Mapping $mapping): void
     {
         $mapping
-            ->keyword(self::SEARCH_FIELD)
-            ->setFeatures([Field::FILTER, Field::EXCLUSIVE])
+            ->keyword(self::FILTER)
+            ->setFeatures(Mapping::FILTER | Mapping::EXCLUSIVE | Mapping::AGGREGATE)
+            ->setLabel(__(
+                'Filtre sur la collection (le corpus) du document indexé.',
+                'docalist-search'
+            ))
             ->setDescription(__(
-                'Nom de la collection indexée.',
+                "Exemples : <code>in:posts</code> (uniquement les articles WordPress),
+                <code>in:pages</code> (uniquement les pages WordPress), <code>in:basedoc</code>
+                (uniquement les références docalist qui figurent dans la base indiquée).",
                 'docalist-search'
             ));
     }
@@ -57,6 +62,6 @@ final class CollectionIndexer
             throw new InvalidArgumentException('Collection is required for the field "in"');
         }
 
-        $data[static::SEARCH_FIELD] = $collection;
+        $data[self::FILTER] = $collection;
     }
 }

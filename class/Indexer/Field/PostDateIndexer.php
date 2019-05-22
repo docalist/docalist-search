@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 use DateTime;
 
 /**
@@ -48,29 +47,58 @@ class PostDateIndexer // pas final, surchargée par PostModifiedIndexer
      *
      * @param Mapping $mapping
      */
-    final public static function buildMapping(Mapping $mapping): void
+    public static function buildMapping(Mapping $mapping): void // pas final, surchargée par PostModifiedIndexer
     {
         $mapping
-            ->text(static::SEARCH_FIELD)
-            ->setFeatures([Field::FULLTEXT])
-            ->setDescription(__(
-                "Recherche textuelle libre sur la date du post (date complète, année, année et mois).",
+            ->literal(static::SEARCH_FIELD)
+            ->setFeatures(Mapping::FULLTEXT)
+            ->setLabel(__(
+                "Recherche sur la date de création du post WordPress ou de la référence docalist.",
                 'docalist-search'
+            ))
+            ->setDescription(strtr(
+                __(
+                    'Exemples :
+                    <code>{field}:{year}</code>,
+                    <code>{field}:{year}{month}</code>,
+                    <code>{field}:{year}{month}{day}</code>,
+                    <code>{field}:"{year}/{month}"</code>,
+                    <code>{field}:"{month}/{year}"</code>,
+                    <code>{field}:"{year}/{month}/{day}"</code>,
+                    <code>{field}:"{day}/{month}/{year}"</code>.',
+                    'docalist-search'
+                ),
+                [
+                    '{field}' => static::SEARCH_FIELD,
+                    '{year}' => date('Y'),
+                    '{month}' => date('m'),
+                    '{day}' => date('d'),
+                ]
             ));
 
         $mapping
             ->date(static::DATE_FILTER)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
+            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER | Mapping::EXCLUSIVE | Mapping::SORT)
+            ->setLabel(__(
+                'Filtre sur la date de création du post WordPress ou de la référence docalist.',
+                'docalist-search'
+            ))
             ->setDescription(__(
-                'Facette et filtre sur la date du post.',
+                "La date est stockée sous la forme d'un nombre (secondes écoulées depuis epoch) qui peut
+                être utilisé à la fois comme filtre, comme clé de tri ou comme agrégation.",
                 'docalist-search'
             ));
 
         $mapping
-            ->keyword(static::HIERARCHY_FILTER)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
+            ->hierarchy(static::HIERARCHY_FILTER)
+            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER | Mapping::EXCLUSIVE)
             ->setLabel(__(
-                "Facette hiérarchique et filtre sur la date du post (niveau 1=année, niveau 2=mois, niveau 3=jour.",
+                "Filtre hiérarchique sur la date de création du post WordPress ou de la référence docalist.",
+                'docalist-search'
+            ))
+            ->setDescription(__(
+                "La date est stockée sous la forme d'un path année/mois/jour qui permet de créer une
+                facette hiérarchique.",
                 'docalist-search'
             ));
     }
@@ -95,8 +123,6 @@ class PostDateIndexer // pas final, surchargée par PostModifiedIndexer
         $phrase2 = $dateTime->format('d m Y');      // Recherche par phrase ordre y m d ("08 04 2019")
 
         $data[static::SEARCH_FIELD] = [$year, $yearMonth, $yearMonthDay, $phrase1, $phrase2];
-        // TODO : ajouter le nom du mois ?
-
         $data[static::DATE_FILTER] = $date;
         $data[static::HIERARCHY_FILTER] = $dateTime->format('Y/m/d');
     }

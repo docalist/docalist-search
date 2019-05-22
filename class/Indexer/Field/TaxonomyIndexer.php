@@ -12,10 +12,8 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 use WP_Taxonomy;
 use WP_Term;
-use InvalidArgumentException;
 
 /**
  * Indexeur pour les taxonomies associées à un post.
@@ -29,28 +27,57 @@ final class TaxonomyIndexer
      *
      * @var string
      */
-    public const SEARCH_FIELD = '{taxonomy}';
+    public const SEARCH_FIELD = 'taxonomy.{taxonomy}';
 
     /**
      * Nom du filtre sur le code des termes.
      *
      * @var string
      */
-    public const CODE_FILTER = 'filter.{taxonomy}.code';
-
-    /**
-     * Nom du filtre sur le libellé des termes.
-     *
-     * @var string
-     */
-    public const LABEL_FILTER = 'filter.{taxonomy}.label';
+    public const CODE_FILTER = 'filter.taxonomy.{taxonomy}.code';
 
     /**
      * Nom du filtre hiérarchique (uniquement pour les taxonomies hiérarchiques).
      *
      * @var string
      */
-    public const HIERARCHY_FILTER = 'filter.{taxonomy}.hierarchy';
+    public const HIERARCHY_FILTER = 'hierarchy.taxonomy.{taxonomy}';
+
+    /**
+     * Retourne le nom du champ de recherche pour la taxonomie indiquée.
+     *
+     * @param string $taxonomy
+     *
+     * @return string
+     */
+    public static function searchField(string $taxonomy): string
+    {
+        return str_replace('{taxonomy}', $taxonomy, self::SEARCH_FIELD);
+    }
+
+    /**
+     * Retourne le nom du filtre sur le code pour la taxonomie indiquée.
+     *
+     * @param string $taxonomy
+     *
+     * @return string
+     */
+    public static function codeFilter(string $taxonomy): string
+    {
+        return str_replace('{taxonomy}', $taxonomy, self::CODE_FILTER);
+    }
+
+    /**
+     * Retourne le nom du filtre hiérarchique pour la taxonomie indiquée.
+     *
+     * @param string $taxonomy
+     *
+     * @return string
+     */
+    public static function hierarchyFilter(string $taxonomy): string
+    {
+        return str_replace('{taxonomy}', $taxonomy, self::HIERARCHY_FILTER);
+    }
 
     /**
      * Construit le mapping du champ in.
@@ -62,50 +89,59 @@ final class TaxonomyIndexer
      */
     final public static function buildMapping(string $name, WP_Taxonomy $taxonomy, Mapping $mapping): void
     {
-        $searchField = str_replace('{taxonomy}', $name, self::SEARCH_FIELD);
-
         $mapping
-            ->text($searchField)
-            ->setFeatures([Field::FULLTEXT])
+            ->text(self::searchField($name))
+            ->setFeatures(Mapping::FULLTEXT)
+            ->setLabel(sprintf(
+                __(
+                    'Recherche sur les termes de la taxonomie WordPress "%s".',
+                    'docalist-search'
+                ),
+                $taxonomy->label
+            ))
             ->setDescription(sprintf(
                 __(
-                    'Recherche sur le code ou le libellé des termes de la taxonomie "%s".',
+                    'Contient le code (le slug) et le libellé des termes de la taxonomie "%s" qui ont été
+                    attribués au post WordPress.',
                     'docalist-search'
                 ),
                 $taxonomy->label
             ));
 
         $mapping
-            ->keyword(str_replace('{taxonomy}', $name, self::CODE_FILTER))
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
-            ->setDescription(sprintf(
+            ->keyword(self::codeFilter($name))
+            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER)
+            ->setLabel(sprintf(
                 __(
-                    'Recherche et filtre sur le code des termes de la taxonomie "%s".',
+                    'Filtre sur les termes de la taxonomie WordPress "%s".',
                     'docalist-search'
                 ),
                 $taxonomy->label
             ))
-            ->copyTo($searchField);
-
-        $mapping
-            ->keyword(str_replace('{taxonomy}', $name, self::LABEL_FILTER))
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
             ->setDescription(sprintf(
                 __(
-                    'Recherche et filtre sur le libellé des termes de la taxonomie "%s".',
+                    'Contient le slug des termes de la taxonomie "%s" qui ont été attribués au post WordPress.',
                     'docalist-search'
                 ),
                 $taxonomy->label
-            ))
-            ->copyTo($searchField);
+            ));
 
         if ($taxonomy->hierarchical) {
             $mapping
-                ->keyword(str_replace('{taxonomy}', $name, self::HIERARCHY_FILTER))
-                ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
+                ->hierarchy(self::hierarchyFilter($name))
+                ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER)
+                ->setLabel(sprintf(
+                    __(
+                        'Filtre hiérarchique sur l\'arborescence des termes de la taxonomie WordPress "%s".',
+                        'docalist-search'
+                    ),
+                    $taxonomy->label
+                ))
                 ->setDescription(sprintf(
                     __(
-                        'Facette hiérarchique et filtre sur l\'arborescence des termes de la taxonomie "%s".',
+                        'Contient un path de la forme "niveau1/niveau2/slug" qui fournit l\'arborescence
+                        compléte de chacun des termes qui ont été attribués au post WordPress.
+                        Permet de créer une facette hiérarchique (par niveau) sur la taxonomie WordPress "%s".',
                         'docalist-search'
                     ),
                     $taxonomy->label
@@ -123,15 +159,14 @@ final class TaxonomyIndexer
      */
     final public static function buildIndexData(string $name, array $terms, WP_Taxonomy $taxonomy, array & $data): void
     {
-        $codeFilter = str_replace('{taxonomy}', $name, self::CODE_FILTER);
-        $labelFilter = str_replace('{taxonomy}', $name, self::LABEL_FILTER);
-        $hierarchyFilter = $taxonomy->hierarchical ? str_replace('{taxonomy}', $name, self::HIERARCHY_FILTER) : null;
+        $searchField = self::searchField($name);
+        $codeFilter = self::codeFilter($name);
+        $hierarchyFilter = $taxonomy->hierarchical ? self::hierarchyFilter($name) : null;
 
         foreach ($terms as $term) {
-            // SEARCH_FIELD : via copy_to
-
+            $data[$searchField][] = $term->slug;
+            $data[$searchField][] = $term->name;
             $data[$codeFilter][] = $term->slug;
-            $data[$labelFilter][] = $term->name;
 
             $hierarchyFilter && $data[$hierarchyFilter][] = self::getTermPath($term);
         }

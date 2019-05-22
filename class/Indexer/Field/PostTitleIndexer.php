@@ -12,8 +12,8 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 use Docalist\Tokenizer;
+use Transliterator;
 
 /**
  * Indexeur pour le champ post_title.
@@ -45,17 +45,27 @@ final class PostTitleIndexer
     {
         $mapping
             ->text(self::SEARCH_FIELD)
-            ->setFeatures([Field::FULLTEXT])
+            ->setFeatures(Mapping::FULLTEXT)
+            ->setLabel(__(
+                'Recherche sur le titre du post WordPress.',
+                'docalist-search'
+            ))
             ->setDescription(__(
-                'Recherche sur les mots du titre du post.',
+                "Pour une référence docalist, le titre du post WordPress (posttitle) est en général identique
+                au titre de la référence (title). L'attribut supporte la recherche par mot, par troncature et
+                par phrase.",
                 'docalist-search'
             ));
 
         $mapping
             ->keyword(self::SORT_FIELD)
-            ->setFeatures([Field::SORT])
+            ->setFeatures(Mapping::SORT)
+            ->setLabel(__(
+                'Tri sur le titre des posts WordPress.',
+                'docalist-search'
+            ))
             ->setDescription(__(
-                'Tri par ordre alphabétique sur la version en minuscules sans accents des titres des post.',
+                'Version en minuscules sans accents ni signes de ponctuation du titre du post.',
                 'docalist-search'
             ));
     }
@@ -72,7 +82,10 @@ final class PostTitleIndexer
             return;
         }
 
+        $transliterator = Transliterator::createFromRules("::Latin-ASCII; ::Lower; [^[:L:][:N:]]+ > ' ';");
+        $sort = $transliterator->transliterate($title);
+
         $data[static::SEARCH_FIELD] = $title;
-        $data[static::SORT_FIELD] = implode(' ', Tokenizer::tokenize($title));
+        $data[static::SORT_FIELD] = $sort;
     }
 }

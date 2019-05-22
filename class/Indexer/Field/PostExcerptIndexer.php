@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 
 /**
  * Indexeur pour le champ post_excerpt.
@@ -37,9 +36,13 @@ class PostExcerptIndexer
     {
         $mapping
             ->text(self::SEARCH_FIELD)
-            ->setFeatures([Field::FULLTEXT])
+            ->setFeatures(Mapping::FULLTEXT)
+            ->setLabel(__(
+                "Recherche sur les mots de l'extrait du post WordPress.",
+                'docalist-search'
+            ))
             ->setDescription(__(
-                "Recherche sur les mots de l'extrait du post.",
+                "Non utilisé pour les références docalsit.",
                 'docalist-search'
             ));
     }

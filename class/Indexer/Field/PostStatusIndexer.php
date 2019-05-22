@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 
 /**
  * Indexeur pour le champ post_status.
@@ -36,13 +35,6 @@ final class PostStatusIndexer
     public const CODE_FILTER = 'filter.status.code';
 
     /**
-     * Nom du filtre sur le libellé.
-     *
-     * @var string
-     */
-    public const LABEL_FILTER = 'filter.status.label';
-
-    /**
      * Construit le mapping du champ post_status.
      *
      * @param Mapping $mapping
@@ -51,29 +43,28 @@ final class PostStatusIndexer
     {
         $mapping
             ->text(self::SEARCH_FIELD)
-            ->setFeatures([Field::FULLTEXT])
+            ->setFeatures(Mapping::FULLTEXT)
+            ->setLabel(__(
+                'Recherche sur le statut de publication du post WordPress ou de la référence docalist.',
+                'docalist-search'
+            ))
             ->setDescription(__(
-                'Recherche sur le code ou le libellé du statut de publication.',
+                'Contient à la fois le code et le libellé du statut de publication.
+                Exemples : <code>status:publish</code>, <code>status:publié</code>.',
                 'docalist-search'
             ));
 
         $mapping
             ->keyword(self::CODE_FILTER)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
-            ->setDescription(__(
-                'Facette et filtre sur le code du statut de publication.',
-                'docalist-search'
-            ))
-            ->copyTo(self::SEARCH_FIELD);
-
-        $mapping
-            ->keyword(self::LABEL_FILTER)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
+            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER | Mapping::EXCLUSIVE)
             ->setLabel(__(
-                'Facette et filtre sur le libellé du statut de publication.',
+                'Filtre sur le code du statut de publication du post WordPress ou de la référence docalist.',
                 'docalist-search'
             ))
-            ->copyTo(self::SEARCH_FIELD);
+            ->setDescription(__(
+                'Contient des codes comme <code>pending</code> ou <code>publish</code>.',
+                'docalist-search'
+            ));
     }
 
     /**
@@ -87,8 +78,7 @@ final class PostStatusIndexer
         $object = get_post_status_object($status);
         $label = empty($status) ? $status : $object->label;
 
-        // SEARCH_FIELD : via copy_to
+        $data[self::SEARCH_FIELD] = [$status, $label];
         $data[self::CODE_FILTER] = $status;
-        $data[self::LABEL_FILTER] = $label;
     }
 }

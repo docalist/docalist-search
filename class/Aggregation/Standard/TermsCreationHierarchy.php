@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Aggregation\Standard;
 
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
+use Docalist\Search\Indexer\Field\PostDateIndexer;
 
 /**
  * Une facette hiérarchique de type "terms" sur le champ "creation-hierarchy" qui permet de sélectionner des posts
@@ -29,9 +30,9 @@ class TermsCreationHierarchy extends TermsAggregation
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;
         !isset($options['title']) && $options['title'] = __('Date du post', 'docalist-search');
-        $parameters['order'] = ['_term' => 'desc'];
+        $parameters['order'] = ['_key' => 'desc']; // "_term" avant elasticsearch 6.0
         $options['hierarchy'] = true;
         $options['multiselect'] = true;
-        parent::__construct('creation-hierarchy', $parameters, $options);
+        parent::__construct(PostDateIndexer::HIERARCHY_FILTER, $parameters, $options);
     }
 }

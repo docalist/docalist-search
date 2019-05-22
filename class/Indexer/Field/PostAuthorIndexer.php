@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Search\Mapping\Field;
 
 /**
  * Indexeur pour le champ post_author.
@@ -29,25 +28,11 @@ final class PostAuthorIndexer
     public const SEARCH_FIELD = 'createdby';
 
     /**
-     * Nom du filtre sur l'ID.
-     *
-     * @var string
-     */
-    public const ID_FILTER = 'filter.createdby.id';
-
-    /**
      * Nom du filtre sur le login.
      *
      * @var string
      */
     public const LOGIN_FILTER = 'filter.createdby.login';
-
-    /**
-     * Nom du filtre sur le nom.
-     *
-     * @var string
-     */
-    public const NAME_FILTER = 'filter.createdby.name';
 
     /**
      * Construit le mapping du champ post_author.
@@ -57,39 +42,29 @@ final class PostAuthorIndexer
     final public static function buildMapping(Mapping $mapping): void
     {
         $mapping
-            ->text(self::SEARCH_FIELD)
-            ->setFeatures([Field::FULLTEXT])
+            ->literal(self::SEARCH_FIELD)
+            ->setFeatures(Mapping::FULLTEXT)
+            ->setLabel(__(
+                "Recherche sur l'utilisateur WordPress qui a créé le post WordPress ou la référence docalist.",
+                'docalist-search'
+            ))
             ->setDescription(__(
-                "Recherche sur l'ID, le login ou le nom de l'utilisateur qui a créé le post.",
+                "Contient l'ID, le login et le nom de l'utilisateur qui a créé le post ou la référence.",
                 'docalist-search'
             ));
 
         $mapping
-            ->keyword(self::ID_FILTER)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
-            ->setDescription(__(
-                "Facette et filtre sur l'ID de l'utilisateur qui a créé le post.",
-                'docalist-search'
-            ))
-            ->copyTo(self::SEARCH_FIELD);
-
-        $mapping
             ->keyword(self::LOGIN_FILTER)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
-            ->setDescription(__(
-                "Facette et filtre sur le login de l'utilisateur qui a créé le post.",
+            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER | Mapping::EXCLUSIVE)
+            ->setLabel(__(
+                "Filtre sur le login de l'utilisateur WordPress qui a créé le post WordPress ou
+                la référence docalist.",
                 'docalist-search'
             ))
-            ->copyTo(self::SEARCH_FIELD);
-
-        $mapping
-            ->keyword(self::NAME_FILTER)
-            ->setFeatures([Field::AGGREGATE, Field::FILTER, Field::EXCLUSIVE])
             ->setDescription(__(
-                "Facette et filtre sur le nom de l'utilisateur qui a créé le post.",
+                "Contient le login de l'utilisateur.",
                 'docalist-search'
-            ))
-            ->copyTo(self::SEARCH_FIELD);
+            ));
     }
 
     /**
@@ -105,9 +80,7 @@ final class PostAuthorIndexer
             return;
         }
 
-        // SEARCH_FIELD : via copy_to
-        $data[self::ID_FILTER] = $userID;
+        $data[self::SEARCH_FIELD] = [$userID, $user->user_login, $user->display_name];
         $data[self::LOGIN_FILTER] = $user->user_login;
-        $data[self::NAME_FILTER] = $user->display_name;
     }
 }

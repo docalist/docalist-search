@@ -82,15 +82,13 @@ final class TaxonomyIndexer
     /**
      * Construit le mapping du champ in.
      *
-     *
-     * @param string        $name       Nom de base des champss de recherche à générer.
      * @param WP_Taxonomy   $taxonomy   Taxonomie à indexer.
      * @param Mapping       $mapping    Mapping à générer.
      */
-    final public static function buildMapping(string $name, WP_Taxonomy $taxonomy, Mapping $mapping): void
+    final public static function buildMapping(WP_Taxonomy $taxonomy, Mapping $mapping): void
     {
         $mapping
-            ->text(self::searchField($name))
+            ->text(self::searchField($taxonomy->name))
             ->setFeatures(Mapping::FULLTEXT)
             ->setLabel(sprintf(
                 __(
@@ -109,7 +107,7 @@ final class TaxonomyIndexer
             ));
 
         $mapping
-            ->keyword(self::codeFilter($name))
+            ->keyword(self::codeFilter($taxonomy->name))
             ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER)
             ->setLabel(sprintf(
                 __(
@@ -128,7 +126,7 @@ final class TaxonomyIndexer
 
         if ($taxonomy->hierarchical) {
             $mapping
-                ->hierarchy(self::hierarchyFilter($name))
+                ->hierarchy(self::hierarchyFilter($taxonomy->name))
                 ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER)
                 ->setLabel(sprintf(
                     __(
@@ -152,16 +150,15 @@ final class TaxonomyIndexer
     /**
      * Indexe les données du champ in.
      *
-     * @param string        $name       Nom de base des champs de recherche à générer.
      * @param WP_Term[]     $terms      Termes à indexer (tableau d'objets WP_Term).
      * @param WP_Taxonomy   $taxonomy   Taxonomie à laquelle appartiennent les termes.
      * @param array         $data       Document elasticsearch.
      */
-    final public static function buildIndexData(string $name, array $terms, WP_Taxonomy $taxonomy, array & $data): void
+    final public static function buildIndexData(array $terms, WP_Taxonomy $taxonomy, array & $data): void
     {
-        $searchField = self::searchField($name);
-        $codeFilter = self::codeFilter($name);
-        $hierarchyFilter = $taxonomy->hierarchical ? self::hierarchyFilter($name) : null;
+        $searchField = self::searchField($taxonomy->name);
+        $codeFilter = self::codeFilter($taxonomy->name);
+        $hierarchyFilter = $taxonomy->hierarchical ? self::hierarchyFilter($taxonomy->name) : null;
 
         foreach ($terms as $term) {
             $data[$searchField][] = $term->slug;

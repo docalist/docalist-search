@@ -74,8 +74,8 @@ abstract class CustomPostTypeIndexer implements Indexer
         }
 
         // Crée le mapping des taxonomies indexées
-        foreach ($this->getIndexedTaxonomies() as $name => $taxonomy) {
-            TaxonomyIndexer::buildMapping($name, $taxonomy, $mapping);
+        foreach ($this->getIndexedTaxonomies() as $taxonomy) {
+            TaxonomyIndexer::buildMapping($taxonomy, $mapping);
         }
 
         // Ok
@@ -121,9 +121,9 @@ abstract class CustomPostTypeIndexer implements Indexer
 
         // Indexe les taxonomies
         is_null($taxonomies) && $taxonomies = $this->getIndexedTaxonomies();
-        foreach ($taxonomies as $name => $taxonomy) {
+        foreach ($taxonomies as $taxonomy) {
             $terms = get_the_terms($post, $taxonomy->name);
-            is_array($terms) && TaxonomyIndexer::buildIndexData($name, $terms, $taxonomy, $data);
+            is_array($terms) && TaxonomyIndexer::buildIndexData($terms, $taxonomy, $data);
         }
 
         // Ok
@@ -147,7 +147,7 @@ abstract class CustomPostTypeIndexer implements Indexer
      * ont les propriétés "public" et "publicly_queryable" à true et le nom de l'attribut de recherche
      * généré est identique au nom de la taxonomie.
      *
-     * @return WP_Taxonomy[] Un tableau de la forme "nom d'attribut" => objet WP_Taxonomy.
+     * @return WP_Taxonomy[] Un tableau d'objets WP_Taxonomy.
      */
     protected function getIndexedTaxonomies(): array
     {
@@ -155,7 +155,7 @@ abstract class CustomPostTypeIndexer implements Indexer
         $taxonomies = get_object_taxonomies($this->getType(), 'objects');
         foreach ($taxonomies as $taxonomy) { /** @var WP_Taxonomy $taxonomy */
             if ($taxonomy->public && $taxonomy->publicly_queryable && $taxonomy->show_ui) {
-                $result[$taxonomy->name] = $taxonomy;
+                $result[] = $taxonomy;
             }
         }
 

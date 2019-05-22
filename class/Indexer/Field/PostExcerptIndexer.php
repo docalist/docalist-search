@@ -25,7 +25,7 @@ class PostExcerptIndexer
      *
      * @var string
      */
-    public const FILTER = 'excerpt';
+    public const SEARCH_FIELD = 'excerpt';
 
     /**
      * Construit le mapping du champ post_excerpt.

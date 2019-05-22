@@ -44,9 +44,9 @@ final class KeywordField extends Field implements IgnoreAbove, Normalizer, Simil
     /**
      * {@inheritDoc}
      */
-    final public function getSupportedFeatures(): array
+    final public function getSupportedFeatures(): int
     {
-        return [self::FILTER, self::EXCLUSIVE, self::AGGREGATE, self::SORT, self::LOOKUP];
+        return self::FILTER | self::EXCLUSIVE | self::AGGREGATE | self::SORT | self::LOOKUP;
     }
 
     /**

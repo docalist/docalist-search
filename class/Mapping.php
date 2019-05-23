@@ -292,7 +292,7 @@ final class Mapping implements Name, Fields, FeaturesConstants
      *
      * @return string[]
      */
-    final static function describeFeatures(int $features = -1): array
+    final public static function describeFeatures(int $features = -1): array
     {
         $labels = [];
         ($features & self::FULLTEXT) && $labels[self::FULLTEXT] = 'fulltext';

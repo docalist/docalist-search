@@ -16,7 +16,6 @@ use Docalist\Search\Indexer\MissingIndexer;
 use InvalidArgumentException;
 use RuntimeException;
 use Exception;
-use Docalist\Search\Mapping\Builder;
 use Docalist\Search\Mapping\Options;
 
 /**
@@ -26,6 +25,27 @@ use Docalist\Search\Mapping\Options;
  */
 class IndexManager
 {
+    /**
+     * Nom de l'option WordPress où sont stockés les libellés des attributs de recherche.
+     *
+     * @var string
+     */
+    private const OPTION_LABELS = 'docalist-search-attributes-label';
+
+    /**
+     * Nom de l'option WordPress où sont stockés les descriptions des attributs de recherche.
+     *
+     * @var string
+     */
+    private const OPTION_DESCRIPTIONS = 'docalist-search-attributes-description';
+
+    /**
+     * Nom de l'option WordPress où sont stockés les caractéristiques des attributs de recherche.
+     *
+     * @var string
+     */
+    private const OPTION_FEATURES = 'docalist-search-attributes-features';
+
     /**
      * Les paramètres de docalist-search.
      *
@@ -97,6 +117,13 @@ class IndexManager
      * @var bool
      */
     private $es7;
+
+    /**
+     * Les attributs de recherche disponibles.
+     *
+     * @var SearchAttributes|null
+     */
+    private $searchAttributes = null;
 
     /**
      * Initialise le gestionnaire d'index.
@@ -217,30 +244,70 @@ class IndexManager
     }
 
     /**
-     * Construit les settings complets de l'index.
+     * Retourne le Mapping obtenu en fusionnant les mappings de tous les types indexés.
      *
-     * Les settings contiennent tous les paramètres de l'index : option de configuration, analyseurs, mappings
-     * des différents types, etc.
-     *
-     * @return array
+     * @return Mapping
      */
-    private function getIndexSettings(): array
+    private function getMapping(): Mapping
     {
-        // On utilise un Mapping Builder pour générer les settings
-        $options = new Options([
+        $mapping = new Mapping('_doc');
+        foreach ($this->getTypes() as $type) {
+            $mapping->mergeWith($this->getIndexer($type)->getMapping());
+        }
+
+        return $mapping;
+    }
+
+    /**
+     * Retourne les options de mapping à utiliser pour générer les settings de l'index.
+     *
+     * @return Options
+     */
+    private function getMappingOptions(): Options
+    {
+        return new Options([
             Options::OPTION_VERSION => $this->settings->esversion->getPhpValue(),
             Options::OPTION_DEFAULT_ANALYZER => 'french_text', // todo : transférer databaseettings->search
             Options::OPTION_LITERAL_ANALYZER => 'text', // todo : option à ajouter ?
         ]);
-        $builder = new Builder($options);
+    }
 
-        // Fusionne les mappings de tous les types indexés
-        foreach ($this->getTypes() as $type) {
-            $builder->addMapping($this->getIndexer($type)->getMapping());
-        }
+    /**
+     * Stocke des informations sur les attributs de recherche générés par le mapping passé en paramètre.
+     *
+     * @param Mapping $mapping
+     */
+    private function storeSearchAttributes(Mapping $mapping): void
+    {
+        // Met à jour les options
+        update_option(self::OPTION_LABELS, $mapping->getFieldsLabel(), false);
+        update_option(self::OPTION_DESCRIPTIONS, $mapping->getFieldsDescription(), false);
+        update_option(self::OPTION_FEATURES, $mapping->getFieldsFeatures(), false);
 
-        // Retourne les settings générés
-        return $builder->getIndexSettings();
+        // Force getSearchAttributes() à recharger les options
+        $this->searchAttributes = null;
+    }
+
+    /**
+     * Retourne la liste des attributs de recherche disponibles.
+     *
+     * @return SearchAttributes
+     */
+    public function getSearchAttributes(): SearchAttributes
+    {
+        is_null($this->searchAttributes) && $this->searchAttributes= new SearchAttributes(
+            function (): array {
+                return get_option(self::OPTION_LABELS, []);
+            },
+            function (): array {
+                return get_option(self::OPTION_DESCRIPTIONS, []);
+            },
+            function (): array {
+                return get_option(self::OPTION_FEATURES, []);
+            }
+        );
+
+        return $this->searchAttributes;
     }
 
     /**
@@ -249,7 +316,7 @@ class IndexManager
     public function createIndex(): void
     {
         // Récupère la connexion elastic search
-        $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
+        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
 
         // Récupère le nom de base de l'index
         $base = $this->settings->index();
@@ -258,7 +325,8 @@ class IndexManager
         $index = $base . '-' . round(microtime(true) * 1000); // Heure courante (UTC), en millisecondes
 
         // Détermine les settings du nouvel index
-        $settings = $this->getIndexSettings();
+        $mapping = $this->getMapping();
+        $settings = $mapping->getIndexSettings($this->getMappingOptions());
 
         // Utilise le nombre de shards indiqué en config
         $settings['settings']['index']['number_of_shards'] = $this->settings->shards();
@@ -305,6 +373,9 @@ class IndexManager
         // Crée l'alias "read" (nom de base) et active le nouvel index pour la recherche
         do_action('docalist_search_activate_index', $base, $index);
         $this->createAlias($base, $index);
+
+        // Stocke les attributs de recherche
+        $this->storeSearchAttributes($mapping);
 
         // Supprime tous les anciens index
         do_action('docalist_search_remove_old_indices');
@@ -428,12 +499,17 @@ class IndexManager
         $this->maybeFlush();
 
         // Stocke la commande dans le buffer
-        $document = json_encode($document, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $this->bulk .= sprintf($format, $id, $document);
+        $json = json_encode($document, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            var_dump($document);
+            var_dump(json_last_error_msg());
+            die('JSON error');
+        }
+        $this->bulk .= sprintf($format, $id, $json);
         ++$this->bulkCount;
 
         // Met à jour les statistiques sur la taille des documents
-        $size = strlen($document);
+        $size = strlen($json);
         $this->updateStat($type, 'index', 1);
         $this->updateStat($type, 'size', $size);
     }

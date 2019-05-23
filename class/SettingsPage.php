@@ -231,6 +231,21 @@ class SettingsPage extends AdminPage
     }
 
     /**
+     * Affiche la liste des attributs de recherche disponible.
+     *
+     * @param string $feature Optionnel, affiche uniquement les attributs qui ont la feature indiquée.
+     *
+     * @return ViewResponse
+     */
+    public function actionSearchAttributes(string $feature = ''): ViewResponse
+    {
+        return $this->view('docalist-search:attributes', [
+            'searchAttributes' => docalist('docalist-search-attributes'),
+            'feature' => $feature,
+        ]);
+    }
+
+    /**
      * Paramètres du moteur de recherche.
      *
      * Permet entres autres d'activer la recherche.

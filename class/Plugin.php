@@ -84,6 +84,12 @@ class Plugin
             'docalist-search-index-manager' => new IndexManager($this->settings),
             'docalist-search-engine' => new SearchEngine($this->settings),
 
+            'docalist-search-attributes' => function (Services $services) {
+                $index = $services->get('docalist-search-index-manager'); /** @var IndexManager $index */
+
+                return $index->getSearchAttributes();
+            },
+
             'index-lookup' => function (Services $services) {
                 return new IndexLookup($services->get('elasticsearch-version'));
             },

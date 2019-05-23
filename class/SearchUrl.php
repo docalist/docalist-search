@@ -13,6 +13,7 @@ namespace Docalist\Search;
 
 use Docalist\Search\QueryParser\Parser;
 use Docalist\Search\SearchRequest;
+use Docalist\Search\Mapping\Field\Info\Features;
 use InvalidArgumentException;
 use WP_Rewrite;
 
@@ -525,27 +526,13 @@ class SearchUrl
      */
     protected function isFilter($field)
     {
-        static $filters = [
-            'in' => 'or',
-            'is' => 'or',
-            'type' => 'or',
-            'status' => 'or',
-            'createdby' => 'or',
-            'parent' => 'or',
+        $searchAttributes = docalist('docalist-search-attributes'); /** @var SearchAttributes $searchAttributes*/
 
-            'category' => 'and',
-            'tag' => 'and',
-        ];
-
-        if (isset($filters[$field])) {
-            return $filters[$field];
+        if ($searchAttributes->has($field, Features::FILTER | Features::EXCLUSIVE)) {
+            return 'or';
         }
 
-        if (substr($field, -7) === '.filter') {
-            return 'and';
-        }
-
-        if (substr($field, -10) === '-hierarchy') {
+        if ($searchAttributes->has($field, Features::FILTER)) {
             return 'and';
         }
 

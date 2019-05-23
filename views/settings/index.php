@@ -57,6 +57,17 @@ use Docalist\Search\SettingsPage;
 
 
     <h2>
+        <a href="<?= esc_url($this->getUrl('SearchAttributes')) ?>">
+            <?= __('Liste des attributs de recherche', 'docalist-search') ?>
+        </a>
+    </h2>
+    <p class="description"><?= __(
+        'Documentation sur les attributs de recherche qui ont été générés lors de l\'indexation.',
+        'docalist-search') ?>
+    </p>
+
+
+    <h2>
         <a href="<?= esc_url($this->getUrl('SearchSettings')) ?>">
             <?= __("Paramètres du moteur de recherche", 'docalist-search') ?>
         </a>

@@ -272,7 +272,7 @@ final class Mapping implements Name, Fields, FeaturesConstants
                 }
                 if ($field instanceof Features) {
                     $features = $field->getFeatures();
-                    !empty($features) && $result[$prefix . $name] = $features;
+                    $result[$prefix . $name] = $features;
                 }
             }
 

@@ -91,7 +91,7 @@ class PostDateIndexer // pas final, surchargée par PostModifiedIndexer
 
         $mapping
             ->hierarchy(static::HIERARCHY_FILTER)
-            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER | Mapping::EXCLUSIVE)
+            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER)
             ->setLabel(__(
                 "Filtre hiérarchique sur la date de création du post WordPress ou de la référence docalist.",
                 'docalist-search'

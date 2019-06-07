@@ -192,7 +192,7 @@ class SearchResponse
 
         // Depuis Elasticsearch version 7, c'est un objet qui contient un champ value
         if (isset($this->data->hits->total->value) && is_int($this->data->hits->total->value)) {
-            return 0;
+            return $this->data->hits->total->value;
         }
 
         // Format non reconnu

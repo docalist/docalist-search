@@ -180,7 +180,23 @@ class SearchResponse
      */
     public function getHitsCount()
     {
-        return isset($this->data->hits->total) ? $this->data->hits->total : 0;
+        // Vérifie qu'on a le nombre total de hits
+        if (! isset($this->data->hits->total)) {
+            return 0;
+        }
+
+        // Avant Elasticsearch version 7, c'était juste un entier
+        if (is_int($this->data->hits->total)) {
+            return $this->data->hits->total;
+        }
+
+        // Depuis Elasticsearch version 7, c'est un objet qui contient un champ value
+        if (isset($this->data->hits->total->value) && is_int($this->data->hits->total->value)) {
+            return 0;
+        }
+
+        // Format non reconnu
+        return 0;
     }
 
     /**

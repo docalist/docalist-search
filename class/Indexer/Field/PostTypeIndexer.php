@@ -28,6 +28,13 @@ final class PostTypeIndexer
     public const SEARCH_FIELD = 'type';
 
     /**
+     * Nom du filtre sur le code.
+     *
+     * @var string
+     */
+    public const CODE_FILTER = 'filter.type.code';
+
+    /**
      * Nom du filtre sur le libellé.
      *
      * @var string
@@ -57,6 +64,18 @@ final class PostTypeIndexer
             ));
 
         $mapping
+            ->keyword(self::CODE_FILTER)
+            ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER | Mapping::EXCLUSIVE)
+            ->setLabel(__(
+                'Filtre sur le code du type de post WordPress ou du type de référence docalist.',
+                'docalist-search'
+            ))
+            ->setDescription(__(
+                'Contient des codes comme "post", "page", "book", "article", "person", etc.',
+                'docalist-search'
+            ));
+
+        $mapping
             ->keyword(self::LABEL_FILTER)
             ->setFeatures(Mapping::AGGREGATE | Mapping::FILTER | Mapping::EXCLUSIVE)
             ->setLabel(__(
@@ -79,6 +98,7 @@ final class PostTypeIndexer
     final public static function buildIndexData(string $code, string $label, array & $data): void
     {
         $data[self::SEARCH_FIELD] = [$code, $label];
+        $data[self::CODE_FILTER] = $code;
         $data[self::LABEL_FILTER] = $label;
     }
 }

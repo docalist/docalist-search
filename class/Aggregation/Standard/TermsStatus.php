@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Aggregation\Standard;
 
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
+use Docalist\Search\Indexer\Field\PostStatusIndexer;
 use stdClass;
 
 /**
@@ -32,7 +33,7 @@ class TermsStatus extends TermsAggregation
     {
         !isset($parameters['size']) && $parameters['size'] = 100;
         !isset($options['title']) && $options['title'] = __('Statut de publication', 'docalist-search');
-        parent::__construct('status', $parameters, $options);
+        parent::__construct(PostStatusIndexer::CODE_FILTER, $parameters, $options);
     }
 
     public function getBucketLabel(stdClass $bucket)

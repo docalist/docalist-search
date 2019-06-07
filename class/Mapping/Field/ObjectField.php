@@ -45,7 +45,7 @@ class ObjectField extends Field implements Fields // pas final, surchargée par 
     /**
      * {@inheritDoc}
      */
-    public function getMapping(Options $options): array // pas final, surchargée par NestedField et Mapping
+    public function getMapping(Options $options): array // pas final, surchargée par NestedField
     {
         // Génère le mapping de base
         $mapping = parent::getMapping($options);

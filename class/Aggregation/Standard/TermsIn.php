@@ -13,6 +13,7 @@ namespace Docalist\Search\Aggregation\Standard;
 
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
 use Docalist\Search\Indexer;
+use Docalist\Search\Indexer\Field\CollectionIndexer;
 use stdClass;
 
 /**
@@ -40,7 +41,7 @@ class TermsIn extends TermsAggregation
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;
         !isset($options['title']) && $options['title'] = __('Type de contenu', 'docalist-search');
-        parent::__construct('in', $parameters, $options);
+        parent::__construct(CollectionIndexer::FILTER, $parameters, $options);
     }
 
     public function getBucketLabel(stdClass $bucket)

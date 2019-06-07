@@ -18,9 +18,11 @@ use Docalist\Forms\Form;
 /**
  * Paramètres de la recherche.
  *
- * @var SettingsPage $this
- * @var Settings $settings Les paramètres de l'indexeur.
- * @var string $error Erreur éventuelle à afficher.
+ * @var SettingsPage    $this
+ * @var Settings        $settings           Les paramètres de l'indexeur.
+ * @var array           $fields             Un tableau de la forme champ => libellé listant les attributs
+ *                                          de recherche disponibles.
+ * @var string          $error              Erreur éventuelle à afficher.
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
@@ -28,40 +30,39 @@ use Docalist\Forms\Form;
 <div class="wrap">
     <h1><?= __("Paramètres du moteur de recherche.", 'docalist-search') ?></h1>
 
-    <p class="description"><?php
-        echo __(
+    <p class="description"><?=
+        __(
             "Les options ci-dessous ne doivent être activées qu'une fois que vous
             avez choisi les contenus à indexer et lancé une réindexation manuelle
             de l'ensemble de tous les documents.",
             'docalist-search'
         );
-    ?></p>
+    ?></p><?php
 
-    <?php if ($error) :?>
+    if ($error) { ?>
         <div class="error">
             <p><?= $error ?></p>
-        </div>
-    <?php endif ?>
+        </div><?php
+    }
 
-    <?php
-        $form = new Form();
-        $form->select('searchpage')->setOptions(pagesList())->setFirstOption(false);
+    $form = new Form();
+    $form->select('searchpage')->setOptions(pagesList())->setFirstOption(false);
 
-        $fields = $form->table('defaultSearchFields')
-            ->setRepeatable();
-        $fields
-            ->entryPicker('field')
-            ->setOptions($this->getAllFields());
+    $defaultSearchFields = $form->table('defaultSearchFields')
+        ->setRepeatable();
 
-        $fields
-            ->input('weight')
-            ->setAttribute('type', 'number')
-            ->setAttribute('min', '1');
+    $defaultSearchFields
+        ->entryPicker('field')
+        ->setOptions($fields);
 
-        $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
+    $defaultSearchFields
+        ->input('weight')
+        ->setAttribute('type', 'number')
+        ->setAttribute('min', '1');
 
-        $form->bind($settings)->display();
-    ?>
+    $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
+
+    $form->bind($settings)->display(); ?>
 </div>
 
 <?php

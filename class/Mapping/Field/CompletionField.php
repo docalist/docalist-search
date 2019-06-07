@@ -13,6 +13,11 @@ namespace Docalist\Search\Mapping\Field;
 
 use Docalist\Search\Mapping\Field;
 use Docalist\Search\Mapping\Options;
+use Docalist\Search\Mapping\Field\Parameter\Analyzer;
+use Docalist\Search\Mapping\Field\Parameter\SearchAnalyzer;
+use Docalist\Search\Mapping\Field\Parameter\AnalyzerTrait;
+use Docalist\Search\Mapping\Field\Parameter\SearchAnalyzerTrait;
+use InvalidArgumentException;
 
 /**
  * Un type particuler de champ texte qui permet de faire de l'autocomplete.
@@ -21,8 +26,33 @@ use Docalist\Search\Mapping\Options;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-final class CompletionField extends Field
+final class CompletionField extends Field implements Analyzer, SearchAnalyzer
 {
+    use AnalyzerTrait, SearchAnalyzerTrait;
+
+    /**
+     * {@inheritDoc}
+     */
+    final public function getSupportedFeatures(): int
+    {
+        return self::LOOKUP;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    final public function mergeWith(Field $other): void
+    {
+        try {
+            parent::mergeWith($other);
+
+            $this->mergeAnalyzer($other);
+            $this->mergeSearchAnalyzer($other);
+        } catch (InvalidArgumentException $e) {
+            throw new InvalidArgumentException($other->getName() . ': ' . $e->getMessage());
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -33,6 +63,10 @@ final class CompletionField extends Field
 
         // Type de champ
         $mapping['type'] = 'completion';
+
+        // Applique les autres paramètres
+        $this->applyAnalyzer($mapping, $options);
+        $this->applySearchAnalyzer($mapping, $options);
 
         // Ok
         return $mapping;

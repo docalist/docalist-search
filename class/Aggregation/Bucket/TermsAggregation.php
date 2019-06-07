@@ -174,7 +174,7 @@ class TermsAggregation extends MultiBucketsAggregation
         // Et on développe tous les termes sélectionnés
         $filters = isset($parameters[$field]) ? (array) $parameters[$field] : [];
         foreach ($filters as $filter) {
-            $include .= '|' . ($filter) . '/' . '[^/]+';
+            $include .= '|' . preg_quote($filter) . '/' . '[^/]+';
         }
 
         return $include;

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Aggregation\Standard;
 
 use Docalist\Search\Aggregation\Bucket\TaxonomyEntriesAggregation;
+use Docalist\Search\Indexer\Field\TaxonomyIndexer;
 
 /**
  * Construit une agrégation de type "terms" sur la taxonomie "catégorie".
@@ -31,6 +32,6 @@ class TermsCategory extends TaxonomyEntriesAggregation
         !isset($parameters['size']) && $parameters['size'] = 1000;
         !isset($options['title']) && $options['title'] = __('Catégorie', 'docalist-search');
         $options['hierarchy'] = true;
-        parent::__construct('category-hierarchy', 'category', $parameters, $options);
+        parent::__construct(TaxonomyIndexer::hierarchyFilter('category'), 'category', $parameters, $options);
     }
 }

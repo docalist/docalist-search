@@ -12,39 +12,53 @@ declare(strict_types=1);
 namespace Docalist\Search\Mapping\Field;
 
 use Docalist\Search\Mapping\Field;
+use Docalist\Search\Mapping\Options;
+use Docalist\Search\Analysis\Analyzer\Hierarchy;
 use Docalist\Search\Mapping\Field\Parameter\Analyzer;
 use Docalist\Search\Mapping\Field\Parameter\AnalyzerTrait;
-use Docalist\Search\Mapping\Field\Parameter\FieldData;
-use Docalist\Search\Mapping\Field\Parameter\FieldDataTrait;
-use Docalist\Search\Mapping\Field\Parameter\IndexOptions;
-use Docalist\Search\Mapping\Field\Parameter\IndexOptionsTrait;
 use Docalist\Search\Mapping\Field\Parameter\SearchAnalyzer;
 use Docalist\Search\Mapping\Field\Parameter\SearchAnalyzerTrait;
+use Docalist\Search\Mapping\Field\Parameter\FieldData;
+use Docalist\Search\Mapping\Field\Parameter\FieldDataTrait;
 use Docalist\Search\Mapping\Field\Parameter\Similarity;
 use Docalist\Search\Mapping\Field\Parameter\SimilarityTrait;
-use Docalist\Search\Mapping\Options;
 use InvalidArgumentException;
 
 /**
- * Un champ texte qui utilise un analyseur pour découper le contenu en termes de recherche.
- *
- * @link https://www.elastic.co/guide/en/elasticsearch/reference/master/text.html
+ * Un champ special permettant de filtrer et d'agréger sur un path.
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-final class TextField extends Field implements Analyzer, FieldData, IndexOptions, SearchAnalyzer, Similarity
+final class HierarchyField extends Field implements Analyzer, FieldData, SearchAnalyzer, Similarity
 {
-    use AnalyzerTrait, FieldDataTrait, IndexOptionsTrait, SearchAnalyzerTrait, SimilarityTrait;
+    use AnalyzerTrait, FieldDataTrait, SearchAnalyzerTrait, SimilarityTrait;
 
-    // title search
-    // https://opensourceconnections.com/blog/2014/12/08/title-search-when-relevancy-is-only-skin-deep/
+    /*
+     * Ressources :
+     * https://github.com/elastic/elasticsearch/issues/8896
+     * https://github.com/opendatasoft/elasticsearch-aggregation-pathhierarchy
+     * https://docs.searchkit.co/stable/components/navigation/hierarchical-refinement-filter.html
+     * https://shoppinpal.gitbook.io/docs-shoppinpal-com/6.-elasticsearch/fun-with-path-hierarchy-tokenizer
+     */
+
+    /**
+     * {@inheritDoc}
+     */
+    final public function __construct(string $name)
+    {
+        parent::__construct($name);
+        $this->setAnalyzer(Hierarchy::getName());
+        $this->setSearchAnalyzer('keyword');
+        $this->enableFieldData();
+        $this->setSimilarity(self::BOOLEAN_SIMILARITY);
+    }
 
     /**
      * {@inheritDoc}
      */
     final public function getSupportedFeatures(): int
     {
-        return self::FULLTEXT | self::AGGREGATE; // AGGREGATE requiert fielddata, exception sinon
+        return self::FILTER | self::EXCLUSIVE | self::AGGREGATE;
     }
 
     /**
@@ -57,7 +71,6 @@ final class TextField extends Field implements Analyzer, FieldData, IndexOptions
 
             $this->mergeAnalyzer($other);
             $this->mergeFieldData($other);
-            $this->mergeIndexOptions($other);
             $this->mergeSearchAnalyzer($other);
             $this->mergeSimilarity($other);
         } catch (InvalidArgumentException $e) {
@@ -76,20 +89,9 @@ final class TextField extends Field implements Analyzer, FieldData, IndexOptions
         // Type de champ
         $mapping['type'] = 'text';
 
-        // Si le champ n'est pas utilisé en recherche, inutile d'indexer les mots
-        if (!$this->hasFeature(self::FULLTEXT)) {
-            $mapping['index'] = false;
-        }
-
-        // Pour faire une agrégation sur un champ "text", il faut que les fielddata soient activés
-        if ($this->hasFeature(self::AGGREGATE) && !$this->hasFieldData()) {
-            throw new InvalidArgumentException('Aggregating on a text field requires fielddata');
-        }
-
         // Applique les autres paramètres
         $this->applyAnalyzer($mapping, $options);
         $this->applyFieldData($mapping);
-        $this->applyIndexOptions($mapping);
         $this->applySearchAnalyzer($mapping, $options);
         $this->applySimilarity($mapping);
 

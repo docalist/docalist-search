@@ -15,6 +15,9 @@ use Docalist\Search\SearchRequest;
 use WP_Query;
 use Exception;
 use wpdb;
+use Docalist\Search\Indexer\Field\PostDateIndexer;
+use Docalist\Search\Indexer\Field\PostModifiedIndexer;
+use Docalist\Search\Indexer\Field\PostTitleIndexer;
 
 /**
  * La classe qui gère les recherches.
@@ -121,24 +124,24 @@ class SearchEngine
 
             // Date de création
             case 'creation':
-                return 'creation';
+                return PostDateIndexer::DATE_FILTER;
 
             case 'creation-':
-                return ['creation' => 'desc'];
+                return [PostDateIndexer::DATE_FILTER => 'desc'];
 
             // Date de mise à jour
             case 'lastupdate':
-                return 'lastupdate';
+                return PostModifiedIndexer::DATE_FILTER;
 
             case 'lastupdate-':
-                return ['lastupdate' => 'desc'];
+                return [PostModifiedIndexer::DATE_FILTER => 'desc'];
 
             // Titre
             case 'posttitle':
-                return 'posttitle-sort';
+                return PostTitleIndexer::SORT_FIELD;
 
             case 'posttitle-':
-                return ['posttitle-sort' => 'desc'];
+                return [PostTitleIndexer::SORT_FIELD => 'desc'];
         }
 
         return null; // tri non reconnu

@@ -14,12 +14,13 @@ namespace Docalist\Search\Mapping\Field\Factory;
 use Docalist\Search\Mapping\Field\Factory\BaseFactoryTrait;
 use Docalist\Search\Mapping\Field\TextField;
 use Docalist\Search\Mapping\Field\CompletionField;
+use Docalist\Search\Mapping\Field\HierarchyField;
 use Docalist\Search\Mapping\Field\Parameter\Analyzer;
 use Docalist\Search\Mapping\Options;
-use Docalist\Search\Analysis\Analyzer\Hierarchy;
 use Docalist\Search\Analysis\Analyzer\Suggest;
 use Docalist\Search\Analysis\Analyzer\Url;
 use Docalist\Search\Mapping\Field\Info\Features;
+use Docalist\Search\Mapping\Field\Parameter\Similarity;
 
 /**
  * Ce trait enrichit la factory de base et ajoute plusieurs méthodes utilitaires qui simplifient la création
@@ -49,23 +50,10 @@ trait FieldFactoryTrait
      * @param string $name Nom du champ
      *
      * @return TextField
-     *
-     * @see Url
      */
-    public function hierarchy(string $name): TextField
+    public function hierarchy(string $name): HierarchyField
     {
-        /*
-         * Ressources :
-         * https://github.com/elastic/elasticsearch/issues/8896
-         * https://github.com/opendatasoft/elasticsearch-aggregation-pathhierarchy
-         * https://docs.searchkit.co/stable/components/navigation/hierarchical-refinement-filter.html
-         * https://shoppinpal.gitbook.io/docs-shoppinpal-com/6.-elasticsearch/fun-with-path-hierarchy-tokenizer
-         */
-        return $this->text($name)
-            ->setAnalyzer(Hierarchy::getName())
-            ->setSearchAnalyzer('keyword')
-            ->enableFieldData()
-            ->setFeatures([Features::AGGREGATE]);
+        return $this->addField(new HierarchyField($name));
     }
 
     /**
@@ -74,8 +62,6 @@ trait FieldFactoryTrait
      * @param string $name Nom du champ
      *
      * @return CompletionField
-     *
-     * @see Url
      */
     public function suggest(string $name): CompletionField
     {
@@ -88,8 +74,6 @@ trait FieldFactoryTrait
      * @param string $name Nom du champ
      *
      * @return TextField
-     *
-     * @see Url
      */
     public function url(string $name): TextField
     {

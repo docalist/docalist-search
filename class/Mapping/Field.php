@@ -13,6 +13,8 @@ namespace Docalist\Search\Mapping;
 
 use Docalist\Search\Mapping\Field\Parameter\Name;
 use Docalist\Search\Mapping\Field\Parameter\NameTrait;
+use Docalist\Search\Mapping\Field\Parameter\CopyTo;
+use Docalist\Search\Mapping\Field\Parameter\CopyToTrait;
 use Docalist\Search\Mapping\Field\Info\Label;
 use Docalist\Search\Mapping\Field\Info\LabelTrait;
 use Docalist\Search\Mapping\Field\Info\Description;
@@ -27,9 +29,9 @@ use InvalidArgumentException;
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class Field implements Name, Label, Description, Features
+class Field implements Name, Label, Description, Features, CopyTo
 {
-    use NameTrait, LabelTrait, DescriptionTrait, FeaturesTrait;
+    use NameTrait, LabelTrait, DescriptionTrait, FeaturesTrait, CopyToTrait;
 
     /**
      * Initialise le champ.
@@ -62,6 +64,7 @@ class Field implements Name, Label, Description, Features
         $this->mergeLabel($other);
         $this->mergeDescription($other);
         $this->mergeFeatures($other);
+        $this->mergeCopyTo($other);
     }
 
     /**
@@ -73,6 +76,10 @@ class Field implements Name, Label, Description, Features
      */
     public function getMapping(Options $options): array
     {
-        return [];
+        $mapping = [];
+
+        $this->applyCopyTo($mapping);
+
+        return $mapping;
     }
 }

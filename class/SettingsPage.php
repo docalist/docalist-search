@@ -16,6 +16,7 @@ use Docalist\Http\CallbackResponse;
 use Docalist\Http\ViewResponse;
 use InvalidArgumentException;
 use Exception;
+use Docalist\Search\Mapping\Field\Info\Features;
 
 /**
  * Options de configuration du plugin.
@@ -231,6 +232,21 @@ class SettingsPage extends AdminPage
     }
 
     /**
+     * Affiche la liste des attributs de recherche disponible.
+     *
+     * @param string $feature Optionnel, affiche uniquement les attributs qui ont la feature indiquée.
+     *
+     * @return ViewResponse
+     */
+    public function actionSearchAttributes(string $feature = ''): ViewResponse
+    {
+        return $this->view('docalist-search:attributes', [
+            'searchAttributes' => docalist('docalist-search-attributes'),
+            'feature' => $feature,
+        ]);
+    }
+
+    /**
      * Paramètres du moteur de recherche.
      *
      * Permet entres autres d'activer la recherche.
@@ -294,8 +310,13 @@ class SettingsPage extends AdminPage
             return $this->redirect($this->getUrl('SearchSettings'), 303);
         }
 
+        $searchAttributes = docalist('docalist-search-attributes'); /** @var SearchAttributes $searchAttributes */
+        $fields = array_keys($searchAttributes->filterByFeatures(Features::FULLTEXT));
+        $fields = array_combine($fields, $fields);
+
         return $this->view('docalist-search:settings/search', [
             'settings' => $this->settings,
+            'fields' => $fields,
             'error' => $error,
         ]);
     }
@@ -316,67 +337,23 @@ class SettingsPage extends AdminPage
         return $result;
     }
 
-    protected function getAllFields()
-    {
-        $mapping = docalist('elasticsearch')->get('/{index}/_mapping');
-        /*
-         * La réponse obtenue est de la forme suivante :
-         * {
-         *     "wp_prisme-1552505198219": {
-         *         "mappings": {
-         *             "type1": {
-         *                 "properties": {
-         *                     "champ1": {
-         *                     },
-         *                     "champ2": {
-         *                        "fields": {
-         *                            "sous-champ1": {},
-         *                            "sous-champ2": {}
-         *                        }
-         *                     }
-         *                 }
-         *             }
-         *         }
-         *     }
-         * }
-         */
-        // On obtient un objet qui contient une seule propriété (le nom de l'index => mapping)
-        $mapping = (array) $mapping;
-        $mapping = reset($mapping);
-        $mapping = (array) $mapping->mappings;
-
-        $fields = [];
-        foreach ($mapping as $mapping) {
-            foreach ((array) $mapping->properties as $name => $mapping) {
-                $fields[$name] = $name;
-                if (isset($mapping->fields)) {
-                    foreach ($mapping->fields as $subfield => $mapping) {
-                        $fullname = $name . '.' . $subfield;
-                        $fields[$fullname] = $fullname;
-                    }
-                }
-            }
-        }
-
-        ksort($fields); // trie par ordre alphabétique
-
-        return $fields;
-    }
-
     public function actionFieldData($query = '*')
     {
-        $response = docalist('elasticsearch')->get('/{index}/_search', [
-            'query' => [
-                'query_string' => [
-                    'query' => $query,
-                ],
-            ],
-            'docvalue_fields' => $this->getAllFields(),
-        ]);
+        return; //ne fonctionne plus
+//         $response = docalist('elasticsearch')->get('/{index}/_search', [
+//             'query' => [
+//                 'query_string' => [
+//                     'query' => $query,
+//                 ],
+//             ],
+//             'docvalue_fields' =>[
+//                 ['field' => '*'],
+//             ],
+//         ]);
 
-        return $this->view('docalist-search:debug/field-data', [
-            'query' => $query,
-            'response' => $response
-        ]);
+//         return $this->view('docalist-search:debug/field-data', [
+//             'query' => $query,
+//             'response' => $response
+//         ]);
     }
 }

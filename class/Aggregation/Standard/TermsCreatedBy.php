@@ -14,6 +14,7 @@ namespace Docalist\Search\Aggregation\Standard;
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
 use WP_User;
 use stdClass;
+use Docalist\Search\Indexer\Field\PostAuthorIndexer;
 
 /**
  * Une agrégation standard de type "terms" sur le champ "createdby" qui retourne le nombre de documents pour
@@ -36,7 +37,7 @@ class TermsCreatedBy extends TermsAggregation
         !isset($parameters['size']) && $parameters['size'] = 1000;
         !isset($options['title']) && $options['title'] = __('Auteur du post', 'docalist-search');
         !isset($options['multiselect']) && $options['multiselect'] = true;
-        parent::__construct('createdby', $parameters, $options);
+        parent::__construct(PostAuthorIndexer::LOGIN_FILTER, $parameters, $options);
     }
 
     public function getBucketLabel(stdClass $bucket)

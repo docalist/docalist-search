@@ -80,7 +80,7 @@ class IndexLookup implements LookupInterface
             'aggs' => [
                 'lookup' => [
                     'terms' => [
-                        'field' => "$source.filter",
+                        'field' => "filter.$source",
                         'size' => 100,
                         'order' => [$sort => 'asc'],
                     ],
@@ -134,7 +134,7 @@ class IndexLookup implements LookupInterface
                 'lookup' => [
                     'text' => $search,
                     'completion' => [
-                        'field' => "$source.suggest",
+                        'field' => "suggest.$source",
                         'size' => 100,
                         'skip_duplicates' => true,
                         // 'fuzzy' => true
@@ -145,7 +145,7 @@ class IndexLookup implements LookupInterface
         ];
 
         // Exécute la requête
-        $result = docalist('elasticsearch')->post('/{index}/_search', $query);
+        $result = docalist('elasticsearch')->post('/{index}/_search?filter_path=suggest.lookup.options.text', $query);
 
         // Récupère les suggestions
         if (! isset($result->suggest->lookup[0]->options)) {

@@ -24,6 +24,14 @@ use Docalist\Search\Mapping\Options;
 abstract class NumericField extends Field
 {
     /**
+     * {@inheritDoc}
+     */
+    public function getSupportedFeatures(): int
+    {
+        return self::FILTER | self::EXCLUSIVE | self::SORT | self::AGGREGATE;
+    }
+
+    /**
      * Retourne le type du champ (integer, long, float...)
      *
      * @return string

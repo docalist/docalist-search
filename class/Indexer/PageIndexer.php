@@ -11,19 +11,35 @@ declare(strict_types=1);
 
 namespace Docalist\Search\Indexer;
 
+use Docalist\Search\Indexer\PostIndexer;
+
 /**
  * Un indexeur pour les pages WordPress.
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
-class PageIndexer extends CustomPostTypeIndexer
+class PageIndexer extends PostIndexer
 {
-    public function __construct()
+    /**
+     * {@inheritDoc}
+     */
+    public function getType(): string
     {
-        parent::__construct('page', 'pages', __('Contenus WordPress', 'docalist-search'));
+        return 'page';
     }
 
-    public function getLabel()
+    /**
+     * {@inheritDoc}
+     */
+    public function getCollection(): string
+    {
+        return 'pages';
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getLabel(): string
     {
         return __('Pages du site', 'docalist-search');
     }

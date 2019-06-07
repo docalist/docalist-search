@@ -22,43 +22,38 @@ use InvalidArgumentException;
 trait FeaturesTrait // implements Features (https://wiki.php.net/rfc/traits-with-interfaces)
 {
     /**
-     * Caractéristiques du champ.
+     * Un bitmask indiquant les caractéristiques du champ.
      *
-     * @var string[]
+     * @var int
      */
-    private $features = [];
+    private $features = 0;
 
     /**
      * {@inheritDoc}
      */
-    public function getSupportedFeatures(): array
+    public function getSupportedFeatures(): int
     {
-        return [];
+        return 0;
     }
 
     /**
      * {@inheritDoc}
      */
-    final public function setFeatures(array $features): self
+    final public function setFeatures(int $features): self
     {
-        $bad = array_diff($features, $this->getSupportedFeatures());
-        if (empty($bad)) {
-            $this->features = $features;
-
-            return $this;
+        if (($this->getSupportedFeatures() & $features) !== $features) {
+            throw new InvalidArgumentException(sprintf('Unsupported feature(s) in %s', get_class($this)));
         }
 
-        throw new InvalidArgumentException(sprintf(
-            'Unsupported feature(s) in %s: %s',
-            get_class($this),
-            implode(', ', $bad)
-        ));
+        $this->features = $features;
+
+        return $this;
     }
 
     /**
      * {@inheritDoc}
      */
-    final public function getFeatures(): array
+    final public function getFeatures(): int
     {
         return $this->features;
     }
@@ -66,9 +61,9 @@ trait FeaturesTrait // implements Features (https://wiki.php.net/rfc/traits-with
     /**
      * {@inheritDoc}
      */
-    final public function hasFeature(string $feature): bool
+    final public function hasFeature(int $feature): bool
     {
-        return in_array($feature, $this->features);
+        return ($this->features & $feature) === $feature;
     }
 
     /**
@@ -78,6 +73,6 @@ trait FeaturesTrait // implements Features (https://wiki.php.net/rfc/traits-with
      */
     final protected function mergeFeatures(Features $other): void
     {
-        $this->features = array_merge($this->features, $other->getFeatures());
+        $this->features |= $other->getFeatures();
     }
 }

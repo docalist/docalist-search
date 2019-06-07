@@ -81,6 +81,11 @@ class SearchRequest
     {
         $request = [];
 
+        // ES >=7 ne compte que les 10000 premiers hits, ajoute track_total_hits pour avoir le nombre exact
+        if (version_compare(docalist('elasticsearch-version'), '6.99', '>')) {
+            $request['track_total_hits'] =  true;
+        }
+
         // Requête à exécuter
         $this->buildQueryClause($request);
 

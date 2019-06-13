@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Lookup;
 
 use Docalist\Lookup\LookupInterface;
+use Docalist\Search\Indexer\Field\PostModifiedIndexer;
 use wpdb;
 use InvalidArgumentException;
 
@@ -63,7 +64,7 @@ class SearchLookup implements LookupInterface
                     'filter'    => [ [ 'query_string' => [ 'query' => $source ] ] ],
                 ]
             ],
-            'sort' => [ 'lastupdate' => 'desc' ],
+            'sort' => [ PostModifiedIndexer::DATE_FILTER => 'desc' ],
         ];
 
         // Exécute la requête

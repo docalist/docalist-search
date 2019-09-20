@@ -103,9 +103,6 @@ class DisplayAggregations extends WP_Widget
             echo $context['before_title'], $title, $context['after_title'];
         }
 
-//         echo '<pre>$context=', htmlspecialchars(var_export($context,true)), '</pre>';
-//         echo '<pre>$settings=', htmlspecialchars(var_export($settings,true)), '</pre>';
-
         echo $settings['before-facets'] ?? '';
 
         // Affiche toutes les agrégations disponibles
@@ -202,11 +199,9 @@ class DisplayAggregations extends WP_Widget
      */
     public function update($new, $old)
     {
-        $settings = $this->getSettingsForm()->bind($new)->getData();
-
-//         echo '<pre>$new=', htmlspecialchars(var_export($new,true)), '</pre>';
-//         echo '<pre>form data=', htmlspecialchars(var_export($settings,true)), '</pre>';
-//         die();
+        $form = $this->getSettingsForm();
+        $form->bind($new);
+        $settings = $form->getData();
 
         return $settings;
     }

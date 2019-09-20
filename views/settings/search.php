@@ -62,7 +62,8 @@ use Docalist\Forms\Form;
 
     $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
 
-    $form->bind($settings)->display(); ?>
+    $form->bind($settings);
+    $form->display(); ?>
 </div>
 
 <?php

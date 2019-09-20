@@ -70,7 +70,8 @@ foreach($indexers as $indexer) {  /* @var Indexer $indexer */
         $form->submit(__("Créer l'index et indexer les contenus existants", 'docalist-search'))
              ->addClass('button button-primary');
 
-        $form->bind($settings)->display();
+        $form->bind($settings);
+        $form->display();
     ?>
     <h2><?=__('Remarques :', 'docalist-search')?></h2>
     <ul class="ul-square">

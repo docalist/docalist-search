@@ -47,7 +47,8 @@ use stdClass;
         $form->input('query', ['class' => 'large-text'])->setLabel('Query');
         $form->submit(__('Rechercher', 'docalist-search'))->addClass('button button-primary');
 
-        $form->bind(['query' => $query])->display();
+        $form->bind(['query' => $query]);
+        $form->display();
 
         //echo '<pre>', var_export($response, true), '</pre>';
         if (empty($response->hits->hits)) {

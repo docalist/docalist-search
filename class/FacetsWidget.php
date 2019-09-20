@@ -544,7 +544,10 @@ class FacetsWidget extends WP_Widget
      */
     public function update($new, $old)
     {
-        $settings = $this->settingsForm()->bind($new)->data();
+        $form = $this->settingsForm();
+        $form->bind($new);
+        $settings = $form->data();
+
         foreach ($settings['facets'] as $i => & $facet) {
             if (empty($facet['name'])) {
                 unset($settings['facets'][$i]);

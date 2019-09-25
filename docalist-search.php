@@ -10,7 +10,7 @@
  * Plugin Name: Docalist Search
  * Plugin URI:  https://docalist.org
  * Description: An ElasticSearch-based search engine for WordPress.
- * Version:     4.0.0
+ * Version:     4.1.0
  * Author:      Daniel Ménard
  * Author URI:  https://docalist.org/
  * Text Domain: docalist-search
@@ -25,7 +25,7 @@ namespace Docalist\Search;
 /**
  * Version du plugin.
  */
-define('DOCALIST_SEARCH_VERSION', '4.0.0'); // Garder synchro avec la version indiquée dans l'entête
+define('DOCALIST_SEARCH_VERSION', '4.1.0'); // Garder synchro avec la version indiquée dans l'entête
 
 /**
  * Path absolu du répertoire dans lequel le plugin est installé.

@@ -27,21 +27,21 @@ final class TaxonomyIndexer
      *
      * @var string
      */
-    public const SEARCH_FIELD = 'taxonomy.{taxonomy}';
+    public const SEARCH_FIELD = 'taxonomy-{taxonomy}';
 
     /**
      * Nom du filtre sur le code des termes.
      *
      * @var string
      */
-    public const CODE_FILTER = 'filter.taxonomy.{taxonomy}.code';
+    public const CODE_FILTER = 'filter.taxonomy-{taxonomy}.code';
 
     /**
      * Nom du filtre hiérarchique (uniquement pour les taxonomies hiérarchiques).
      *
      * @var string
      */
-    public const HIERARCHY_FILTER = 'hierarchy.taxonomy.{taxonomy}';
+    public const HIERARCHY_FILTER = 'hierarchy.taxonomy-{taxonomy}';
 
     /**
      * Retourne le nom du champ de recherche pour la taxonomie indiquée.

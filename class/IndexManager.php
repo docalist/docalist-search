@@ -335,6 +335,11 @@ class IndexManager
         $settings['settings']['index']['number_of_replicas'] = 0;
         $settings['settings']['index']['refresh_interval'] = -1;
 
+        // ES > 7 limite le nombre de résultats à 10000
+        // Augmente la limite en attendant de voir si on peut appliquer une meilleure solution (scroll, search_after)
+        if ($this->es7) {
+            $settings['settings']['index']['max_result_window'] = 1000000; // 1 million
+        }
         do_action('docalist_search_before_create_index', $base, $index);
 
         // Crée le nouvel index

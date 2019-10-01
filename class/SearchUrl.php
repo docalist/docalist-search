@@ -156,8 +156,7 @@ class SearchUrl
         $this->parameters = [];
         $pos = strpos($url, '?');
         if ($pos !== false) {
-            $parameters = [];
-            parse_str(substr($url, $pos + 1), $parameters);
+            $parameters = $this->parseQueryString(substr($url, $pos + 1));
             $this->setParameters($parameters);
             $url = substr($url, 0, $pos);
         }
@@ -283,9 +282,6 @@ class SearchUrl
                 continue;
             }
 
-            // parse_url convertit les "." en "_"
-            $name = strtr($name, '_', '.');
-
             if (is_string($value) && $this->isFilter($name)) {
                 $value = explode(self::SEPARATOR, $value);
                 $this->parameters[$name] = count($value) === 1 ? reset($value) : $value;
@@ -337,6 +333,35 @@ class SearchUrl
         $preserve = ['%21' => '!', '%2A' => '*', '%27' => "'", '%28' => '(', '%29' => ')'];
 
         return strtr(rawurlencode($component), $preserve);
+    }
+
+    /**
+     * Version spéciale de parse_str() qui ne remplace pas les points et les espaces par des underscore.
+     *
+     * @author Rok Kralj
+     * @see https://stackoverflow.com/a/18209799/1529493
+     *
+     * @author Kévin Dunglas
+     * @see https://github.com/api-platform/core/blob/master/src/Util/RequestParser.php
+     */
+    protected function parseQueryString(string $source): array
+    {
+        // '[' is urlencoded ('%5B') in the input, but we must urldecode it in order
+        // to find it when replacing names with the regexp below.
+        $source = str_replace('%5B', '[', $source);
+        $source = preg_replace_callback(
+            '/(^|(?<=&))[^=[&]+/',
+            function ($key) {
+                return bin2hex(urldecode($key[0]));
+            },
+            $source
+        );
+
+        // parse_str urldecodes both keys and values in resulting array.
+        $parameters = []; // avoid warning in eclipse
+        parse_str($source, $parameters);
+
+        return array_combine(array_map('hex2bin', array_keys($parameters)), $parameters);
     }
 
     /**

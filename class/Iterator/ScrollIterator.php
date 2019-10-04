@@ -61,7 +61,7 @@ class ScrollIterator implements IteratorAggregate
      * @param int           $size       Taille des batchs.
      * @param string        $duration   Durée de vie des batchs.
      */
-    public function __construct(SearchRequest $request, int $limit = 0, int $size = 3, string $duration = '30s')
+    public function __construct(SearchRequest $request, int $limit = 0, int $size = 1000, string $duration = '2m')
     {
         $this->request = $request;
         $this->limit = $limit;

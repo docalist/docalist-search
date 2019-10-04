@@ -47,6 +47,13 @@ class SearchRequest
      */
     protected $hasErrors = false;
 
+    /**
+     * Pour une requête de type "scroll", identifiant à utiliser pour obtenir le prochain lot.
+     *
+     * @var string
+     */
+    protected $scrollId = '';
+
     // -------------------------------------------------------------------------------
     // Constructeur
     // -------------------------------------------------------------------------------
@@ -161,6 +168,15 @@ class SearchRequest
             return null;
         }
 
+        // Si un scroll_id a été retourné (requête de type "scroll"), on le stocke
+        if (isset($data->_scroll_id)) {
+            // Si on avait déjà un scrollId on le libère
+            !empty($this->scrollId) && $this->scroll('done');
+
+            // Stocke l'id
+            $this->scrollId = $data->_scroll_id;
+        }
+
         // Crée l'objet SearchResponse (sans données pour le moment)
         $this->hasErrors = false;
         $searchResponse = new SearchResponse($this);
@@ -180,6 +196,72 @@ class SearchRequest
 
         // Retourne les résultats
         return $searchResponse;
+    }
+
+    /**
+     * Exécute la requête en utilisant l'API "scroll" de Elasticsearch.
+     *
+     * Une requête de type "scroll" travaille sur l'index Elasticsearch tel qu'il est au moment où la
+     * recherche est lancée (une espèce de snapshot). Cela permet de parcourir les résultats obtenus
+     * (potentiellement un très grand nombre) sans être affecté par les modifications qui peuvent
+     * survenir dans l'index pendant le parcourt des résultats.
+     *
+     * Chaque appel à la méthode scroll() retourne le prochain lots de résultat, qui est utilisable
+     * pendant la durée indiquée en paramètre.
+     *
+     * Lorsque l'itération est terminée, vous devez appeller scroll('done') pour libérer le contexte
+     * de recherche créé par Elasticsearch.
+     *
+     * @param string $duration Soit une durée de la forme "30s" ou "2m" pour obtenir les hits suivants,
+     * soit le mot-clé "done" pour libérer le contexte de recherche et termine la scroll request.
+     *
+     * @return SearchResponse|null Quand scroll() est appellée avec une durée, elle retourne un objet
+     * SearchResponse contenant les hits suivants ou null si Elasticsearch a généré une erreur.
+     * Quand scroll() est appellée avec le paramètre "done", elle retourne null.
+     */
+    public function scroll(string $duration = '10s'): ?SearchResponse
+    {
+        // scroll('done') permet de libérer le contexte de recherche
+        if ($duration === 'done') {
+            if (!empty($this->scrollId)) { // no-op si aucun scroll en cours
+                docalist('elasticsearch')->delete('/_search/scroll', ['scroll_id' => $this->scrollId]);
+                $this->scrollId = '';
+            }
+
+            return null;
+        }
+
+        // scroll() avec une durée permet de créer ou de prolonger le contexte de recherche
+        if ((bool) preg_match('~^\d+[ms]$~', $duration)) {
+            // On accepte uniquement des secondes ou des minutes, et sans espace
+            // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#time-units
+
+            // Au premier appel, on execute la requête avec l'option "scroll" et on stocke le scroll_id généré
+            if (empty($this->scrollId)) {
+                return $this->execute(['scroll' => $duration]); // initialise $this->scrollId
+            }
+
+            // Pour les appels suivants, on utilise l'api scroll avec l'id en cours et on stocke le nouvel id
+            $data = docalist('elasticsearch')->get('/_search/scroll', [
+                'scroll_id' => $this->scrollId,
+                'scroll'    => $duration,
+            ]);
+
+            if (isset($data->error)) {
+                $this->hasErrors = true;
+                $this->scrollId = '';
+
+                throw new InvalidArgumentException('Scroll context has expired');
+            }
+
+            $this->hasErrors = false;
+            $this->scrollId = $data->_scroll_id;
+
+            return new SearchResponse($this, $data);
+        }
+
+        // On nous a passé n'import quoi
+        throw new InvalidArgumentException('Expected scroll duration or "done"');
     }
 
     /**
@@ -217,6 +299,12 @@ class SearchRequest
         }
 
         // scroll : https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-scroll.html
+        if (isset($options['scroll'])) {
+            $option = $options['scroll'];
+            unset($options['scroll']);
+            $queryString .= '&scroll=' . urlencode($option);
+        }
+
         // preference : https://www.elastic.co/guide/en/elasticsearch/reference/master/search-request-preference.html
 
         // explain : pas en querystring

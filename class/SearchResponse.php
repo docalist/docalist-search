@@ -257,4 +257,101 @@ class SearchResponse
     {
         return isset($this->data->aggregations->$name) ? $this->data->aggregations->$name : null;
     }
+
+    /**
+     * Génère une liste de liens permettant de parcourir les pages de résultats obtenus.
+     *
+     * Cette méthode est similaire à la fonction paginate_links() de WordPress mais elle gère correctement les
+     * paramètres de query-string qui contiennent des points (paginate_links utilise parse_str qui les convertit
+     * en tirets).
+     *
+     * @param array $options
+     *
+     * - 'prev_next'    (bool)      Indique s'il faut inclure les liens "Précédent" / "Suivant" (true par défaut).
+     * - 'prev_text'    (string)    Texte du lien "Précédent" ("« Précédent" par défaut).
+     * - 'next_text'    (string)    Texte du lien "Suivant" ("Suivant »" par défaut).
+     * - 'end_size'     (int)       Nombre de liens au début et à la fin de la liste (1 par défaut).
+     * - 'mid_size'     (int)       Nombre de liens de chaque côté de la page en cours (2 par défaut).
+     *
+     * @return array
+     */
+    public function getPagesLinks(array $options = []): array
+    {
+        // Récupère les variables dont on a besoin
+        $total = $this->getHitsCount();                             // Nombre total de hits
+        $searchRequest = $this->getSearchRequest();                 // Requête en cours
+        $searchUrl = $searchRequest->getSearchUrl();                // SearchUrl en cours
+        $size = $searchRequest->getSize();                          // Nombre de hits par page
+        $lastPage = ($size === 0) ? 1 : (int) ceil($total / $size); // Numéro de la dernière page
+        $current = min($searchRequest->getPage(), $lastPage);       // Numéro de la page en cours
+        $links = [];                                                // Liste des liens générés
+
+        // Si on a moins de deux pages de résultats, terminé
+        if ($lastPage < 2) {
+            return [];
+        }
+
+        // Valide les options passées en paramètre
+        $prevNext = (bool) ($options['prev_next'] ?? true);
+        $prevText = (string) ($options['prev_text'] ?? __('&laquo; Précédent', 'docalist-search'));
+        $nextText = (string) ($options['next_text'] ?? __('Suivant &raquo;', 'docalist-search'));
+        $endSize = max(1, (int) ($options['end_size'] ?? 1));
+        $midSize = (int) ($options['mid_size'] ?? 2);
+
+        // Un helper qui simplifie la création des liens
+        $link = function (int $page, string $text = '', string $css = '') use ($searchUrl) {
+            return sprintf(
+                '<a class="%s" href="%s">%s</a>',
+                rtrim('page-numbers ' . $css),
+                htmlspecialchars($searchUrl->getUrlForPage($page)),
+                empty($text) ? (string) $page : $text
+            );
+        };
+
+        // Bouton "Précédent"
+        if ($prevNext && $current > 1) {
+            $links['previous'] = $link($current - 1, $prevText, 'prev');
+        }
+
+        // End size de gauche
+        if ($endSize < $current) {
+            for ($page = 1; $page <= $endSize; $page++) {
+                $links[$page] = $link($page);
+            }
+            if ($endSize < $current - $midSize - 1) {
+                $links['left-dots'] = '<span class="page-numbers dots">&hellip;</span>';
+            }
+        }
+
+        // Mid size de gauche
+        for ($page = max(1, $current - $midSize) ; $page < $current ; $page++) {
+            $links[$page] = $link($page);
+        }
+
+        // Page en cours
+        $links['current'] = sprintf('<span aria-current="page" class="page-numbers current">%d</span>', $current);
+
+        // Mid size de droite
+        for ($page = $current + 1 ; $page <= min($lastPage, $current + $midSize); $page++) {
+            $links[$page] = $link($page);
+        }
+
+        // End size de droite
+        if ($current < $lastPage - $endSize + 1) {
+            if ($current + $midSize < $lastPage - $endSize) {
+                $links['right-dots'] = '<span class="page-numbers dots">&hellip;</span>';
+            }
+            for ($page = $lastPage - $endSize + 1; $page <= $lastPage; $page++) {
+                $links[$page] = $link($page);
+            }
+        }
+
+        // Bouton "Suivant"
+        if ($prevNext && $current < $lastPage) {
+            $links['next'] = $link($current + 1, $nextText, 'next');
+        }
+
+        // Ok
+        return $links;
+    }
 }

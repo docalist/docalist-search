@@ -40,13 +40,6 @@ class ScrollIterator implements IteratorAggregate
     private $limit;
 
     /**
-     * Taille des batchs.
-     *
-     * @var int
-     */
-    private $size;
-
-    /**
      * Durée de vie du contexte de recherche entre deux appels à scroll().
      *
      * @var string Une chaine de la forme "30s", "2m", etc.

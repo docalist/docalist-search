@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Indexer\Field;
 
 use Docalist\Search\Mapping;
-use Docalist\Tokenizer;
+use Docalist\Search\Mapping\Field\Parameter\IgnoreAbove;
 use Transliterator;
 
 /**
@@ -83,7 +83,8 @@ final class PostTitleIndexer
         }
 
         $transliterator = Transliterator::createFromRules("::Latin-ASCII; ::Lower; [^[:L:][:N:]]+ > ' ';");
-        $sort = $transliterator->transliterate($title);
+        $sort = trim($transliterator->transliterate($title));
+        $sort = substr(0, IgnoreAbove::DEFAULT_IGNORE_ABOVE);
 
         $data[static::SEARCH_FIELD] = $title;
         $data[static::SORT_FIELD] = $sort;

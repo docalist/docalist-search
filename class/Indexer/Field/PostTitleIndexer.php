@@ -84,7 +84,7 @@ final class PostTitleIndexer
 
         $transliterator = Transliterator::createFromRules("::Latin-ASCII; ::Lower; [^[:L:][:N:]]+ > ' ';");
         $sort = trim($transliterator->transliterate($title));
-        $sort = substr(0, IgnoreAbove::DEFAULT_IGNORE_ABOVE);
+        $sort = substr($sort, 0, IgnoreAbove::DEFAULT_IGNORE_ABOVE);
 
         $data[static::SEARCH_FIELD] = $title;
         $data[static::SORT_FIELD] = $sort;

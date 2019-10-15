@@ -19,6 +19,8 @@ use Docalist\Search\Indexer\Field\PostDateIndexer;
 use Docalist\Search\Indexer\Field\PostModifiedIndexer;
 use Docalist\Search\Indexer\Field\PostTitleIndexer;
 
+use function Docalist\deprecated;
+
 /**
  * La classe qui gère les recherches.
  *
@@ -188,23 +190,49 @@ class SearchEngine
     }
 
     /**
-     * Retourne le Post ID de la page "liste des réponses" indiquée dans les paramètres de docalist-search.
+     * Retourne l'ID de la page de recherche indiquée dans les paramètres docalist-search.
+     *
+     * @return int
+     */
+    final public function getSearchPage(): int
+    {
+        return $this->settings->searchpage->getPhpValue();
+    }
+
+    /**
+     * @deprecated Utiliser getSearchPage()
      *
      * @return int
      */
     public function searchPage()
     {
-        return $this->settings->searchpage();
+        deprecated(get_class($this) . '::searchPage()', 'getSearchPage()', '2019-10-15');
+
+        return $this->getSearchPage();
     }
 
     /**
-     * Retourne l'URL de la page "liste des réponses" indiquée dans les paramètres de docalist-search.
+     * Retourne l'URL de la page de recherhce indiquée dans les paramètres docalist-search.
+     *
+     * @return string
+     */
+    final public function getSearchPageUrl(): string
+    {
+        $searchPage = $this->settings->searchpage->getPhpValue();
+
+        return $searchPage ? get_permalink($searchPage) : '';
+    }
+
+    /**
+     * @deprecated Utiliser getSearchPageUrl()
      *
      * @return string
      */
     public function searchPageUrl()
     {
-        return get_permalink($this->settings->searchpage());
+        deprecated(get_class($this) . '::searchPageUrl()', 'getSearchPageUrl()', '2019-10-15');
+
+        return $this->getSearchPageUrl();
     }
 
     /**

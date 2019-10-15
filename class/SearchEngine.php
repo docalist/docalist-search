@@ -72,7 +72,10 @@ class SearchEngine
         add_filter(
             'docalist_search_create_request',
             function (SearchRequest $request = null, WP_Query $query, & $display = true) {
-                if (is_null($request) && $query->is_page && $query->get_queried_object_id() === $this->searchPage()) {
+                if (is_null($request)
+                    && $query->is_page
+                    && $query->get_queried_object_id() === $this->getSearchPage()
+                    ) {
                     $searchUrl = new SearchUrl($_SERVER['REQUEST_URI']);
                     $request = $searchUrl->getSearchRequest();
                  // $display = false; // modèle pour panier, export, etc si on ne voulait pas afficher les résultats.

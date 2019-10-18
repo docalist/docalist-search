@@ -94,7 +94,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         return $attributes;
     }
 
-    protected function getContentAttributes()
+    final protected function getContentAttributes(): array
     {
         $attributes = parent::getContentAttributes();
         $this->options['collapsible'] && $this->addclass($attributes['class'], 'collapsible-content');

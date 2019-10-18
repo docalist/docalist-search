@@ -456,7 +456,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return string[]
      */
-    protected function getContentAttributes()
+    protected function getContentAttributes(): array
     {
         $class = $this->options['content.css'];
 

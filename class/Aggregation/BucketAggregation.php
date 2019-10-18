@@ -60,18 +60,14 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @param Aggregation[] $aggregations Un tableau d'agrégations.
      *
-     * Si la méthode est appelée sans arguments ou avec un tableau vide, la liste des sous-agrégations est vidée.
-     *
-     * @return self
+     * Si la méthode est appelée avec un tableau vide, la liste des sous-agrégations est vidée.
      */
-    public function setAggregations(array $aggregations = [])
+    final public function setAggregations(array $aggregations): void
     {
         $this->aggregations = [];
         foreach ($aggregations as $aggregation) {
             $this->addAggregation($aggregation);
         }
-
-        return $this;
     }
 
     /**
@@ -79,9 +75,9 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @param Aggregation $aggregation L'objet Aggregation à ajouter.
      *
-     * @return self
+     * @throws InvalidArgumentException Si une sous-agrégation avec le même nom existe déjà.
      */
-    public function addAggregation(Aggregation $aggregation)
+    final public function addAggregation(Aggregation $aggregation): void
     {
         $name = $aggregation->getName();
         if (isset($this->aggregations[$name])) {
@@ -89,8 +85,6 @@ abstract class BucketAggregation extends BaseAggregation
         }
 
         $this->aggregations[$name] = $aggregation;
-
-        return $this;
     }
 
     /**
@@ -100,7 +94,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @return bool
      */
-    public function hasAggregation($name)
+    final public function hasAggregation(string $name): bool
     {
         return isset($this->aggregations[$name]);
     }
@@ -108,13 +102,19 @@ abstract class BucketAggregation extends BaseAggregation
     /**
      * Retourne la sous-agrégation dont le nom est indiqué.
      *
-     * @param string $name Le nom de l'agrégation à retourner.
+     * @param string $name Le nom de la sous-agrégation à retourner.
      *
-     * @return Aggregation|null Retourne la sous agrégation demandée ou null si l'agrégation indiqué n'existe pas.
+     * @return Aggregation Retourne la sous-agrégation demandée
+     *
+     * @throws InvalidArgumentException Si la sous-agrégation indiquée n'existe pas.
      */
-    public function getAggregation($name)
+    final public function getAggregation($name): Aggregation
     {
-        return isset($this->aggregations[$name]) ? $this->aggregations[$name] : null;
+        if (!isset($this->aggregations[$name])) {
+            throw new InvalidArgumentException(sprintf('Sub-aggregation named "%s" not found', $name));
+        }
+
+        return $this->aggregations[$name];
     }
 
     /**
@@ -143,7 +143,7 @@ abstract class BucketAggregation extends BaseAggregation
      * On surcharge setSearchRequest() pour transmettre la requête qui a généré l'agrégation à toutes les
      * sous-agrégations.
      */
-    public function setSearchRequest(?SearchRequest $searchRequest): void
+    final public function setSearchRequest(?SearchRequest $searchRequest): void
     {
         parent::setSearchRequest($searchRequest);
         foreach ($this->getAggregations() as $aggregation) {
@@ -156,7 +156,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * On surcharge setSearchResponse() pour transmettre la réponse obtenue à toutes les sous-agrégations.
      */
-    public function setSearchResponse(?SearchResponse $searchResponse): void
+    final public function setSearchResponse(?SearchResponse $searchResponse): void
     {
         parent::setSearchResponse($searchResponse);
 
@@ -177,7 +177,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @return stdClass|null Le bucket modifié ou null pour indiquer "ne pas afficher ce bucket".
      */
-    protected function prepareBucket(stdClass $bucket)
+    protected function prepareBucket(stdClass $bucket): ?stdClass
     {
         foreach ($this->getAggregations() as $name => $aggregation) {
             $aggregation->setResult(isset($bucket->$name) ? $bucket->$name : new stdClass());
@@ -191,7 +191,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @return array
      */
-    public function getBuckets()
+    final public function getBuckets(): array
     {
         return $this->getResult('buckets') ?: [];
     }

@@ -33,7 +33,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @var Aggregation[]
      */
-    protected $aggregations = [];
+    private $aggregations = [];
 
     /**
      * Indique si l'agrégation contient des sous-agrégations.

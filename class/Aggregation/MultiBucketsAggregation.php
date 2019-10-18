@@ -56,7 +56,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         return $options;
     }
 
-    protected function renderResult()
+    final protected function renderResult(): string
     {
         return $this->renderBuckets($this->getBuckets());
     }

@@ -468,7 +468,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return string
      */
-    protected function renderResult()
+    protected function renderResult(): string
     {
         // Génère un dump json du résultat
         return json_encode($this->result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

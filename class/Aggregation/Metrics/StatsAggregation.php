@@ -86,7 +86,7 @@ class StatsAggregation extends MultiMetricsAggregation
         return $options;
     }
 
-    protected function renderResult()
+    final protected function renderResult(): string
     {
         // On retourne la somme comme résultat
         return $this->formatValue($this->getSum());

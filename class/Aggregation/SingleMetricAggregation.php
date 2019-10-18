@@ -30,7 +30,7 @@ abstract class SingleMetricAggregation extends MetricsAggregation
         return $this->getResult('value');
     }
 
-    protected function renderResult()
+    final protected function renderResult(): string
     {
         return $this->formatValue($this->getValue());
     }

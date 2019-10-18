@@ -203,7 +203,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @return string Le libellé à afficher pour ce bucket.
      */
-    public function getBucketLabel(stdClass $bucket)
+    public function getBucketLabel(stdClass $bucket): string
     {
         return (string) $bucket->key;
     }

@@ -338,7 +338,7 @@ class TermsAggregation extends MultiBucketsAggregation
     /**
      * {@inheritDoc}
      */
-    public function getBucketLabel(stdClass $bucket)
+    public function getBucketLabel(stdClass $bucket): string
     {
         if ($bucket->key === static::MISSING) {
             return $this->getMissingLabel();

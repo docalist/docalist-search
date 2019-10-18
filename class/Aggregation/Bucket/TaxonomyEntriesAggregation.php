@@ -68,7 +68,7 @@ class TaxonomyEntriesAggregation extends TermsAggregation
         return $this->taxonomies;
     }
 
-    public function getBucketLabel(stdClass $bucket)
+    public function getBucketLabel(stdClass $bucket): string
     {
         if ($bucket->key === static::MISSING) {
             return $this->getMissingLabel();

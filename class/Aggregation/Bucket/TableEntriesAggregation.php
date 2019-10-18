@@ -54,7 +54,7 @@ class TableEntriesAggregation extends TermsAggregation
         return $options;
     }
 
-    public function getBucketLabel(stdClass $bucket)
+    public function getBucketLabel(stdClass $bucket): string
     {
         // Cas spécial "missing"
         if ($bucket->key === static::MISSING) {

@@ -40,7 +40,7 @@ class TermsCreatedBy extends TermsAggregation
         parent::__construct(PostAuthorIndexer::LOGIN_FILTER, $parameters, $options);
     }
 
-    public function getBucketLabel(stdClass $bucket)
+    public function getBucketLabel(stdClass $bucket): string
     {
         $user = get_user_by('login', $bucket->key); /** @var WP_User|false $user */
 

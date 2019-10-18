@@ -44,7 +44,7 @@ class TermsIn extends TermsAggregation
         parent::__construct(CollectionIndexer::FILTER, $parameters, $options);
     }
 
-    public function getBucketLabel(stdClass $bucket)
+    public function getBucketLabel(stdClass $bucket): string
     {
         // Initialise la liste des collections au premier appel
         if (is_null($this->collections)) {

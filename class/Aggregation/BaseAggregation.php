@@ -437,7 +437,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return string
      */
-    protected function renderContent()
+    final protected function renderContent(): string
     {
         // On ne génère rien si on n'a pas de résultat (ou si l'agrégation ne l'affiche pas : exemple metric à 0)
         if (is_null($this->result) || '' === $result = $this->renderResult()) {

@@ -483,7 +483,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return string
      */
-    protected function renderTag($tag, array $attributes = [], $content = '')
+    final protected function renderTag(string $tag, array $attributes = [], string $content = ''): string
     {
         ob_start();
         docalist('html')->tag($tag, $attributes, $content);

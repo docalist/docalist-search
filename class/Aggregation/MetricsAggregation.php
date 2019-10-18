@@ -61,7 +61,7 @@ abstract class MetricsAggregation extends BaseAggregation
      *
      * @return string
      */
-    public function formatValue($value)
+    final public function formatValue($value): string
     {
         // Arrondit la valeur au nombre de chiffres après la virgule qui figure dans les options.
         $value = round($value, $this->options['metric.decimals']);

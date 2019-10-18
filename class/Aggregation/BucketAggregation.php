@@ -50,7 +50,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @return Aggregation[] Un tableau (éventuellement vide) de la forme name => agrégations.
      */
-    public function getAggregations()
+    final public function getAggregations(): array
     {
         return $this->aggregations;
     }

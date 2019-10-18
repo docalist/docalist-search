@@ -205,7 +205,7 @@ abstract class BucketAggregation extends BaseAggregation
      */
     public function getBucketLabel(stdClass $bucket)
     {
-        return $bucket->key;
+        return (string) $bucket->key;
     }
 
     /**

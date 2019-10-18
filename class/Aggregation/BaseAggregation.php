@@ -342,7 +342,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return string
      */
-    protected function renderContainer($content)
+    private function renderContainer(string $content): string
     {
         // Si l'option 'container' est à false, on ne génère pas de container, on retourne juste le contenu
         if ($this->options['container'] === false) {

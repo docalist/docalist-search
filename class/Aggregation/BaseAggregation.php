@@ -418,7 +418,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return string
      */
-    protected function renderTitle()
+    protected function renderTitle(): string
     {
         // Si on n'a aucun titre (ou false), terminé
         if (empty($title = $this->options['title'])) {

@@ -102,7 +102,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         return $attributes;
     }
 
-    protected function renderTitle()
+    final protected function renderTitle(): string
     {
         // Si la facette n'est pas repliable ou qu'on n'a pas de titre, rien à faire
         if (!$this->options['collapsible'] || empty($this->options['title'])) {

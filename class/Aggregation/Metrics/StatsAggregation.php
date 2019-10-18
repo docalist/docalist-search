@@ -92,7 +92,7 @@ class StatsAggregation extends MultiMetricsAggregation
         return $this->formatValue($this->getSum());
     }
 
-    protected function getContainerAttributes()
+    protected function getContainerAttributes(): array
     {
         $attributes = parent::getContainerAttributes();
 

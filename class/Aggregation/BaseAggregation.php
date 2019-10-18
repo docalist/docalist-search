@@ -361,7 +361,7 @@ abstract class BaseAggregation implements Aggregation
      *
      * @return string[]
      */
-    protected function getContainerAttributes()
+    protected function getContainerAttributes(): array
     {
         // Initialise les variables dont on a besoin
         $field = $this->getParameter('field');

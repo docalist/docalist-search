@@ -40,7 +40,7 @@ abstract class BucketAggregation extends BaseAggregation
      *
      * @return bool
      */
-    public function hasAggregations()
+    final public function hasAggregations(): bool
     {
         return !empty($this->aggregations);
     }

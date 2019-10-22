@@ -29,7 +29,7 @@ class TermsIn extends TermsAggregation
      *
      * @var Indexer[]
      */
-    protected $collections;
+    private $collections;
 
     /**
      * Constructeur

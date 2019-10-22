@@ -25,7 +25,7 @@ abstract class SingleBucketAggregation extends BucketAggregation
      *
      * @return int
      */
-    public function getDocCount()
+    public function getDocCount(): int
     {
         return $this->getResult('doc_count');
     }

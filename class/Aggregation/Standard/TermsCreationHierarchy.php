@@ -26,6 +26,12 @@ use Docalist\Search\Indexer\Field\PostDateIndexer;
  */
 class TermsCreationHierarchy extends TermsAggregation
 {
+    /**
+     * Constructeur
+     *
+     * @param array $parameters     Autres paramètres de l'agrégation.
+     * @param array $options        Options d'affichage.
+     */
     public function __construct(array $parameters = [], array $options = [])
     {
         !isset($parameters['size']) && $parameters['size'] = 1000;

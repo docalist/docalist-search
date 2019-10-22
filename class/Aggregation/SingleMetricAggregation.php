@@ -23,13 +23,16 @@ abstract class SingleMetricAggregation extends MetricsAggregation
     /**
      * Retourne la valeur calculée par l'agrégation.
      *
-     * @return integer|float|null
+     * @return float
      */
-    public function getValue()
+    final public function getValue(): float
     {
-        return $this->getResult('value');
+        return $this->getResult('value') ?? 0.0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     final protected function renderResult(): string
     {
         return $this->formatValue($this->getValue());

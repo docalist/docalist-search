@@ -177,9 +177,13 @@ abstract class BaseAggregation implements Aggregation
     /**
      * {@inheritDoc}
      */
-    final public function getResult($name = null)
+    final public function getResult(string $name = '')
     {
-        return is_null($name) ? $this->result : (isset($this->result->$name) ? $this->result->$name : null);
+        if (empty($name)) {
+            return $this->result;
+        }
+
+        return $this->result->$name ?? null;
     }
 
     /**

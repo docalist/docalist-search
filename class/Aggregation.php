@@ -112,11 +112,11 @@ interface Aggregation
      * Par exemple : si le résultat de l'agrégation est un objet de la forme "{count: 44, min: 1, max:40, etc.}",
      * getResult() retournera cet objet complet et getResult('count') retournera 44.
      *
-     * @param string|null $name Optionnel, nom du champ de résultat à retourner.
+     * @param string $name Optionnel, nom du champ de résultat à retourner.
      *
      * @return mixed|null Le résultat demandé ou null s'il n'est pas disponible.
      */
-    public function getResult($name = null);
+    public function getResult(string $name = '');
 
     /**
      * Définit l'objet SearchRequest dans lequel figure cette agrégation.

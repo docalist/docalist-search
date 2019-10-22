@@ -147,7 +147,7 @@ abstract class BaseAggregation implements Aggregation
      */
     final public function getParameter(string $name)
     {
-        return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
+        return $this->parameters[$name] ?? null;
     }
 
     /**
@@ -292,7 +292,7 @@ abstract class BaseAggregation implements Aggregation
      */
     final public function getOption(string $option)
     {
-        return isset($this->options[$option]) ? $this->options[$option] : null;
+        return $this->options[$option] ?? null;
     }
 
     // ----------------------------------------------------------------------------------------------------

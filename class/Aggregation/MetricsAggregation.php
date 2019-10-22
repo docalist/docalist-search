@@ -61,23 +61,25 @@ abstract class MetricsAggregation extends BaseAggregation
      *
      * @return string
      */
-    final public function formatValue($value): string
+    final public function formatValue(float $value): string
     {
         // Arrondit la valeur au nombre de chiffres après la virgule qui figure dans les options.
-        $value = round($value, $this->options['metric.decimals']);
+        $decimals = $this->options['metric.decimals'];
+        $value = round($value, $decimals);
 
-        // On ne génère rien si la valeur est à 0 et que l'option 'metric.zero' est à false
-        if (0 == $value && !$this->options['metric.zero']) {
+        // Si la valeur est un entier, aucune décimale
+        if ($value === round($value, 0)) {
+            $value = (int) $value;
+            $decimals = 0;
+        }
+
+        // On affiche les zéro seulement si l'option 'metric.zero' est à true
+        if (0 === $value && !$this->options['metric.zero']) {
             return '';
         }
 
         // Formatte le nombre en fonction des options d'affichage
-        $value = number_format(
-            $value,
-            ($value == (int) $value) ? 0 : $this->options['metric.decimals'],
-            $this->options['metric.point'],
-            $this->options['metric.thousands']
-        );
+        $value = number_format($value, $decimals, $this->options['metric.point'], $this->options['metric.thousands']);
 
         // Retourne la valeur formattée
         return sprintf($this->options['metric.format'], $value);

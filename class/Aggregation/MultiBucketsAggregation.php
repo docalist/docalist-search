@@ -56,6 +56,9 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         return $options;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     final protected function renderResult(): string
     {
         return $this->renderBuckets($this->getBuckets());
@@ -86,6 +89,9 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         $destination = ltrim($destination . ' ' . $class);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     protected function getContainerAttributes(): array
     {
         $attributes = parent::getContainerAttributes();
@@ -94,6 +100,9 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         return $attributes;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     final protected function getContentAttributes(): array
     {
         $attributes = parent::getContentAttributes();
@@ -102,6 +111,9 @@ abstract class MultiBucketsAggregation extends BucketAggregation
         return $attributes;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     final protected function renderTitle(): string
     {
         // Si la facette n'est pas repliable ou qu'on n'a pas de titre, rien à faire
@@ -136,11 +148,11 @@ abstract class MultiBucketsAggregation extends BucketAggregation
     /**
      * Génère le rendu des buckets passés en paramètre.
      *
-     * @param stdClass[]    $buckets    Les buckets à afficher.
+     * @param stdClass[] $buckets Les buckets à afficher.
      *
      * @return string
      */
-    protected function renderBuckets(array $buckets)
+    final protected function renderBuckets(array $buckets): string
     {
         ++$this->bucketsLevel;
         $result = '';
@@ -160,7 +172,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
      *
      * @return string
      */
-    protected function renderBucket(stdClass $bucket)
+    final protected function renderBucket(stdClass $bucket): string
     {
         // Génère le libellé du bucket
         $result = $this->renderBucketLabel($bucket);
@@ -210,7 +222,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
      *
      * @return string
      */
-    protected function renderBucketLabel(stdClass $bucket)
+    protected function renderBucketLabel(stdClass $bucket): string // pas final, surchargée dans TermsAggregation
     {
         $tag = $this->options['bucket.label.tag'];
         $css = $this->options['bucket.label.css'];
@@ -226,7 +238,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
      *
      * @return string
      */
-    protected function renderBucketCount(stdClass $bucket)
+    final protected function renderBucketCount(stdClass $bucket): string
     {
         $tag = $this->options['bucket.count.tag'];
         $css = $this->options['bucket.count.css'];
@@ -242,7 +254,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
      *
      * @return string
      */
-    protected function renderBucketLink(stdClass $bucket, $content)
+    final protected function renderBucketLink(stdClass $bucket, string $content): string
     {
         // Génère le lien permettant d'activer ou de désativer ce bucket
         $field = $this->getParameter('field');
@@ -263,7 +275,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
      *
      * @return string
      */
-    protected function getBucketFilter(stdClass $bucket)
+    protected function getBucketFilter(stdClass $bucket): string // pas final, surchargée dans Range et DateRange
     {
         return $bucket->key;
     }
@@ -275,7 +287,7 @@ abstract class MultiBucketsAggregation extends BucketAggregation
      *
      * @return string
      */
-    protected function getBucketClass(stdClass $bucket)
+    protected function getBucketClass(stdClass $bucket): string // pas final, surchargée dans Range
     {
         return $bucket->key;
     }

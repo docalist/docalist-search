@@ -43,7 +43,7 @@ class TableRangeAggregation extends RangeAggregation
      *
      * @return array
      */
-    protected function getRanges()
+    final protected function getRanges(): array
     {
         // On n'utilise que la première table
         $table = current($this->getTables());

@@ -26,7 +26,7 @@ class TaxonomyEntriesAggregation extends TermsAggregation
      *
      * @var string[] Un tableau contenant le nom des taxonomies.
      */
-    protected $taxonomies;
+    private $taxonomies;
 
     /**
      * Constructeur
@@ -46,14 +46,10 @@ class TaxonomyEntriesAggregation extends TermsAggregation
      * Définit la ou les taxonomies utilisées.
      *
      * @param string|array $taxonomies Nom de la ou des taxonomies utilisées.
-     *
-     * @eturn self
      */
-    public function setTaxonomies($taxonomies)
+    final public function setTaxonomies($taxonomies): void
     {
         $this->taxonomies = (array) $taxonomies;
-
-        return $this;
     }
 
     /**
@@ -63,12 +59,15 @@ class TaxonomyEntriesAggregation extends TermsAggregation
      *
      * @eturn self
      */
-    public function getTaxonomies()
+    final public function getTaxonomies(): array
     {
         return $this->taxonomies;
     }
 
-    public function getBucketLabel(stdClass $bucket): string
+    /**
+     * {@inheritDoc}
+     */
+    final public function getBucketLabel(stdClass $bucket): string
     {
         if ($bucket->key === static::MISSING) {
             return $this->getMissingLabel();

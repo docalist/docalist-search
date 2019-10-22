@@ -160,7 +160,7 @@ interface Aggregation
      *
      * @param array $options
      */
-    public function setOptions(array $options = []): void;
+    public function setOptions(array $options): void;
 
     /**
      * Retourne les options d'affichage.

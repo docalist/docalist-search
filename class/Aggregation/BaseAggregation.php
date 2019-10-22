@@ -266,7 +266,7 @@ abstract class BaseAggregation implements Aggregation
     /**
      * {@inheritDoc}
      */
-    final public function setOptions(array $options = []): void
+    final public function setOptions(array $options): void
     {
         $this->options = $options + $this->options;
     }

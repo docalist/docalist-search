@@ -32,7 +32,7 @@ class TableRangeAggregation extends RangeAggregation
      * @param array  $parameters    Autres paramètres de l'agrégation.
      * @param array  $options       Options d'affichage.
      */
-    public function __construct($field, $table, array $parameters = [], array $options = [])
+    public function __construct(string $field, string $table, array $parameters = [], array $options = [])
     {
         $this->setTables($table); // important : avant l'appel à getRanges()
         parent::__construct($field, $this->getRanges(), $parameters, $options);

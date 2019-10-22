@@ -27,7 +27,7 @@ abstract class MetricsAggregation extends BaseAggregation
      * @param array     $parameters     Autres paramètres de l'agrégation.
      * @param array     $options        Options d'affichage.
      */
-    public function __construct($field, array $parameters = [], array $options = [])
+    public function __construct(string $field, array $parameters = [], array $options = [])
     {
         $parameters['field'] = $field;
         parent::__construct($parameters, $options);

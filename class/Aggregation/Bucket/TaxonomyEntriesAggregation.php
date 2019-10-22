@@ -36,7 +36,7 @@ class TaxonomyEntriesAggregation extends TermsAggregation
      * @param array         $parameters     Autres paramètres de l'agrégation.
      * @param array         $options        Options d'affichage.
      */
-    public function __construct($field, $taxonomies, array $parameters = [], array $options = [])
+    public function __construct(string $field, $taxonomies, array $parameters = [], array $options = [])
     {
         parent::__construct($field, $parameters, $options);
         $this->setTaxonomies($taxonomies);

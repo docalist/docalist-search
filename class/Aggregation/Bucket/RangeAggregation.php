@@ -31,16 +31,16 @@ class RangeAggregation extends MultiBucketsAggregation
      *
      * @param string    $field          Champ sur lequel porte l'agrégation.
      * @param array     $ranges         Un tableau indiquant les intervalles à générer. Chaque intervalle
-     *                                  est lui-même un tableau contenant les clés 'from' et/ou 'to' :
-     *                                      [
-     *                                          [ 'key' => 'moins de 50', 'to'   =>  50              ],
-     *                                          [ 'key' => 'de 50 à 100', 'from' =>  50, 'to' => 100 ],
-     *                                          [ 'key' => '100 et plus', 'from' => 100              ]
-     *                                      ]
+     *                                  est lui-même un tableau qui peut contenir les clés 'key', 'from' et 'to' :
+     *                                  [
+     *                                      [ 'key' => 'moins de 50', 'to'   =>  50              ],
+     *                                      [ 'key' => 'de 50 à 100', 'from' =>  50, 'to' => 100 ],
+     *                                      [ 'key' => '100 et plus', 'from' => 100              ]
+     *                                  ]
      * @param array     $parameters     Autres paramètres de l'agrégation.
      * @param array     $options        Options d'affichage.
      */
-    public function __construct($field, array $ranges, array $parameters = [], array $options = [])
+    public function __construct(string $field, array $ranges, array $parameters = [], array $options = [])
     {
         $parameters['field'] = $field;
         $parameters['ranges'] = $ranges;

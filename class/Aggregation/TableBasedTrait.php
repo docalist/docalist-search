@@ -25,23 +25,19 @@ trait TableBasedTrait
      *
      * @var TableInterface[] Un tableau de la forme index => objet Table.
      */
-    protected $tables;
+    private $tables;
 
     /**
      * Définit les tables d'autorité utilisées.
      *
      * @param string|array $tables Un ou plusieurs noms de tables d'autorité.
-     *
-     * @return self
      */
-    public function setTables($tables)
+    final public function setTables($tables): void
     {
         $this->tables = [];
         foreach ((array) $tables as $table) {
             $this->tables[] = docalist('table-manager')->get($table);
         }
-
-        return $this;
     }
 
     /**
@@ -49,7 +45,7 @@ trait TableBasedTrait
      *
      * @return TableInterface[] Un tableau de tables.
      */
-    public function getTables()
+    final public function getTables(): array
     {
         return $this->tables;
     }

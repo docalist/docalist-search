@@ -28,51 +28,51 @@ class StatsAggregation extends MultiMetricsAggregation
     /**
      * Retourne la valeur minimale calculée par l'agrégation.
      *
-     * @return integer|float|null
+     * @return float
      */
-    final public function getMin()
+    final public function getMin(): float
     {
-        return $this->getResult('min');
+        return $this->getResult('min') ?? 0.0;
     }
 
     /**
      * Retourne la valeur maximale calculée par l'agrégation.
      *
-     * @return integer|float|null
+     * @return float
      */
-    final public function getMax()
+    final public function getMax(): float
     {
-        return $this->getResult('max');
+        return $this->getResult('max') ?? 0.0;
     }
 
     /**
      * Retourne la somme calculée par l'agrégation.
      *
-     * @return integer|float|null
+     * @return float
      */
-    final public function getSum()
+    final public function getSum(): float
     {
-        return $this->getResult('sum');
+        return $this->getResult('sum') ?? 0.0;
     }
 
     /**
      * Retourne le nombre de valeurs trouvées par l'agrégation.
      *
-     * @return integer|null
+     * @return integer
      */
-    final public function getCount(): ?int
+    final public function getCount(): int
     {
-        return $this->getResult('count');
+        return $this->getResult('count') ?? 0;
     }
 
     /**
      * Retourne la moyenne calculée par l'agrégation.
      *
-     * @return float|null
+     * @return float
      */
-    final public function getAvg(): ?float
+    final public function getAvg(): float
     {
-        return $this->getResult('avg');
+        return $this->getResult('avg') ?? 0.0;
     }
 
     /**

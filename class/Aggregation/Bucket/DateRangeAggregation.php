@@ -25,7 +25,10 @@ class DateRangeAggregation extends RangeAggregation
 {
     const TYPE = 'date_range';
 
-    protected function getBucketFilter(stdClass $bucket)
+    /**
+     * {@inheritDoc}
+     */
+    protected function getBucketFilter(stdClass $bucket): string
     {
         $from = isset($bucket->from_as_string) ? $bucket->from_as_string : '*';
         $to = isset($bucket->to_as_string) ? $bucket->to_as_string : '*';

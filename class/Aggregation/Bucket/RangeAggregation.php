@@ -47,7 +47,10 @@ class RangeAggregation extends MultiBucketsAggregation
         parent::__construct($parameters, $options);
     }
 
-    protected function prepareBucket(stdClass $bucket)
+    /**
+     * {@inheritDoc}
+     */
+    final protected function prepareBucket(stdClass $bucket): ?stdClass
     {
         /**
          * Pour les agrégations de type range, ES retourne des buckets pour tous les ranges, même
@@ -58,7 +61,10 @@ class RangeAggregation extends MultiBucketsAggregation
         return $bucket->doc_count === 0 ? null : parent::prepareBucket($bucket);
     }
 
-    protected function getBucketFilter(stdClass $bucket)
+    /**
+     * {@inheritDoc}
+     */
+    protected function getBucketFilter(stdClass $bucket): string // pas final, surchargée dans DateRange
     {
         $from = isset($bucket->from) ? $bucket->from : '*';
         $to = isset($bucket->to) ? $bucket->to : '*';
@@ -66,7 +72,10 @@ class RangeAggregation extends MultiBucketsAggregation
         return $from . '..' . $to;
     }
 
-    protected function getBucketClass(stdClass $bucket)
+    /**
+     * {@inheritDoc}
+     */
+    final protected function getBucketClass(stdClass $bucket): string
     {
         // On génère : Moins de 500 -> 'r-500', De 500 à 1000 -> 'r500-1000', Plus de 1000 -> 'r1000-'
         $from = isset($bucket->from) ? $bucket->from : '';

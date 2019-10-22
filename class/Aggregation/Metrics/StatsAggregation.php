@@ -30,7 +30,7 @@ class StatsAggregation extends MultiMetricsAggregation
      *
      * @return integer|float|null
      */
-    public function getMin()
+    final public function getMin()
     {
         return $this->getResult('min');
     }
@@ -40,7 +40,7 @@ class StatsAggregation extends MultiMetricsAggregation
      *
      * @return integer|float|null
      */
-    public function getMax()
+    final public function getMax()
     {
         return $this->getResult('max');
     }
@@ -50,7 +50,7 @@ class StatsAggregation extends MultiMetricsAggregation
      *
      * @return integer|float|null
      */
-    public function getSum()
+    final public function getSum()
     {
         return $this->getResult('sum');
     }
@@ -60,7 +60,7 @@ class StatsAggregation extends MultiMetricsAggregation
      *
      * @return integer|null
      */
-    public function getCount()
+    final public function getCount(): ?int
     {
         return $this->getResult('count');
     }
@@ -70,7 +70,7 @@ class StatsAggregation extends MultiMetricsAggregation
      *
      * @return float|null
      */
-    public function getAvg()
+    final public function getAvg(): ?float
     {
         return $this->getResult('avg');
     }
@@ -78,7 +78,7 @@ class StatsAggregation extends MultiMetricsAggregation
     /**
      * {@inheritDoc}
      */
-    public function getDefaultOptions(): array
+    final public function getDefaultOptions(): array
     {
         $options = parent::getDefaultOptions();
         $options['container.tooltip'] = __('{count} fiche(s), min {min}, max {max}, moyenne {avg}', 'docalist-search');
@@ -86,13 +86,19 @@ class StatsAggregation extends MultiMetricsAggregation
         return $options;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     final protected function renderResult(): string
     {
         // On retourne la somme comme résultat
         return $this->formatValue($this->getSum());
     }
 
-    protected function getContainerAttributes(): array
+    /**
+     * {@inheritDoc}
+     */
+    final protected function getContainerAttributes(): array
     {
         $attributes = parent::getContainerAttributes();
 

@@ -36,6 +36,9 @@ class TermsStatus extends TermsAggregation
         parent::__construct(PostStatusIndexer::CODE_FILTER, $parameters, $options);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getBucketLabel(stdClass $bucket): string
     {
         if ($status = get_post_status_object($bucket->key)) {

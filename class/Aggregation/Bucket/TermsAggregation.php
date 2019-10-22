@@ -162,7 +162,7 @@ class TermsAggregation extends MultiBucketsAggregation
      *
      * @return string
      */
-    protected function getIncludeRegex()
+    protected function getIncludeRegex(): string // pas final, surchargée dans aggs svb
     {
         $field = $this->getParameter('field');
         $url = $this->getSearchRequest()->getSearchUrl();
@@ -283,7 +283,7 @@ class TermsAggregation extends MultiBucketsAggregation
      *
      * @return stdClass[] La liste hiérarchisée : chaque bucket contient un tableau 'children' qui liste les fils.
      */
-    protected function createBucketsHierarchy(array $buckets)
+    protected function createBucketsHierarchy(array $buckets): array // pas final, surchargée dans aggs svb
     {
         // Indexe les buckets par clé
         foreach ($buckets as $i => $bucket) {
@@ -350,7 +350,7 @@ class TermsAggregation extends MultiBucketsAggregation
     /**
      * {@inheritDoc}
      */
-    protected function renderBucketLabel(stdClass $bucket)
+    protected function renderBucketLabel(stdClass $bucket): string
     {
         /**
          * Si l'option 'hierarchy' est à true, on ne tient compte que de la dernière partie du path du bucket.

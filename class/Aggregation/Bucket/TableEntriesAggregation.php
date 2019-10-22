@@ -54,6 +54,9 @@ class TableEntriesAggregation extends TermsAggregation
         return $options;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getBucketLabel(stdClass $bucket): string
     {
         // Cas spécial "missing"

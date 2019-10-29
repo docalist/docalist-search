@@ -52,7 +52,6 @@ class PostDateIndexer // pas final, surchargée par PostModifiedIndexer
     {
         $mapping
             ->literal(static::SEARCH_FIELD)
-            ->setIndexOptions(IndexOptions::INDEX_DOCS)
             ->setFeatures(Mapping::FULLTEXT)
             ->setLabel(__(
                 "Recherche sur la date de création du post WordPress ou de la référence docalist.",

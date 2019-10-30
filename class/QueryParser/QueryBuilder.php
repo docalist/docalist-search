@@ -119,7 +119,7 @@ class QueryBuilder implements Builder
     {
         $range = [];
         !is_null($start) && $range['gte'] = $start;
-        !is_null($end) && $range['lt'] = $end;
+        !is_null($end) && $range['lte'] = $end;
 
         return $this->dsl->range($field, $range);
     }

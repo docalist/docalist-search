@@ -23,9 +23,15 @@
     },
     
     "require": {
-        "composer/installers": "~1.0",
         "php": ">=7.2",
-        "docalist/docalist-core": "3.3"
+        "ext-ctype": "*",
+        "ext-curl": "*",
+        "ext-filter": "*",
+        "ext-intl": "*",
+        "ext-json": "*",
+        "ext-zlib": "*",
+        "composer/installers": "~1.0",
+        "docalist/docalist-core": " 3.4"
     },
     "autoload" : {
         "psr-4" : {

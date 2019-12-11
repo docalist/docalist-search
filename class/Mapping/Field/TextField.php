@@ -76,6 +76,25 @@ final class TextField extends Field implements Analyzer, FieldData, IndexOptions
         // Type de champ
         $mapping['type'] = 'text';
 
+        /*
+         * Par défaut, quand on fait une recherche "xxx*", ES ne charge que les 50 premiers termes (max_expansion).
+         * S'il y a moins de 50 termes qui commencent par ce préfixe, c'est ok, mais s'il y en a plus, on n'obtient
+         * pas toutes les réponses et le nombre de hits est complètement faux.
+         * C'est incompréhensible pour l'utilisateur qui a l'impression que des fois ça marche et des fois non.
+         * On peut essayer d'augmenter max_expansion, mais dans ce cas, on se heurte à une autre limite sur le
+         * nombre maximum de clauses différentes qu'une requête peut avoir (max_clause_count).
+         * Donc même si on pousse les limites à fond, on ne peut pas garantir qu'on aura toujours tous les résultats.
+         * Depuis Elasticsearch 6.6, on a une option "index_prefixes" qui permet de créer un sous-champ de type
+         * edge ngram contenant les préfixes des termes.
+         * Quand on fait une recherche avec troncature, c'est ce sous-champ qui est interrogé et on charge
+         * alors un seul terme, le préfixe recherché.
+         * Remarque : index_prefixes a été introduit dans ES 6.6, mais il n'est utilisé dans les requêtes
+         * multi_match de type "phrase prefix" (ce que génère notre QueryBuilder) que depuis ES 7.0.0-beta1.
+         */
+
+        // Indexe les préfixes pour gérer correctement la troncature (requiert ES >= 7.0)
+        $mapping['index_prefixes'] = ['min_chars' => 1, 'max_chars' => 10];
+
         // Si le champ n'est pas utilisé en recherche, inutile d'indexer les mots
         if (!$this->hasFeature(self::FULLTEXT)) {
             $mapping['index'] = false;

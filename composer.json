@@ -31,7 +31,7 @@
         "ext-json": "*",
         "ext-zlib": "*",
         "composer/installers": "~1.0",
-        "docalist/docalist-core": " 3.4"
+        "docalist/docalist-core": "^3.4"
     },
     "autoload" : {
         "psr-4" : {

@@ -268,7 +268,6 @@ class Settings extends TypeSettings
                      Allez sur la page réglages docalist-search pour paramétrer à nouveau le moteur de recherche.',
                     'docalist-search'
                 );
-
             }
             $value = $this->getDefaultValue();
         }

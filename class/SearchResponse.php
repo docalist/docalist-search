@@ -324,7 +324,7 @@ class SearchResponse
         }
 
         // Mid size de gauche
-        for ($page = max(1, $current - $midSize) ; $page < $current ; $page++) {
+        for ($page = max(1, $current - $midSize); $page < $current; $page++) {
             $links[$page] = $link($page);
         }
 
@@ -332,7 +332,7 @@ class SearchResponse
         $links['current'] = sprintf('<span aria-current="page" class="page-numbers current">%d</span>', $current);
 
         // Mid size de droite
-        for ($page = $current + 1 ; $page <= min($lastPage, $current + $midSize); $page++) {
+        for ($page = $current + 1; $page <= min($lastPage, $current + $midSize); $page++) {
             $links[$page] = $link($page);
         }
 

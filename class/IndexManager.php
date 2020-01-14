@@ -623,7 +623,7 @@ class IndexManager
                         );
                     }
                 } elseif (isset($item->delete)) {
-
+                    // ok
                 } else {
                     printf(
                         "<p style='color:red'>Unknown bulk response type:<pre>%s</pre></p>",

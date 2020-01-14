@@ -106,7 +106,7 @@ class DisplayAggregations extends WP_Widget
         echo $settings['before-facets'] ?? '';
 
         // Affiche toutes les agrégations disponibles
-        foreach($searchRequest->getAggregations() as $aggregation) {
+        foreach ($searchRequest->getAggregations() as $aggregation) {
             $aggregation->display();
         }
 
@@ -171,7 +171,8 @@ class DisplayAggregations extends WP_Widget
         $form = new Container();
 
         $form->input('widget-title')
-            ->setAttribute('id', $this->get_field_id('title')) // pour que le widget affiche le bon titre en backoffice. cf widgets.dev.js, fonction appendTitle(), L250
+            // pour que le widget affiche le bon titre en backoffice. cf widgets.dev.js, fonction appendTitle(), L250
+            ->setAttribute('id', $this->get_field_id('title'))
             ->setLabel(__('Titre du widget', 'docalist-search'))
             ->addClass('widefat');
 

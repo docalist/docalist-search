@@ -1,10 +1,10 @@
 # Shortcode docalist_search_results #
 
-Depuis la version 4.3.0, *docalist search* dispose d'un shortcode `docalist_search_results` qui permet d'intégrer une liste des réponses dans un autre contenu WordPress (article, page, widget, notice, etc.)
+Depuis la version 4.3.0, *docalist search* dispose d'un shortcode `docalist_search_results` qui permet d'intégrer une *liste de réponses docalist search* dans un autre contenu WordPress (article, page, widget, notice, etc.)
 
 Le principe général est le suivant : 
 
-1. On utilise le moteur de recherche pour faire une requête qui sélectionne les documents qu'on veut afficher (éventuellement un seul). En utilisant les options du moteur de recherche, on choisit le nombre de notices qui seront affichés (paramètre `size` de la requête) et l'ordre de tri à appliquer (paramètre `sort` de la requête).
+1. On utilise le moteur de recherche pour faire une requête qui sélectionne les documents qu'on veut afficher. En utilisant les options du moteur de recherche, on choisit le nombre de notices qui seront affichées (paramètre `size` de la requête) et l'ordre de tri à appliquer (paramètre `sort` de la requête).
 2. On copie l'url de recherche obtenue : elle contient tous les paramètres dont le shortcode a besoin.
 3. On insère le shortcode dans une page WordPress et on colle l'url de recherche copiée.
 
@@ -33,7 +33,7 @@ Les autres paramètres, saisis à l'intérieur de la balise ouvrante, sont tous 
 Remarques : 
 
 - la syntaxe des shortcodes WordPress est très stricte : pas d'espaces avant ou après les crochets, le slash, etc.
-- initalement, le shortcode devit s'appeller docalist-search-results (avec des tirets) mais ça génère des bugs pas possibles dans WordPress !
+- initalement, le shortcode devait s'appeller docalist-search-results (avec des tirets) mais ça génère des bugs pas possibles dans WordPress !
 - ne pas chercher à taper ou à modifier l'url manuellement : pour qu'une url soit valide, il y a de nombreuses règles à respecter (il faut encoder certains caractères avec des séquences %xxx en garder certains intacts parce qu'ils servent de délimiteurs, il faut remplacer les espaces par des plus, etc.) donc il vaut mieux rester sur le principe proposé : recherche dans le moteur, copie de l'url, collage dans le shortcode. Pour modifier une recherche existante, faire l'inverse : copier l'url qui figure dans le shortcode, la coller dans le moteur de recherche, faire les modifs, copier la nouvelle url et la coller dans le shortcode.
 
 
@@ -49,7 +49,7 @@ Si la valeur d'un paramètre contient des espaces ou des caractères spéciaux, 
 Attention : il faut que ce soit les guillemets doubles standards, pas le guillemets typographiques ou les guillemets à l'anglaise.
 
 
-### `template` : format d'affichage des résultats ###
+### Paramètre `template` : format d'affichage des résultats ###
 
 Par défaut, le shortcode affiche uniquement le titre de chacune des réponses obtenues, et chaque titre affiché est un lien qui permet de voir la réponse en affichage détaillé. Ce format d'affichage par défaut s'appelle `title` et c'est lui qui est utilisé quand le paramètre `template` est absent, quand il est vide ou quand il contient une valeur incorrecte.
 
@@ -58,8 +58,10 @@ Ce format est bien adapté quand on veut un résultat compact (beaucoup de répo
 Le shortcode supporte nativement deux autres formats d'affichage :
 
 - `excerpt` : affiche le titre du document sous forme de lien, puis affiche le contenu du document en utilisant la fonction WordPress `the_excerpt()`. Pour un article ou une page WordPress, ça affiche un extrait du contenu du document (le début), pour une notice Docalist, ça affiche la notice en utilisant l'affichage défini dans la grille "format court" de ce type de notice.
+  
   Exemple : <tt>[docalist_search_results ***template="excerpt"***]url[/docalist_search_results]</tt>
 - `content` : affiche le titre du document sous forme de lien, puis affiche le contenu du document en utilisant la fonction WordPress `the_content()`. Pour un article ou une page WordPress, ça affiche le contenu intégral du document, pour une notice Docalist, ça affiche la notice en utilisant l'affichage défini dans la grille "format long" de ce type de notice.
+  
   Exemple : <tt>[docalist_search_results ***template="content"***]url[/docalist_search_results]</tt>
 
 Remarque : pour cri-adb, le format "content" ne donne pas de très bons résultats (ça "déborde") car les formats longs des notices ont été paramétrés spécifiquement pour le thème cri-adb.
@@ -105,13 +107,14 @@ Remarques :
      @var string[]    $attributes     Les attributs du shortcode.
      @var string      $template       Le path du template utilisé (i.e. ce fichier).
   */
-```
+  ```
+  
 - si le template affiché n'est pas valide (nom ou path incorrect) ou n'est plus valide (par exemple, parce que le site a changé de thème), le shortcode repasse automatiquement sur le template par défaut "title". Dans ce cas, un message est affiché aux administrateurs du site pour leur signaler le problème : 
   
   > *Note aux admins : le template 'shortcodes/list-results.php' indiqué dans le shortcode n'existe pas, utilisation du template par défaut 'title'.*
 
 
-### `more` : lien "Voir tout" ###
+### Paramètre `more` : lien "Voir tout" ###
 
 Le paramètre `more` permet de paramétrer le lien *"Voir tout »"* qui est affiché à la fin des résultats et qui permet de rediriger l'utilisateur vers le moteur de recherche.
 
@@ -129,7 +132,7 @@ Vous pouvez également désactiver la génération de ce lien en indiquant la va
 Remarque : le lien "voir tout" est toujours généré (même si on a une seule notice ou seulement une page de résultats). Utilisez more="false" si vous ne voulez pas du lien.
 
 
-### `no-results` : message affiché s'il n'y a pas de réponses ###
+### Paramètre `no-results` : message affiché s'il n'y a pas de réponses ###
 
 Si la requête indiquée dans l'url de recherche ne retourne aucun résultat, le shortcode affiche par défaut le texte "Rien à afficher...". 
 

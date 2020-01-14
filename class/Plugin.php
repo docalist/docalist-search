@@ -21,6 +21,7 @@ use Docalist\Search\QueryParser\Parser;
 use Exception;
 use Docalist\Services;
 use Docalist\Search\Widget\DisplayAggregations;
+use Docalist\Search\Shortcodes;
 
 /**
  * Plugin Docalist Search.
@@ -71,7 +72,7 @@ class Plugin
                     return new QueryDSL\Version200();
                 }
             },
-            'elasticsearch-version' => function() {
+            'elasticsearch-version' => function () {
                 $version = $this->settings->esversion();
                 if (is_null($version) || $version === '0.0.0') {
                     throw new Exception('Elasticsearch version is not available, check settings.');
@@ -129,6 +130,10 @@ class Plugin
 //         add_filter('docalist_index_lookup', function ($value, $source, $search) {
 //             return docalist('docalist-search-engine')->termLookup($source, $search);
 //         }, 10, 3);
+
+        // Enregistre les shortcodes
+        $shortcodes = new Shortcodes();
+        $shortcodes->register();
     }
 
     /**

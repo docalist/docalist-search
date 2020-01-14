@@ -93,7 +93,7 @@ class SearchEngine
             // de recherche (que des filtres), ça na pas trop de sens. Dans ce cas, on force un tri par date
             // de creation décroissante si aucun tri n'a été défini.
 
-            empty($sort) && !$request->hasQueries() && $sort = 'creation';
+            empty($sort) && !$request->hasQueries() && $sort = 'creation-';
 
             return $sort;
         }, 10, 2);

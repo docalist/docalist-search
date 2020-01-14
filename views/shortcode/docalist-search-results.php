@@ -25,11 +25,11 @@ namespace Docalist\Search\Views\Shortcode;
 
 // Détermine la fonction à utiliser pour afficher le contenu des posts
 switch ($attributes['template']) {
-    case '(excerpt)':
+    case 'excerpt':
         $contentFunction = 'the_excerpt';
         break;
 
-    case '(content)':
+    case 'content':
         $contentFunction = 'the_content';
         break;
 

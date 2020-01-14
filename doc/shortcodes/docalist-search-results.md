@@ -145,7 +145,7 @@ Le paramètre `no-results` permet de changer le message affiché :
 
 ## Styles CSS des résultats affichés ##
 
-Si vous utilisez un template personnalisé, c'est vous qui générait le code html, donc vous savez quels sont les tags générés et comment les personnalisés.
+Si vous utilisez un template personnalisé, c'est vous qui générait le code html, donc vous savez quels sont les tags générés et comment les personnaliser.
 
 Pour les templates prédéfinis, vous pouvez personnaliser les styles CSS via le customizer WordPress (option "CSS additionnel"). Pour vous aider, le shortcode génère, pour chaque tag, des classes que vous pouvez utiliser pour définir vos styles :
 

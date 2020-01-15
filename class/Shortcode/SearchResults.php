@@ -50,6 +50,12 @@ final class SearchResults implements Shortcode
             return __('Aucune url de recherche indiquée.', 'docalist-search');
         }
 
+        // Comme l'url est collée dans le contenu du post, WordPress encode les caractères spéciaux et les
+        // entités html telles que "&", "<" ou ">". Il remplace le "&" par "&amp;" si l'url est collée
+        // en mode wysiwyg et par "&#038;" en mode texte.
+        // On utilise htmlspecialchars_decode() pour faire le traitement inverse.
+        $url = htmlspecialchars_decode($url);
+
         // Lance une recherche docalist-search
         $searchResponse = $this->getSearchResponse($url);
         if (is_null($searchResponse)) {

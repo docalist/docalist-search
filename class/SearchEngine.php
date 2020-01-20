@@ -109,6 +109,11 @@ class SearchEngine
         add_filter('docalist_search_get_sort_title', function ($sort) {
             return $this->getSortTitle($sort);
         }, 10, 2);
+
+        // Permet aux plugins de récupérer l'url de la page de recherche via un filtre (liens rebonds)
+        add_filter('docalist_search_get_search_page_url', function () {
+            return $this->getSearchPageUrl();
+        }, 10, 2);
     }
 
     /**

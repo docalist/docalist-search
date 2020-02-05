@@ -69,23 +69,13 @@ class SearchEngine
         add_filter('parse_query', [$this, 'onParseQuery']);
 
         // Crée la requête quand on est sur la page "liste des réponses"
-        add_filter(
-            'docalist_search_create_request',
-            function (SearchRequest $request = null, WP_Query $query, & $display = true) {
-                if (is_null($request)
-                    && $query->is_page
-                    && $query->get_queried_object_id() === $this->getSearchPage()
-                    ) {
-                    $searchUrl = new SearchUrl($_SERVER['REQUEST_URI']);
-                    $request = $searchUrl->getSearchRequest();
-                 // $display = false; // modèle pour panier, export, etc si on ne voulait pas afficher les résultats.
-                }
-
+        add_filter('docalist_search_create_request', function (SearchRequest $request = null, WP_Query $query) {
+            if (!is_null($request) || !$this->isSearchPage($query)) {
                 return $request;
-            },
-            10,
-            3
-        );
+            }
+
+            return $this->createSearchRequest($query);
+        }, 10, 2);
 
         // Fournit un tri par défaut
         add_filter('docalist_search_get_default_sort', function ($sort, SearchRequest $request) {
@@ -114,6 +104,76 @@ class SearchEngine
         add_filter('docalist_search_get_search_page_url', function () {
             return $this->getSearchPageUrl();
         }, 10, 2);
+    }
+
+    /**
+     * Teste si on est sur la page de recherche.
+     *
+     * @param WP_Query $query Requête WordPress en cours.
+     *
+     * @return bool
+     */
+    private function isSearchPage(WP_Query $query): bool
+    {
+        if (!$query->is_page) {
+            return false;
+        }
+
+        if (0 === $page = $this->getSearchPage()) {
+            return false;
+        }
+
+        return $page === $query->get_queried_object_id();
+    }
+
+    /**
+     * Crée une SearchRequest à partir de l'url en cours.
+     *
+     * Si l'url contient un paramètre "feed", la méthode modifie l'objet $query passé en paramètre
+     * pour générer un flux de syndication.
+     *
+     * @param WP_Query $query Requête WordPress en cours.
+     *
+     * @return SearchRequest
+     */
+    private function createSearchRequest(WP_Query $query): SearchRequest
+    {
+        // Crée une recherche à partir de l'url en cours
+        $searchUrl = new SearchUrl($_SERVER['REQUEST_URI']);
+        $searchRequest = $searchUrl->getSearchRequest();
+
+        // Si on n'a aucun paramètre feed, terminé
+        if (!$searchUrl->hasFilter('feed')) {
+            return $searchRequest;
+        }
+
+        // Si la syndication est désactivée, empêche WordPress de générer un flux
+        $feed = $this->settings->feed->getPhpValue();
+        if (empty($feed)) {
+            $query->is_feed = false;
+            $query->is_comment_feed = false;
+            unset($query->query['feed']);
+            unset($query->query_vars['feed']);
+
+            // Les entêtes http "feed/rss" ont déjà été envoyés, on les efface et on génère les entêtes normaux
+            global $wp;
+            header_remove();
+            unset($wp->query_vars['feed']);
+            $wp->send_headers();
+
+            return $searchRequest;
+        }
+
+        // Force un tri des réponses par date de création décroissante
+        $searchRequest->setSort('creation-');
+
+        // Force WordPress a générer l'excerpt ou le content pour les flux générés
+        add_filter('pre_option_rss_use_excerpt', function () use ($feed) {
+            return ($feed === 'excerpt') ? '1' : '0';
+        });
+
+        // Terminé
+        return $searchRequest;
     }
 
     /**
@@ -261,6 +321,33 @@ class SearchEngine
     public function getSearchResponse()
     {
         return $this->searchResponse;
+    }
+
+    /**
+     * Retourne l'url du flux de syndication de la recherche en cours.
+     *
+     * @param string $format Format du flux de syndication à générer ('atom', 'rdf', 'rss' ou 'rss2').
+     *
+     * @return string Retourne une chaine vide si les flux RSS sont désactivés, s'il n'y a pas de
+     * recherche en cours ou si la recherche en cours ne retourne aucun résultat.
+     */
+    final public function getSearchFeedUrl(string $format = 'rss2'): string
+    {
+        $feed = $this->settings->feed->getPhpValue();
+
+        if (empty($feed)) {
+            return '';
+        }
+
+        if (empty($this->searchRequest)) {
+            return '';
+        }
+
+        if (empty($this->searchResponse) || 0 === $this->searchResponse->getHitsCount()) {
+            return '';
+        }
+
+        return $this->searchRequest->getSearchUrl()->getUrlForFeed($format);
     }
 
     /**

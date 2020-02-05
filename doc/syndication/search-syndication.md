@@ -88,7 +88,7 @@ Le numéro de page est supprimé car, quelle que soit la page en cours, c'est la
 
 Le critère de tri est supprimé car pour un flux de syndication, l'objectif est d'obtenir les nouveaux documents publiés. C'est donc toujours un tri par date de création décroissante qui est appliqué.
 
-Par contre, tous les autres paramètres de la recherche en cours sont conservés comme paramètre des flux de syndication.
+Par contre, tous les autres paramètres de la recherche en cours sont conservés comme paramètres des flux de syndication.
 
 C'est le cas notamment du paramètre `size` qui permet de choisir le nombre de réponses par page, et qui est repris pour déterminer le nombre de documents présents dans les flux de syndication générés.
 

@@ -60,6 +60,13 @@ use Docalist\Forms\Form;
         ->setAttribute('type', 'number')
         ->setAttribute('min', '1');
 
+    $form->radiolist('feed')
+        ->setOptions([
+            ''          => 'Ne pas générer de flux de syndication',
+            'excerpt'   => "Générer un flux de syndication contenant l'extrait (format court)",
+            'content'   => "Générer un flux de syndication contenant le contenu (format long)",
+        ]);
+
     $form->submit(__('Enregistrer les modifications', 'docalist-search'))->addClass('button button-primary');
 
     $form->bind($settings);

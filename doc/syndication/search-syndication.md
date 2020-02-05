@@ -6,7 +6,7 @@ Les flux générés permettent aux utilisateurs de faire de la veille en utilisa
 
 ## Options ##
 
-Par défaut les flux de syndication des recherches sont désactivés. Pour les activer, il faut aller dans les options de *docalist-search*, rubrique *paramètres du moteur de recherche*.
+Par défaut les flux de syndication des recherches sont désactivés. Pour les activer, il faut aller dans les réglages de *docalist-search*, rubrique *paramètres du moteur de recherche*.
 
 Le paramètre *syndication des recherches* propose trois options :
 1. Ne pas générer de flux de syndication,

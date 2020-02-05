@@ -36,7 +36,7 @@ Une erreur sera générée si le format de syndication demandé n'est pas valide
 ```xml
 <error>
     <code>wp_die</code>
-    <title>WordPress » Error]]></title>
+    <title>WordPress » Error></title>
     <message>Not a valid feed</message>
     <data>
         <status>404</status>

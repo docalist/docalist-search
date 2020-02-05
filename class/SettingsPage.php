@@ -304,6 +304,7 @@ class SettingsPage extends AdminPage
             $_POST = wp_unslash($_POST);
             $this->settings->searchpage = (int) $_POST['searchpage'];
             $this->settings->defaultSearchFields = $this->validateFields((array) $_POST['defaultSearchFields']);
+            $this->settings->feed = (string) $_POST['feed'];
 
             $this->settings->save();
 

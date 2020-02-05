@@ -59,6 +59,13 @@ class SearchUrl
     const SORT = 'sort';
 
     /**
+     * Nom du paramètre "format du flux de syndication" dans les paramètres de l'url.
+     *
+     * @var string
+     */
+    const FEED = 'feed';
+
+    /**
      * Url en cours.
      *
      * @var string
@@ -472,6 +479,10 @@ class SearchUrl
                     $this->request->setSort($value);
                     break;
 
+                case self::FEED: // Format du flux de syndication
+                    // Rien à faire, on veut juste que ce ne soit pas ajouté à la requête de recherche
+                    break;
+
                 case 'in':
                     // 'in' contient des collections ('posts', 'pages', 'event'...) qu'il faut convertir en types (CPT)
                     // Si ce n'est pas une collection qu'on connait, on stocke tel quel (pseudo types comme "basket")
@@ -772,4 +783,29 @@ class SearchUrl
      * 'ref+' : return ['ref' => ['order' => 'asc', 'missing' => '_last']]
      * 'createdby+' : return ['first-author' => ['order' => 'asc'], 'creation' => ['order' => 'desc']]
      */
+
+    /**
+     * Retourne l'url à utiliser pour générer un flux de syndication au format indiqué.
+     *
+     * @param string $format Format du flux de syndication à générer ('atom', 'rdf', 'rss' ou 'rss2').
+     *
+     * @return string
+     */
+    public function getUrlForFeed(string $format): string
+    {
+        // Fait une copie des paramètres pour pouvoir les modifier
+        $args = $this->parameters;
+
+        // Réinitialise le tri éventuel, c'est le flux qui fixe le tri (par date de création décroissante)
+        unset($args[self::SORT]);
+
+        // Réinitialise le numéro de page
+        unset($args[self::PAGE]);
+
+        // Ajoute un paramètre "feed" avec le format indiqué
+        $args[self::FEED] = $format;
+
+        // Construit l'url résultat
+        return $this->buildUrl($args);
+    }
 }

@@ -37,6 +37,7 @@ use Docalist\Type\Collection;
  * @property Integer    $searchpage             ID de la page "liste des réponses".
  * @property Boolean    $enabled                Indique si la recherche est activée.
  * @property Collection $defaultSearchFields    Champs de recherche par défaut.
+ * @property Text       $feed                   Format des flux de syndication des recherches.
  *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
@@ -250,7 +251,21 @@ class Settings extends TypeSettings
                             'label' => __('Poids', 'docalist-search'),
                         ],
                     ],
+                ],
 
+                /*
+                 * Syndication des recherches
+                 */
+                'feed' => [
+                    'type' => Text::class, // Valeurs possibles : '', 'excerpt' ou 'content'
+                    'label' => __('Syndication des recherches', 'docalist-search'),
+                    'description' => __(
+                        "Pour chaque recherche, Docalist peut générer un flux de syndication spécifique
+                        qui permet aux utilisateurs de faire de la veille. Le flux généré liste les
+                        dernières notices saisies (tri par date de création décroissante) qui répondent
+                        aux critères de recherche de l'utilisateur et il est mis à jour automatiquement.",
+                        'docalist-search'
+                    )
                 ],
             ],
         ];

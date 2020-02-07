@@ -301,7 +301,7 @@ class SearchUrl
         // Valide le paramètre "page"
         if (isset($this->parameters[self::PAGE])) {
             $page = filter_var($this->parameters[self::PAGE], FILTER_VALIDATE_INT);
-            if ($page === false || $page <= 1 /* || $page === SearchRequest::DEFAULT_PAGE */) {
+            if ($page === false || $page <= 1) {
                 unset($this->parameters[self::PAGE]);
             } else {
                 $this->parameters[self::PAGE] = $page;
@@ -311,7 +311,7 @@ class SearchUrl
         // Valide le paramètre size
         if (isset($this->parameters[self::SIZE])) {
             $size = filter_var($this->parameters[self::SIZE], FILTER_VALIDATE_INT);
-            if ($size === false || $size < 0 || $size === SearchRequest::DEFAULT_SIZE) {
+            if ($size === false || $size < 0) {
                 unset($this->parameters[self::SIZE]);
             } else {
                 $this->parameters[self::SIZE] = $size;
@@ -472,7 +472,9 @@ class SearchUrl
                     break;
 
                 case self::SIZE: // Nombre de réponses par page
-                    $this->request->setSize($value);
+                    if ($value !== SearchRequest::DEFAULT_SIZE) {
+                        $this->request->setSize($value);
+                    }
                     break;
 
                 case self::SORT: // Critères de tri

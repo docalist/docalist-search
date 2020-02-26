@@ -134,6 +134,9 @@ class Lexer
         $range = chr(29); // ascii 29 ("group separator")
         $string = str_replace('..', $range, $string);
 
+        // Neutralise le ":" dans les url pour que le "http" ne soit pas pris comme un nom de champ
+        $string = str_replace('://', ' //', $string);
+
         // Initialisation
         $end = strlen($string);
         $position = 0;

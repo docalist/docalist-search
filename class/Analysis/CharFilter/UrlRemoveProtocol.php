@@ -16,6 +16,8 @@ use Docalist\Search\Analysis\CharFilter;
 /**
  * CharFilter "url_remove_protocol" : supprime le protocole d'une url.
  *
+ * @deprecated N'est plus utilisé, conservé au cas où pour servir de modèle.
+ *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 final class UrlRemoveProtocol implements CharFilter

@@ -16,6 +16,8 @@ use Docalist\Search\Analysis\CharFilter;
 /**
  * CharFilter "url_normalize_sep" : normalise les séparateurs dans une url.
  *
+ * @deprecated N'est plus utilisé, conservé au cas où pour servir de modèle.
+ *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 final class UrlNormalizeSep implements CharFilter

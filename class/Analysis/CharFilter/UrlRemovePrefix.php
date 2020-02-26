@@ -16,6 +16,8 @@ use Docalist\Search\Analysis\CharFilter;
 /**
  * CharFilter "url_remove_prefix" : supprime le préfixe www/ftp d'une url.
  *
+ * @deprecated N'est plus utilisé, conservé au cas où pour servir de modèle.
+ *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 final class UrlRemovePrefix implements CharFilter

@@ -33,8 +33,16 @@ final class UrlTokenizer implements Tokenizer
      */
     final public function getDefinition(): array
     {
+        //
         return [
-            'type' => 'keyword',
+            'type' => 'char_group',
+            'tokenize_on_chars' => ['whitespace', 'punctuation', 'symbol'],
+            /*
+             * cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-chargroup-tokenizer.html
+             *
+             * On "coupe" à chaque fois qu'on rencontre un espace, un signe de ponctuation ou un symbole.
+             * Autrement dit, on conserve les lettres et les chiffres ('letter' + 'digit')
+             */
         ];
     }
 }

@@ -37,18 +37,6 @@ final class Url extends CustomAnalyzer
     /**
      * {@inheritDoc}
      */
-    final public function getCharFilters(): array
-    {
-        return [
-            UrlRemoveProtocol::getName(),   // Supprime le protocole (http://, https://, ftp://...)
-            UrlRemovePrefix::getName(),     // Supprime le préfixe (www. ou ftp.)
-            UrlNormalizeSep::getName(),     // Normalise les séparateurs mal écrits (\ -> /)
-        ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     final public function getTokenizer(): string
     {
         return UrlTokenizer::getName();

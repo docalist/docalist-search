@@ -49,7 +49,7 @@ final class FrenchText extends CustomAnalyzer
         return [
             'lowercase',                    // Convertit le texte en minuscules
             FrenchElision::getName(),       // Supprime les élisions (c', d', l'...)
-            FrenchStop::getName(),          // Supprime les mots-vides
+            //FrenchStop::getName(),          // Supprime les mots-vides
             FrenchStemMinimal::getName(),   // Stemming minimal
             'asciifolding',                 // Supprime les accents (après le stemming, teste les accents)
         ];

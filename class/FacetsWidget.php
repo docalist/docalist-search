@@ -529,6 +529,8 @@ class FacetsWidget extends WP_Widget
         // Remarque : comme le début de la page a déjà été envoyé, les assets sont
         // ajoutés en fin de pagemais on n'a pas de FOUC car le formulaire ne sera
         // affiché que lorsque l'utilisateur le demandera.
+
+        return '';
     }
 
     /**

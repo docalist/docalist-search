@@ -61,7 +61,7 @@ trait FiltersTrait
             return;
         }
 
-        throw new InvalidArgumentException(sprinf(
+        throw new InvalidArgumentException(sprintf(
             'Invalid filter type "%s", expected "%s"',
             $type,
             implode('" or "', array_keys($this->filters))

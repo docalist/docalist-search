@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Docalist\Search;
 
+use Docalist\Repository\Repository;
 use Docalist\Type\Settings as TypeSettings;
 use Docalist\Type\Text;
 use Docalist\Type\Integer;
@@ -43,7 +44,10 @@ use Docalist\Type\Collection;
  */
 class Settings extends TypeSettings
 {
-    protected $id = 'docalist-search-settings';
+    public function __construct(Repository $repository)
+    {
+        parent::__construct($repository, 'docalist-search-settings');
+    }
 
     public static function loadSchema(): array
     {

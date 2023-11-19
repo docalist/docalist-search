@@ -225,7 +225,7 @@ class SettingsPage extends AdminPage
         });
 
         // Indique que notre réponse doit s'afficher dans le back-office wp
-        $response->adminPage(true);
+        $response->setIsAdminPage(true);
 
         // Terminé
         return $response;

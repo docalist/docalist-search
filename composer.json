@@ -30,7 +30,7 @@
         "ext-intl": "*",
         "ext-json": "*",
         "ext-zlib": "*",
-        "composer/installers": "^2.2",
+        "composer/installers": "^1.0 || ^2.0",
         "docalist/docalist-core": "dev-master"
     },
     "autoload" : {

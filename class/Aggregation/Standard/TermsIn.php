@@ -14,6 +14,7 @@ namespace Docalist\Search\Aggregation\Standard;
 use Docalist\Search\Aggregation\Bucket\TermsAggregation;
 use Docalist\Search\Indexer;
 use Docalist\Search\Indexer\Field\CollectionIndexer;
+use Docalist\Search\IndexManager;
 use stdClass;
 
 /**
@@ -51,7 +52,9 @@ class TermsIn extends TermsAggregation
     {
         // Initialise la liste des collections au premier appel
         if (is_null($this->collections)) {
-            $this->collections = docalist('docalist-search-index-manager')->getCollections();
+            /** @var IndexManager $indexManager */
+            $indexManager = docalist(IndexManager::class);
+            $this->collections = $indexManager->getCollections();
         }
 
         if (isset($this->collections[$bucket->key])) {

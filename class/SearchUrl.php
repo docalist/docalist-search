@@ -450,8 +450,8 @@ class SearchUrl
         // Sinon on initialise
 
         // Récupère le service DSL et le service QueryParser
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
-        $parser = docalist('query-parser'); /* @var Parser $parser */
+        $dsl = docalist(QueryDSL::class);
+        $parser = docalist(Parser::class); /* @var Parser $parser */
 
         // Par défaut, la requête portera sur tous les types qui ont été indiqués dans le constructeur
         // Si l'url contient des paramètres 'in', on les traduit en nom de CPT et cela restreint la liste
@@ -488,7 +488,7 @@ class SearchUrl
                 case 'in':
                     // 'in' contient des collections ('posts', 'pages', 'event'...) qu'il faut convertir en types (CPT)
                     // Si ce n'est pas une collection qu'on connait, on stocke tel quel (pseudo types comme "basket")
-                    $collections = docalist('docalist-search-index-manager')->getCollections();
+                    $collections = docalist(IndexManager::class)->getCollections();
                     foreach ((array) $value as $value) {
                         if (isset($collections[$value])) { // il s'agit d'une collection, convertit en nom de CPT
                             $value = $collections[$value]->getType();
@@ -564,7 +564,7 @@ class SearchUrl
      */
     protected function isFilter($field)
     {
-        $searchAttributes = docalist('docalist-search-attributes'); /** @var SearchAttributes $searchAttributes*/
+        $searchAttributes = docalist(SearchAttributes::class); /** @var SearchAttributes $searchAttributes*/
 
         if ($searchAttributes->has($field, Features::FILTER | Features::EXCLUSIVE)) {
             return 'or';

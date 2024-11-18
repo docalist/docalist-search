@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Docalist\Tests\Search\QueryDSL;
 
+use Docalist\Search\ElasticSearchClient;
 use WP_UnitTestCase;
 use Docalist\Search\QueryDSL\Version200 as DSL;
 
@@ -30,7 +31,9 @@ class Version200Test extends WP_UnitTestCase
             echo "\n------------------------------------------------------------------------------\n$json\n";
         }
 
-        $response = docalist('elasticsearch')->get('/_validate/query?explain&rewrite=true', $query);
+        /** @var ElasticSearchClient $es */
+        $es = docalist(ElasticSearchClient::class);
+        $response = $es->get('/_validate/query?explain&rewrite=true', $query);
         if ($debug) {
             $json = json_encode($response, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             echo $json, "\n";

@@ -38,7 +38,8 @@ class ParserTest extends WP_UnitTestCase
      */
     public function queriesProvider()
     {
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        /** @var QueryDSL $dsl */
+        $dsl = docalist(QueryDSL::class);
         return [
 
             ['', null],

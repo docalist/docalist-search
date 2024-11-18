@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Docalist\Search;
 
+use Docalist\AdminNotices;
 use Docalist\Search\Indexer;
 use Docalist\Search\Indexer\MissingIndexer;
 use InvalidArgumentException;
@@ -47,18 +48,11 @@ class IndexManager
     private const OPTION_FEATURES = 'docalist-search-attributes-features';
 
     /**
-     * Les paramètres de docalist-search.
-     *
-     * @var Settings
-     */
-    private $settings;
-
-    /**
      * Liste des indexeurs disponibles.
      *
      * Initialisé lors du premier appel à getAvailableIndexers().
      *
-     * @var Indexer[]
+     * @var null|Indexer[]
      */
     private $indexers;
 
@@ -130,11 +124,11 @@ class IndexManager
      *
      * @param Settings $settings
      */
-    public function __construct(Settings $settings)
-    {
-        // Stocke les paramètres de l'indexeur
-        $this->settings = $settings;
-
+    public function __construct(
+        private Settings $settings,
+        private ElasticSearchClient $elasticSearchClient,
+        private AdminNotices $adminNotices
+    ){
         // Détermine la version de elasticsearch
         $version = $this->settings->esversion->getPhpValue();
         $this->es7 = version_compare($version, '6.99', '>'); // au moins 7.0.0, 7.0-alpha, 7.0-rc2 ou plus
@@ -196,7 +190,7 @@ class IndexManager
 
         // Génère une admin notice si aucun indexeur n'est disponible pour le type indiqué
         if (!isset($this->indexers[$type])) {
-            docalist('admin-notices')->warning(
+            $this->adminNotices->warning(
                 sprintf(__('Warning: indexer for type "%s" is not available', 'docalist-search'), $type),
                 'docalist-search' // titre de la notice
             );
@@ -315,9 +309,6 @@ class IndexManager
      */
     public function createIndex(): void
     {
-        // Récupère la connexion elastic search
-        $es = docalist('elasticsearch'); /** @var ElasticSearchClient $es */
-
         // Récupère le nom de base de l'index
         $base = $this->settings->index();
 
@@ -343,7 +334,7 @@ class IndexManager
         do_action('docalist_search_before_create_index', $base, $index);
 
         // Crée le nouvel index
-        $this->checkAcknowledged('creating index', $es->put('/' . $index, $settings));
+        $this->checkAcknowledged('creating index', $this->elasticSearchClient->put('/' . $index, $settings));
 
         // Crée l'alias "write" (nom de base + suffixe '_write')
         $this->createAlias($base . '_write', $index); // garder synchro avec flush()
@@ -364,7 +355,7 @@ class IndexManager
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/master/indices-update-settings.html
         $this->checkAcknowledged(
             'setting number_of_replicas and refresh_interval',
-            $es->put('/' . $index . '/_settings', [
+            $this->elasticSearchClient->put('/' . $index . '/_settings', [
                 'index' => [
                     'number_of_replicas' => $this->settings->replicas(),
                     'refresh_interval' => null // null = rétablir la valeur par défaut (1s)
@@ -373,7 +364,7 @@ class IndexManager
         );
 
         // Force un refresh
-        $es->post('/' . $index . '/_refresh'); // pas vraiment utile, il y aura un auto refresh au bout x secondes
+        $this->elasticSearchClient->post('/' . $index . '/_refresh'); // pas vraiment utile, il y aura un auto refresh au bout x secondes
 
         // Crée l'alias "read" (nom de base) et active le nouvel index pour la recherche
         do_action('docalist_search_activate_index', $base, $index);
@@ -398,13 +389,10 @@ class IndexManager
      */
     private function deleteOldIndices(string $baseName, string $indexToKeep): void
     {
-        // Récupère la connexion elastic search
-        $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
-
         // Récupère la liste de tous les index qui existent
         // Au lieu d'utiliser le endpoint _settings qui renvoie trop d'informations, on utilise /_alias
         // qui nous retourne la liste des index et pour chaque index la liste de ses alias.
-        $indices = $es->get('/_alias/');
+        $indices = $this->elasticSearchClient->get('/_alias/');
 
         // On obtient un objet de la forme :
         // {
@@ -448,7 +436,7 @@ class IndexManager
         // Supprime tous les index trouvés
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/multi-index.html
         // cf. https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-delete-index.html
-        $this->checkAcknowledged('deleting old indices', $es->delete('/' . implode(',', $delete)));
+        $this->checkAcknowledged('deleting old indices', $this->elasticSearchClient->delete('/' . implode(',', $delete)));
     }
 
     /**
@@ -462,9 +450,6 @@ class IndexManager
      */
     private function createAlias(string $alias, string $index): void
     {
-        // Récupère la connexion elastic search
-        $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
-
         $request = [
             'actions' => [
                 ['remove'   => ['alias' => $alias, 'index' => '*'    ]],
@@ -472,7 +457,7 @@ class IndexManager
             ]
         ];
 
-        $this->checkAcknowledged('creating alias ' . $alias, $es->post('/_aliases', $request));
+        $this->checkAcknowledged('creating alias ' . $alias, $this->elasticSearchClient->post('/_aliases', $request));
     }
 
     /**
@@ -593,7 +578,7 @@ class IndexManager
         // Envoie le buffer à ES
         $time = microtime(true);
         $alias = $this->settings->index() . '_write'; // garder synchro avec createIndex()
-        $result = docalist('elasticsearch')->bulk('/' . $alias . '/_bulk', $this->bulk);
+        $result = $this->elasticSearchClient->bulk('/' . $alias . '/_bulk', $this->bulk);
         $time = microtime(true) - $time;
         // @todo : permettre un timeout plus long pour les requêtes bulk
         // @todo si erreur, réessayer ? (par exemple avec un timeout plus long)
@@ -773,11 +758,8 @@ class IndexManager
      */
     public function ping()
     {
-        // Récupère la connexion elastic search
-        $es = docalist('elasticsearch'); /* @var ElasticSearchClient $es */
-
         try {
-            $status = $es->get('/{index}');
+            $status = $this->elasticSearchClient->get('/{index}');
         } catch (Exception $e) {
             return 0;   // Le serveur ne répond pas
         }

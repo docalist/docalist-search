@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Aggregation;
 
 use Docalist\Table\TableInterface;
+use Docalist\Table\TableManager;
 
 /**
  * Un "trait" utilisé par les agrégations qui utilisent des tables d'autorité docalist.
@@ -34,9 +35,11 @@ trait TableBasedTrait
      */
     final public function setTables($tables): void
     {
+        /** @var TableManager */
+        $tableManager = docalist(TableManager::class);
         $this->tables = [];
         foreach ((array) $tables as $table) {
-            $this->tables[] = docalist('table-manager')->get($table);
+            $this->tables[] = $tableManager->get($table);
         }
     }
 

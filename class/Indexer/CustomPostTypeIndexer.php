@@ -303,7 +303,8 @@ abstract class CustomPostTypeIndexer implements Indexer
         }
 
         // L'utilisateur ne peut voir que les posts publics et ceux dont il est auteur
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        /** @var QueryDSL $dsl */
+        $dsl = docalist(QueryDSL::class);
         $filter = $dsl->terms(PostStatusIndexer::CODE_FILTER, $public);
         is_user_logged_in() && $filter = $dsl->bool([
             $dsl->should($filter),
@@ -319,7 +320,8 @@ abstract class CustomPostTypeIndexer implements Indexer
      */
     public function getSearchFilter(): array
     {
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        /** @var QueryDSL $dsl */
+        $dsl = docalist(QueryDSL::class);
 
         $type = $dsl->term(CollectionIndexer::FILTER, $this->getCollection());
         $visibility = $this->getVisibilityFilter();

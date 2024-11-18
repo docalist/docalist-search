@@ -37,17 +37,13 @@ class SearchEngine
 
     /**
      * La requête adressée à ElasticSearch.
-     *
-     * @var SearchRequest
      */
-    protected $searchRequest;
+    protected ?SearchRequest $searchRequest = null;
 
     /**
      * La réponse retournée par ElasticSearch.
-     *
-     * @var SearchResponse
      */
-    protected $searchResponse;
+    protected ?SearchResponse $searchResponse = null;
 
     /**
      * Construit le moteur de recherche.
@@ -61,7 +57,7 @@ class SearchEngine
 
         // Ne fait rien tant que la recherche n'a pas été activée dans les settings
         // (https://github.com/docalist/docalist/issues/367)
-        if (!$this->settings->enabled()) {
+        if (!$this->settings->enabled->getPhpValue()) {
             return;
         }
 
@@ -288,7 +284,7 @@ class SearchEngine
     {
         $searchPage = $this->settings->searchpage->getPhpValue();
 
-        return $searchPage ? get_permalink($searchPage) : '';
+        return $searchPage ? (string) get_permalink($searchPage) : '';
     }
 
     /**
@@ -305,20 +301,16 @@ class SearchEngine
 
     /**
      * Retourne la requête en cours.
-     *
-     * @return SearchRequest
      */
-    public function getSearchRequest()
+    public function getSearchRequest(): ?SearchRequest
     {
         return $this->searchRequest;
     }
 
     /**
      * Retourne les résultats de la requête en cours.
-     *
-     * @return SearchResponse
      */
-    public function getSearchResponse()
+    public function getSearchResponse(): ?SearchResponse
     {
         return $this->searchResponse;
     }
@@ -339,15 +331,17 @@ class SearchEngine
             return '';
         }
 
-        if (empty($this->searchRequest)) {
+        if ($this->searchRequest === null) {
             return '';
         }
 
-        if (empty($this->searchResponse) || 0 === $this->searchResponse->getHitsCount()) {
+        if ($this->searchResponse === null || 0 === $this->searchResponse->getHitsCount()) {
             return '';
         }
 
-        return $this->searchRequest->getSearchUrl()->getUrlForFeed($format);
+        $searchUrl = $this->searchRequest->getSearchUrl();
+
+        return ($searchUrl === null) ? '' : $searchUrl->getUrlForFeed($format);
     }
 
     /**

@@ -22,29 +22,15 @@ use Docalist\Search\QueryDSL;
 class QueryBuilder implements Builder
 {
     /**
-     * Service DSL de elasticsearch.
-     *
-     * @var QueryDSL
-     */
-    protected $dsl;
-
-    /**
-     * Nom et pondération des champs de recherche par défaut.
-     *
-     * @var array Un tableau de la forme champ => poids.
-     */
-    protected $defaultSearchFields;
-
-    /**
      * Initialise le builder.
      *
      * @param array $defaultSearchFields Un tableau indiquant la liste des champs par défaut.
      * Exemple : ['posttitle^2', 'content', 'name', 'topic^5'].
      */
-    public function __construct(array $defaultSearchFields)
-    {
-        $this->dsl = docalist('elasticsearch-query-dsl');
-        $this->defaultSearchFields = $defaultSearchFields;
+    public function __construct(
+        private QueryDSL $queryDSL,
+        private array $defaultSearchFields
+    ) {
     }
 
     /**
@@ -72,47 +58,47 @@ class QueryBuilder implements Builder
         // - canRange($name) : indique si le champ supporte ou non les requêtes de type range ?
         // + gestion de "triggers" : by:me -> createdby:login, today -> date en cours, etc.
         ($field === '') && $field = $this->getDefaultSearchFields();
-        return $this->dsl->multiMatch($field, implode(' ', $terms), 'best_fields', ['operator' => 'and']);
+        return $this->queryDSL->multiMatch($field, implode(' ', $terms), 'best_fields', ['operator' => 'and']);
     }
 
     public function phrase($field, array $terms)
     {
         ($field === '') && $field = $this->getDefaultSearchFields();
-        return $this->dsl->multiMatch($field, implode(' ', $terms), 'phrase', []);
-//        return $this->dsl->match($field, implode(' ', $terms), 'match_phrase');
+        return $this->queryDSL->multiMatch($field, implode(' ', $terms), 'phrase', []);
+//        return $this->queryDSL->match($field, implode(' ', $terms), 'match_phrase');
     }
 
     public function prefix($field, $prefix)
     {
         ($field === '') && $field = $this->getDefaultSearchFields();
-        return $this->dsl->multiMatch($field, $prefix, 'phrase_prefix', []);
-        // return $this->dsl->prefix($field, $prefix); // ne supporte pas plusieurs champs
+        return $this->queryDSL->multiMatch($field, $prefix, 'phrase_prefix', []);
+        // return $this->queryDSL->prefix($field, $prefix); // ne supporte pas plusieurs champs
     }
 
     public function all()
     {
-        return null;// $this->dsl->matchAll();
+        return null;// $this->queryDSL->matchAll();
     }
 
     public function exists($field)
     {
-        return $this->dsl->exists($field);
+        return $this->queryDSL->exists($field);
     }
 
     public function bool(array $should = [], array $must = [], array $not = [])
     {
         $queries = [];
         foreach ($should as $query) {
-            $queries[] = $this->dsl->should($query);
+            $queries[] = $this->queryDSL->should($query);
         }
         foreach ($must as $query) {
-            $queries[] = $this->dsl->must($query);
+            $queries[] = $this->queryDSL->must($query);
         }
         foreach ($not as $query) {
-            $queries[] = $this->dsl->mustNot($query);
+            $queries[] = $this->queryDSL->mustNot($query);
         }
 
-        return $this->dsl->bool($queries);
+        return $this->queryDSL->bool($queries);
     }
 
     public function range($field, $start, $end)
@@ -121,6 +107,6 @@ class QueryBuilder implements Builder
         !is_null($start) && $range['gte'] = $start;
         !is_null($end) && $range['lte'] = $end;
 
-        return $this->dsl->range($field, $range);
+        return $this->queryDSL->range($field, $range);
     }
 }

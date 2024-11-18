@@ -31,13 +31,6 @@ class Parser
     // Blog de Irina Shamaeva : http://booleanstrings.com/
 
     /**
-     * Analyseur lexical
-     *
-     * @var Lexer
-     */
-    protected $lexer;
-
-    /**
      * Liste des tokens retournés par l'analyseur lexical.
      *
      * @var array
@@ -89,22 +82,13 @@ class Parser
     protected $builder;
 
     /**
-     * Nom et pondération des champs de recherche par défaut.
-     *
-     * @var array Un tableau de la forme champ => poids.
-     */
-    protected $defaultSearchFields;
-
-    /**
      * Initialise l'analyseur.
-     *
-     * @param array $defaultSearchFields Un tableau indiquant la liste des champs par défaut.
-     * Exemple : ['posttitle^2', 'content', 'name', 'topic^5'].
      */
-    public function __construct(array $defaultSearchFields)
-    {
-        $this->lexer = new Lexer();
-        $this->defaultSearchFields = $defaultSearchFields;
+    public function __construct(
+        private Lexer $lexer,
+        private QueryBuilder $queryBuilder,
+        private ExplainBuilder $explainBuilder
+    ) {
     }
 
     /**
@@ -127,12 +111,12 @@ class Parser
      */
     public function parse($string, $field = '_all', $operator = 'and')
     {
-        return $this->parseString(new QueryBuilder($this->defaultSearchFields), $string, $field, $operator);
+        return $this->parseString($this->queryBuilder, $string, $field, $operator);
     }
 
     public function explain($string, $field = '_all', $operator = 'and')
     {
-        return $this->parseString(new ExplainBuilder(), $string, $field, $operator);
+        return $this->parseString($this->explainBuilder, $string, $field, $operator);
     }
 
     protected function parseString(Builder $builder, $string, $field, $operator)

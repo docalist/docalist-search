@@ -44,8 +44,6 @@ interface Indexer
      *
      * Exemples : "posts" et "pages" (avec un "s") pour les contenus WordPress, "prisme" ou
      * "structures" (sans le "db") pour des bases docalist, "jobs" pour des offres d'emploi, etc.
-     *
-     * @return
      */
     public function getCollection(): string;
 

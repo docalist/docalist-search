@@ -21,6 +21,7 @@
 declare(strict_types=1);
 
 namespace Docalist\Search;
+use Docalist\Autoloader;
 
 /**
  * Version du plugin.
@@ -71,9 +72,14 @@ add_action('plugins_loaded', function () {
     }
 
     // Ok
-    docalist('autoloader')
+    docalist(Autoloader::class)
         ->add(__NAMESPACE__, __DIR__ . '/class')
         ->add(__NAMESPACE__ . '\Tests', __DIR__ . '/tests');
 
-    docalist('services')->add('docalist-search', new Plugin());
+    // docalist(Services::class)
+    //     ->set(Plugin::class, new Plugin())
+    //     ->deprecate('docalist-search', Plugin::class, '2023-11-27');
+    docalist(DocalistSearchPlugin::class)->initialize();
+// var_dump(docalist(ElasticSearchClient::class));
+// exit;
 });

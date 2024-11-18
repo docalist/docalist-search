@@ -72,13 +72,6 @@ class ElasticsearchMappingBuilder implements MappingBuilder
     protected $last;
 
     /**
-     * Version de elasticsearch.
-     *
-     * @var string
-     */
-    protected $esVersion;
-
-    /**
      * Code à utiliser pour un champ de type "text".
      * Avec ES >= 5, c'est "text", avant c'était "string".
      *
@@ -91,10 +84,8 @@ class ElasticsearchMappingBuilder implements MappingBuilder
      *
      * @param string $esVersion Version de elasticsearch.
      */
-    public function __construct($esVersion)
+    public function __construct(private string $esVersion, private string $docalistSearchVersion)
     {
-        $this->esVersion = $esVersion;
-
         if (version_compare($esVersion, '4.99', '>=')) { // minimum '5.0.0-alpha' (5-alpha < 5)
             $this->textType = 'text';
         } else {
@@ -425,7 +416,7 @@ class ElasticsearchMappingBuilder implements MappingBuilder
             // Stocke la version de docalist-search qui a créé ce type
             // https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-meta-field.html
             '_meta' => [
-                'docalist-search' => docalist('docalist-search')->getVersion(),
+                'docalist-search' => $this->docalistSearchVersion,
             ],
 
             // Par défaut le mapping est dynamique

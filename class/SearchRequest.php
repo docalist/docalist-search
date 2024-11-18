@@ -89,7 +89,7 @@ class SearchRequest
         $request = [];
 
         // ES >=7 ne compte que les 10000 premiers hits, ajoute track_total_hits pour avoir le nombre exact
-        if (version_compare(docalist('elasticsearch-version'), '6.99', '>')) {
+        if (version_compare(docalist()->string('elasticsearch-version'), '6.99', '>')) {
             $request['track_total_hits'] =  true;
         }
 
@@ -161,7 +161,9 @@ class SearchRequest
         $url = '/{index}/_search' . $this->getExecuteOptions($options);
 
         // Exécute la requête
-        $data = docalist('elasticsearch')->get($url, $request);
+        /** @var ElasticSearchClient $es */
+        $es = docalist(ElasticSearchClient::class);
+        $data = $es->get($url, $request);
         if (isset($data->error)) {
             $this->hasErrors = true;
 
@@ -224,7 +226,9 @@ class SearchRequest
         // scroll('done') permet de libérer le contexte de recherche
         if ($duration === 'done') {
             if (!empty($this->scrollId)) { // no-op si aucun scroll en cours
-                docalist('elasticsearch')->delete('/_search/scroll', ['scroll_id' => $this->scrollId]);
+                /** @var ElasticSearchClient $es */
+                $es = docalist(ElasticSearchClient::class);
+                $es->delete('/_search/scroll', ['scroll_id' => $this->scrollId]);
                 $this->scrollId = '';
             }
 
@@ -242,7 +246,9 @@ class SearchRequest
             }
 
             // Pour les appels suivants, on utilise l'api scroll avec l'id en cours et on stocke le nouvel id
-            $data = docalist('elasticsearch')->get('/_search/scroll', [
+            /** @var ElasticSearchClient $es */
+            $es = docalist(ElasticSearchClient::class);
+            $data = $es->get('/_search/scroll', [
                 'scroll_id' => $this->scrollId,
                 'scroll'    => $duration,
             ]);
@@ -366,7 +372,9 @@ class SearchRequest
         $url = '/{index}/_validate/query?explain=true&rewrite=true';
 
         // Exécute la requête
-        $response = docalist('elasticsearch')->get($url, $request);
+        /** @var ElasticSearchClient $es */
+        $es = docalist(ElasticSearchClient::class);
+        $response = $es->get($url, $request);
 
         // Normalement on a toujours le champ "explanations"
         if (! (isset($response->explanations) || empty($response->explanations))) {

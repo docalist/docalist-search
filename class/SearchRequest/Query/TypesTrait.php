@@ -48,7 +48,8 @@ trait TypesTrait
     public function setTypes(array $types = [])
     {
         if (empty($types)) {
-            $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+            /** @var IndexManager $indexManager */
+            $indexManager = docalist(IndexManager::class);
             $types = $indexManager->getTypes();
         }
 
@@ -69,7 +70,8 @@ trait TypesTrait
             return [];
         }
 
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        /** @var QueryDSL $dsl */
+        $dsl = docalist(QueryDSL::class);
 
         // Retourne une clause simple si on a un seul filtre
         if (count($this->types) === 1) {
@@ -110,7 +112,8 @@ trait TypesTrait
     private function getTypeQuery(string $type)
     {
         // Teste s'il s'agit d'un post_type indexé
-        $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
+        /** @var IndexManager $indexManager */
+        $indexManager = docalist(IndexManager::class);
         $indexers = $indexManager->getAvailableIndexers();
         if (isset($indexers[$type])) {
             return $indexers[$type]->getSearchFilter();
@@ -123,7 +126,9 @@ trait TypesTrait
         }
 
         // Nom de type inconnu, génère une requête matchNone
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        /** @var QueryDSL $dsl */
+        $dsl = docalist(QueryDSL::class);
+
         return $dsl->matchNone();
     }
 }

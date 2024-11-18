@@ -36,7 +36,8 @@
     "autoload" : {
         "psr-4" : {
             "Docalist\\Search\\" : "class"
-        }
+        },
+        "files": ["bootstrap.php"]
     },
     "autoload-dev" : {
         "psr-4" : {

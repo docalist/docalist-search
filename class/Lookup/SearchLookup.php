@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Lookup;
 
 use Docalist\Lookup\LookupInterface;
+use Docalist\Search\ElasticSearchClient;
 use Docalist\Search\Indexer\Field\PostModifiedIndexer;
 use wpdb;
 use InvalidArgumentException;
@@ -26,6 +27,13 @@ use InvalidArgumentException;
  */
 class SearchLookup implements LookupInterface
 {
+    public function __construct(
+        private ElasticSearchClient $elasticSearchClient
+    )
+    {
+
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -68,7 +76,7 @@ class SearchLookup implements LookupInterface
         ];
 
         // Exécute la requête
-        $response = docalist('elasticsearch')->post('/{index}/_search', $query);
+        $response = $this->elasticSearchClient->post('/{index}/_search', $query);
 
         // Retourne les résultats
         return $this->processResponse($response);
@@ -97,7 +105,7 @@ class SearchLookup implements LookupInterface
 
 
         // Exécute la requête
-        $response = docalist('elasticsearch')->post('/{index}/_search', $query);
+        $response = $this->elasticSearchClient->post('/{index}/_search', $query);
 
         // Retourne les résultats
         return $this->processResponse($response);

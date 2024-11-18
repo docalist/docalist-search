@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace Docalist\Search;
 
-use Docalist\Search\Mapping\Field\Info\Features;
 use Closure;
 
 /**
@@ -46,7 +45,7 @@ final class SearchAttributes
      * Initialise la liste des attributs de recherche.
      *
      * @param Closure $labels       Une fonction qui retourne un tableau de la forme nom de champ => label.
-     * @param Closure $description  Une fonction qui retourne un tableau de la forme nom de champ => description.
+     * @param Closure $descriptions Une fonction qui retourne un tableau de la forme nom de champ => description.
      * @param Closure $features     Une fonction qui retourne un tableau de la forme nom de champ => features.
      */
     final public function __construct(Closure $labels, Closure $descriptions, Closure $features)
@@ -63,7 +62,9 @@ final class SearchAttributes
      */
     final public function getAllLabels(): array
     {
-        ($this->labels instanceof Closure) && $this->labels = ($this->labels)();
+        if ($this->labels instanceof Closure) {
+            $this->labels = ($this->labels)();
+        }
 
         return $this->labels;
     }
@@ -87,7 +88,9 @@ final class SearchAttributes
      */
     final public function getAllDescriptions(): array
     {
-        ($this->descriptions instanceof Closure) && $this->descriptions = ($this->descriptions)();
+        if ($this->descriptions instanceof Closure) {
+            $this->descriptions = ($this->descriptions)();
+        }
 
         return $this->descriptions;
     }
@@ -111,7 +114,9 @@ final class SearchAttributes
      */
     final public function getAllFeatures(): array
     {
-        ($this->features instanceof Closure) && $this->features = ($this->features)();
+        if ($this->features instanceof Closure) {
+            $this->features = ($this->features)();
+        }
 
         return $this->features;
     }

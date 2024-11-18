@@ -120,7 +120,8 @@ final class SearchResults implements Shortcode
             case 'title':
             case 'excerpt':
             case 'content':
-                $views = docalist('views'); /** @var Views $views */
+                /** @var Views $views */
+                $views = docalist(Views::class);
                 return $views->getPath('docalist-search:shortcode/docalist-search-results');
         }
 

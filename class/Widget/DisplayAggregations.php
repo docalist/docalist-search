@@ -23,16 +23,9 @@ use Docalist\Search\SearchRequest;
 class DisplayAggregations extends WP_Widget
 {
     /**
-     * Le formulaire permettant de paramètrer le widget.
-     *
-     * @var Container
-     */
-    protected $settingsForm;
-
-    /**
      * Initialise le widget.
      */
-    public function __construct()
+    public function __construct(private SearchEngine $searchEngine)
     {
         // Identifiant du widget
         $id = 'docalist_search_display_aggregations';
@@ -66,9 +59,7 @@ class DisplayAggregations extends WP_Widget
      */
     private function getSearchRequest(): ?SearchRequest
     {
-        $searchEngine = docalist('docalist-search-engine'); /* @var SearchEngine $searchEngine */
-
-        return $searchEngine->getSearchRequest();
+        return $this->searchEngine->getSearchRequest();
     }
 
     /**

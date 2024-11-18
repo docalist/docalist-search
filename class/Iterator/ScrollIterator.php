@@ -21,6 +21,9 @@ use Generator;
  * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html
  * #request-body-search-scroll
  *
+ * @template TValue of object
+ * @implements IteratorAggregate<int,TValue>
+ *
  * @author Daniel Ménard <daniel.menard@laposte.net>
  */
 class ScrollIterator implements IteratorAggregate
@@ -65,7 +68,7 @@ class ScrollIterator implements IteratorAggregate
     /**
      * Retourne un générateur qui permet d'itérer sur les hits retournés par la requête.
      *
-     * @return Generator Les clés retournées correspondent au rang du hit (1 pour le premier hit, 2 pour
+     * @return Generator<int,TValue> Les clés retournées correspondent au rang du hit (1 pour le premier hit, 2 pour
      * le suivant et ainsi de suite). La valeur associée est un objet hit tel que retourné par Elasticsearch.
      */
     public function getIterator(): Generator

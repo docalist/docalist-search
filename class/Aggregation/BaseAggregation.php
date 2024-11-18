@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Docalist\Search\Aggregation;
 
+use Docalist\Html;
 use Docalist\Search\Aggregation;
 use Docalist\Search\SearchRequest;
 use Docalist\Search\SearchResponse;
@@ -490,7 +491,7 @@ abstract class BaseAggregation implements Aggregation
     final protected function renderTag(string $tag, array $attributes = [], string $content = ''): string
     {
         ob_start();
-        docalist('html')->tag($tag, $attributes, $content);
+        docalist(Html::class)->tag($tag, $attributes, $content);
 
         return ob_get_clean();
     }

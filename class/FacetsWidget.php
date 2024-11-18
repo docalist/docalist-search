@@ -17,6 +17,7 @@ use WP_Roles;
 use WP_Widget;
 use Docalist\Forms\Container;
 use Exception;
+use Docalist\Data\DocalistDataPlugin;
 
 class FacetsWidget extends WP_Widget
 {
@@ -80,7 +81,8 @@ class FacetsWidget extends WP_Widget
         // Récupère la SearchRequest en cours
         /* @var SearchRequest $request */
         //$request = apply_filters('docalist_search_get_request', null);
-        $searchEngine = docalist('docalist-search-engine'); /* @var SearchEngine $searchEngine */
+        /** @var SearchEngine $searchEngine */
+        $searchEngine = docalist(SearchEngine::class);
         $request = $searchEngine->getSearchRequest();
         if (! $request) {
             echo "<p>Aucune facette n'est disponible (no request)</p>";
@@ -248,7 +250,8 @@ class FacetsWidget extends WP_Widget
                 // Bascule automatique de la recherche générale à la recherche sur une base
                 $url = null;
                 if ($field === '_type') {
-                    $database = docalist('docalist-data')->database($value); /* var Database $database */
+                    $docalistDataPlugin = docalist(DocalistDataPlugin::class);
+                    $database = $docalistDataPlugin->database($value); /* var Database $database */
 
                     if ($database) {
                         $url = $database->searchPageUrl();

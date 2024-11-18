@@ -11,10 +11,11 @@ declare(strict_types=1);
 
 namespace Docalist\Search;
 
+use Docalist\AdminNotices;
 use Docalist\Repository\Repository;
 use Docalist\Type\Settings as TypeSettings;
 use Docalist\Type\Text;
-use Docalist\Type\Integer;
+use Docalist\Type\Integer as DocalistInteger;
 use Docalist\Type\Boolean;
 use Docalist\Type\Composite;
 use Docalist\Type\Collection;
@@ -25,17 +26,17 @@ use Docalist\Type\Collection;
  * @property Text       $url                    Url complète du serveur Elasticsearch.
  * @property Text       $esversion              Numéro de version de Elasticsearch.
  * @property Text       $index                  Nom de l'index Elasticsearch utilisé.
- * @property Integer    $shards                 Nombre de shards de l'index.
- * @property Integer    $replicas               Nombre de replicas par shard.
- * @property Integer    $connecttimeout         Timeout de connexion, en secondes.
- * @property Integer    $timeout                Timeout des requêtes, en secondes.
+ * @property DocalistInteger    $shards                 Nombre de shards de l'index.
+ * @property DocalistInteger    $replicas               Nombre de replicas par shard.
+ * @property DocalistInteger    $connecttimeout         Timeout de connexion, en secondes.
+ * @property DocalistInteger    $timeout                Timeout des requêtes, en secondes.
  * @property Boolean    $compressrequest        Compresser les requêtes.
  * @property Boolean    $compressresponse       Compresser les réponses.
- * @property Text[]     $types                  Contenus à indexer.
- * @property Integer    $bulkMaxSize            Taille maximale du buffer (Mo).
- * @property Integer    $bulkMaxCount           Nombre maximum de documents dans le buffer.
+ * @property Collection<Text>     $types                  Contenus à indexer.
+ * @property DocalistInteger    $bulkMaxSize            Taille maximale du buffer (Mo).
+ * @property DocalistInteger    $bulkMaxCount           Nombre maximum de documents dans le buffer.
  * @property Boolean    $realtime               Indexation en temps réel activée.
- * @property Integer    $searchpage             ID de la page "liste des réponses".
+ * @property DocalistInteger    $searchpage             ID de la page "liste des réponses".
  * @property Boolean    $enabled                Indique si la recherche est activée.
  * @property Collection $defaultSearchFields    Champs de recherche par défaut.
  * @property Text       $feed                   Format des flux de syndication des recherches.
@@ -98,7 +99,7 @@ class Settings extends TypeSettings
                     'default' => $defaultIndex,
                 ],
                 'shards' => [
-                    'type' => Integer::class,
+                    'type' => DocalistInteger::class,
                     'label' => __('Nombre de shards', 'docalist-search'),
                     'description' => sprintf(
                         __(
@@ -113,7 +114,7 @@ class Settings extends TypeSettings
                     'default' => 1,
                 ],
                 'replicas' => [
-                    'type' => Integer::class,
+                    'type' => DocalistInteger::class,
                     'label' => __('Nombre de réplicas', 'docalist-search'),
                     'description' => sprintf(
                         __(
@@ -131,7 +132,7 @@ class Settings extends TypeSettings
                     'default' => 0,
                 ],
                 'connecttimeout' => [
-                    'type' => Integer::class,
+                    'type' => DocalistInteger::class,
                     'label' => __('Timeout de connexion', 'docalist-search'),
                     'description' => __(
                         "En secondes. Si la connexion avec le cluster Elasticsearch n'est pas établie au bout
@@ -141,7 +142,7 @@ class Settings extends TypeSettings
                     'default' => 1,
                 ],
                 'timeout' => [
-                    'type' => Integer::class,
+                    'type' => DocalistInteger::class,
                     'label' => __('Timeout des requêtes', 'docalist-search'),
                     'description' => __(
                         "En secondes. Si le serveur Elasticsearch n'a pas répondu au bout du nombre
@@ -184,7 +185,7 @@ class Settings extends TypeSettings
                     'label' => __('Contenus à indexer', 'docalist-search'),
                 ],
                 'bulkMaxSize' => [
-                    'type' => Integer::class,
+                    'type' => DocalistInteger::class,
                     'label' => __('Taille maximale du buffer', 'docalist-search'),
                     'description' => __(
                         'En méga-octets. Le buffer est vidé si la taille totale des documents en attente
@@ -194,7 +195,7 @@ class Settings extends TypeSettings
                     'default' => 10,
                 ],
                 'bulkMaxCount' => [
-                    'type' => Integer::class,
+                    'type' => DocalistInteger::class,
                     'label' => __('Nombre maximum de documents', 'docalist-search'),
                     'description' => __(
                         'Le buffer est vidé si le nombre de documents en attente dépasse ce nombre.',
@@ -217,7 +218,7 @@ class Settings extends TypeSettings
                  * Paramètres généraux
                  */
                 'searchpage' => [
-                    'type' => Integer::class,
+                    'type' => DocalistInteger::class,
                     'label' => __('Page liste des réponses', 'docalist-search'),
                     'description' => __(
                         'Page WordPress sur laquelle sont affichées les réponses obtenues.',
@@ -251,7 +252,7 @@ class Settings extends TypeSettings
                             'label' => __('Champ', 'docalist-search'),
                         ],
                         'weight' => [
-                            'type' => Integer::class,
+                            'type' => DocalistInteger::class,
                             'label' => __('Poids', 'docalist-search'),
                         ],
                     ],
@@ -282,7 +283,7 @@ class Settings extends TypeSettings
     {
         if (isset($value['server']) || isset($value['indexer'])) {
             if (is_admin() && !wp_doing_ajax()) {
-                docalist('admin-notices')->error(
+                docalist(AdminNotices::class)->error(
                     'Vos paramètres docalist-search sont trop anciens et ne peuvent pas être utilisés.
                      Allez sur la page réglages docalist-search pour paramétrer à nouveau le moteur de recherche.',
                     'docalist-search'

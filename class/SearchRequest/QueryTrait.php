@@ -34,7 +34,8 @@ trait QueryTrait
     {
         // remarque : initialement, la méthode était "protected"
         // elle a été rendue "public" pour permettre à TermsAggregation de gérer l'option "multiselect"
-        $dsl = docalist('elasticsearch-query-dsl'); /* @var QueryDSL $dsl */
+        /** @var QueryDSL $dsl */
+        $dsl = docalist(QueryDSL::class);
         $clauses = [];
 
         // Queries

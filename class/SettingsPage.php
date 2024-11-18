@@ -11,8 +11,11 @@ declare(strict_types=1);
 
 namespace Docalist\Search;
 
+use Docalist\AdminNotices;
 use Docalist\AdminPage;
 use Docalist\Http\CallbackResponse;
+use Docalist\Http\HtmlResponse;
+use Docalist\Http\Response;
 use Docalist\Http\ViewResponse;
 use InvalidArgumentException;
 use Exception;
@@ -26,19 +29,15 @@ use Docalist\Search\Mapping\Field\Info\Features;
 class SettingsPage extends AdminPage
 {
     /**
-     * Paramètres de docalist-search.
-     *
-     * @var Settings
-     */
-    protected $settings;
-
-    /**
      * @param Settings $settings Paramètres de docalist-search.
      */
-    public function __construct(Settings $settings)
-    {
-        $this->settings = $settings;
-
+    public function __construct(
+        private Settings $settings,
+        private ElasticSearchClient $elasticSearchClient,
+        private IndexManager $indexManager,
+        private SearchAttributes $searchAttributes,
+        private AdminNotices $adminNotices
+    ) {
         // @formatter:off
         parent::__construct(
             'docalist-search-settings',                       // ID
@@ -69,40 +68,36 @@ class SettingsPage extends AdminPage
 
     /**
      * Page d'accueil (menu) des réglages Docalist-Search.
-     *
-     * @return ViewResponse
      */
-    public function actionIndex()
+    public function actionIndex(): Response
     {
         return $this->view('docalist-search:settings/index');
     }
 
     /**
      * Paramètres du serveur ElasticSearch.
-     *
-     * @return ViewResponse
      */
-    public function actionServerSettings()
+    public function actionServerSettings(): Response
     {
         $settings = $this->settings;
 
         if ($this->isPost()) {
             try {
                 $_POST = wp_unslash($_POST);
-                $settings->url = rtrim($_POST['url'], '/');
-                $settings->index = $_POST['index'];
-                $settings->shards = (int) $_POST['shards'];
-                $settings->replicas = (int) $_POST['replicas'];
-                $settings->connecttimeout = (int) $_POST['connecttimeout'];
-                $settings->timeout = (int) $_POST['timeout'];
-                $settings->compressrequest = (bool) $_POST['compressrequest'];
-                $settings->compressresponse = (bool) $_POST['compressresponse'];
-                $settings->bulkMaxSize = (int) $_POST['bulkMaxSize'];
-                $settings->bulkMaxCount = (int) $_POST['bulkMaxCount'];
+                $settings->url->assign(rtrim($_POST['url'], '/'));
+                $settings->index->assign($_POST['index']);
+                $settings->shards->assign((int) $_POST['shards']);
+                $settings->replicas->assign((int) $_POST['replicas']);
+                $settings->connecttimeout->assign((int) $_POST['connecttimeout']);
+                $settings->timeout->assign((int) $_POST['timeout']);
+                $settings->compressrequest->assign((bool) $_POST['compressrequest']);
+                $settings->compressresponse->assign((bool) $_POST['compressresponse']);
+                $settings->bulkMaxSize->assign((int) $_POST['bulkMaxSize']);
+                $settings->bulkMaxCount->assign((int) $_POST['bulkMaxCount']);
                 if (isset($_POST['realtime']) && $_POST['realtime'] === '') {
-                    $settings->realtime = false;
+                    $settings->realtime->assign(false);
                 }
-                $this->settings->enabled = (bool) $_POST['enabled'];
+                $this->settings->enabled->assign((bool) $_POST['enabled']);
 
                 $this->validateSettings();
 
@@ -110,7 +105,7 @@ class SettingsPage extends AdminPage
 
                 return $this->redirect($this->getUrl('Index'), 303);
             } catch (Exception $e) {
-                docalist('admin-notices')->error($e->getMessage(), __('Erreur dans vos paramètres', 'docalist-search'));
+                $this->adminNotices->error($e->getMessage(), __('Erreur dans vos paramètres', 'docalist-search'));
             }
         }
 
@@ -122,7 +117,7 @@ class SettingsPage extends AdminPage
      *
      * @throws InvalidArgumentException en cas d'erreur.
      */
-    protected function validateSettings()
+    protected function validateSettings(): void
     {
         // Vérifie qu'on a une url
         $url = $this->settings->url();
@@ -133,13 +128,13 @@ class SettingsPage extends AdminPage
         }
 
         // Stocke le numéro de version de elasticsearch
-        $version = docalist('elasticsearch')->getVersion();
+        $version = $this->elasticSearchClient->getVersion();
         if (is_null($version)) {
             throw new InvalidArgumentException(
                 __("Impossible d'obtenir la version de elasticsearch, verifiez l'url indiquée.", 'docalist-search')
             );
         }
-        $this->settings->esversion = $version;
+        $this->settings->esversion->assign($version);
     }
 
     /**
@@ -147,24 +142,32 @@ class SettingsPage extends AdminPage
      *
      * Indique si le serveur répond et teste si l'index existe.
      */
-    public function actionServerStatus()
+    public function actionServerStatus(): Response
     {
-        /* @var IndexManager $indexManager */
-        $indexManager = docalist('docalist-search-index-manager');
+        // todo: encore utilisé ? (ne marchait plus, adaptation minimale, retourne un contenu brut, générer une admin notice)
 
-        switch ($indexManager->ping()) {
+        $url = $this->settings->url->getPhpValue();
+        $index = $this->settings->index->getPhpValue();
+
+        switch ($this->indexManager->ping()) {
             case 0:
                 $msg = __("L'url %s ne répond pas.", 'docalist-search');
-                return printf($msg, $this->settings->url());
+                break;
 
             case 1:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s n'existe pas.", 'docalist-search');
-                return printf($msg, $this->settings->url(), $this->settings->index());
+                break;
 
             case 2:
                 $msg = __("Le serveur Elastic Search répond à l'url %s. L'index %s existe.", 'docalist-search');
-                return printf($msg, $this->settings->url(), $this->settings->index());
+                break;
+
+            default:
+                $msg = __("Unexpected ping response.", 'docalist-search');
+                break;
         }
+
+        return new HtmlResponse(sprintf($msg, $url, $index));
 
         // Etat du cluster pour l'index indiqué (status green, etc.)
         // http://localhost:9200/_cluster/health/wp_prisme?pretty
@@ -181,11 +184,9 @@ class SettingsPage extends AdminPage
     /**
      * Crée (ou recrée) l'index.
      *
-     * @param array $types Liste des contenus à indexer.
-     *
-     * @return CallbackResponse
+     * @param array<string> $types Liste des contenus à indexer.
      */
-    public function actionCreateIndex($types = null)
+    public function actionCreateIndex($types = null): Response
     {
         $settings = $this->settings;
         $error = '';
@@ -200,12 +201,12 @@ class SettingsPage extends AdminPage
             return $this->view('docalist-search:settings/create-index', [
                 'settings' => $settings,
                 'error' => $error,
-                'indexers' => docalist('docalist-search-index-manager')->getAvailableIndexers(),
+                'indexers' => $this->indexManager->getAvailableIndexers(),
             ]);
         }
 
         // Enregistre les types choisis dans les settings
-        $settings->types = $types;
+        $settings->types->assign($types);
         $this->settings->save();
 
         // On retourne une réponse de type "callback" qui va lancer la création de l'index et l'indexation
@@ -220,8 +221,7 @@ class SettingsPage extends AdminPage
             $this->view('docalist-search:settings/reindex')->sendContent();
 
             // Lance la réindexation
-            $indexManager = docalist('docalist-search-index-manager'); /* @var IndexManager $indexManager */
-            $indexManager->createIndex();
+            $this->indexManager->createIndex();
         });
 
         // Indique que notre réponse doit s'afficher dans le back-office wp
@@ -241,7 +241,7 @@ class SettingsPage extends AdminPage
     public function actionSearchAttributes(string $feature = ''): ViewResponse
     {
         return $this->view('docalist-search:attributes', [
-            'searchAttributes' => docalist('docalist-search-attributes'),
+            'searchAttributes' => $this->searchAttributes,
             'feature' => $feature,
         ]);
     }
@@ -250,17 +250,13 @@ class SettingsPage extends AdminPage
      * Paramètres du moteur de recherche.
      *
      * Permet entres autres d'activer la recherche.
-     *
-     * @return ViewResponse
      */
-    public function actionSearchSettings()
+    public function actionSearchSettings(): Response
     {
         // Teste si la recherche peut être activée
         $error = '';
-        if (! $this->settings->enabled()) {
-            /* @var IndexManager $indexManager */
-            $indexManager = docalist('docalist-search-index-manager');
-            $ping = $indexManager->ping();
+        if (! $this->settings->enabled->getPhpValue()) {
+            $ping = $this->indexManager->ping();
 
             // 0. ES ne répond pas
             if ($ping === 0) {
@@ -287,7 +283,7 @@ class SettingsPage extends AdminPage
             }
 
             // 2. ES répond et l'index existe, vérifie que l'index n'est pas vide
-            $response = docalist('elasticsearch')->get('/{index}/_count');
+            $response = $this->elasticSearchClient->get('/{index}/_count');
             if (!isset($response->count) || $response->count === 0) {
                 $msg = __('Lancez une <a href="%s">réindexation manuelle</a> de vos contenus.', 'docalist-search');
                 $msg = sprintf($msg, esc_url($this->getUrl('Reindex')));
@@ -302,17 +298,16 @@ class SettingsPage extends AdminPage
 
         if ($this->isPost()) {
             $_POST = wp_unslash($_POST);
-            $this->settings->searchpage = (int) $_POST['searchpage'];
-            $this->settings->defaultSearchFields = $this->validateFields((array) $_POST['defaultSearchFields']);
-            $this->settings->feed = (string) $_POST['feed'];
+            $this->settings->searchpage->assign((int) $_POST['searchpage']);
+            $this->settings->defaultSearchFields->assign($this->validateFields((array) $_POST['defaultSearchFields']));
+            $this->settings->feed->assign((string) $_POST['feed']);
 
             $this->settings->save();
 
             return $this->redirect($this->getUrl('SearchSettings'), 303);
         }
 
-        $searchAttributes = docalist('docalist-search-attributes'); /** @var SearchAttributes $searchAttributes */
-        $fields = array_keys($searchAttributes->filterByFeatures(Features::FULLTEXT));
+        $fields = array_keys($this->searchAttributes->filterByFeatures(Features::FULLTEXT));
         $fields = array_combine($fields, $fields);
 
         return $this->view('docalist-search:settings/search', [
@@ -322,6 +317,10 @@ class SettingsPage extends AdminPage
         ]);
     }
 
+    /**
+     * @param array<int,array<string,string>> $defaultSearchFields
+     * @return array<string,array<string,string|int>>
+     */
     protected function validateFields(array $defaultSearchFields): array
     {
         $result = [];
@@ -338,10 +337,10 @@ class SettingsPage extends AdminPage
         return $result;
     }
 
-    public function actionFieldData($query = '*')
+    public function actionFieldData(string $query = '*'): Response
     {
-        return; //ne fonctionne plus
-//         $response = docalist('elasticsearch')->get('/{index}/_search', [
+        return new HtmlResponse('Not implemented'); //ne fonctionne plus
+//         $response = $this->elasticSearchClient->get('/{index}/_search', [
 //             'query' => [
 //                 'query_string' => [
 //                     'query' => $query,

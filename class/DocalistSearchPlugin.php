@@ -11,19 +11,9 @@ declare(strict_types=1);
 
 namespace Docalist\Search;
 
-use Docalist\AdminNotices;
 use Docalist\Container\ContainerInterface;
-use Docalist\Lookup\LookupManager;
-use Docalist\Repository\SettingsRepository;
-use Docalist\Views;
 use Docalist\Search\Indexer\PostIndexer;
 use Docalist\Search\Indexer\PageIndexer;
-use Docalist\Search\Lookup\IndexLookup;
-use Docalist\Search\Lookup\SearchLookup;
-use Docalist\Search\MappingBuilder\ElasticsearchMappingBuilder;
-use Docalist\Search\QueryParser\Parser;
-use Exception;
-use Docalist\Services as Container;
 use Docalist\Search\Widget\DisplayAggregations;
 use Docalist\Search\Shortcodes;
 
@@ -50,95 +40,6 @@ class DocalistSearchPlugin
     {
         // Charge les fichiers de traduction du plugin
         load_plugin_textdomain('docalist-search', false, 'docalist-search/languages');
-
-        // // Charge la configuration du plugin
-        // $this->settings = new Settings($services->get(SettingsRepository::class));
-
-        // // Client Elasticsearch
-        // $services
-        //     ->set(ElasticSearchClient::class, fn() => new ElasticSearchClient($this->settings))
-        //     ->deprecate('elasticsearch', ElasticSearchClient::class, '2023-11-28')
-        //     ->deprecate('elastic-search', ElasticSearchClient::class, '0.12');
-
-        // // Query DSL
-        // $services
-        //     ->set(QueryDSL::class, function(Services $services): QueryDSL {
-        //         $version = $services->getString('elasticsearch-version');
-        //         if ($version >= '5.0.0') {
-        //             return new QueryDSL\Version500();
-        //         } elseif ($version >= '2.0.0') {
-        //             return new QueryDSL\Version200();
-        //         } else {
-        //             return new QueryDSL\Version200();
-        //         }
-        //     })
-        //     ->deprecate('elasticsearch-query-dsl', QueryDSL::class, '2023-11-28');
-
-        // // Mapping Builder
-        // $services
-        //     ->set(MappingBuilder::class, function (Services $services): MappingBuilder {
-        //         return new ElasticsearchMappingBuilder(
-        //             $services->getString('elasticsearch-version'),
-        //             $this->getVersion()
-        //         );
-        //     })
-        //     ->deprecate('mapping-builder', MappingBuilder::class, '2023-11-28');
-
-        // // Index Manager
-        // $services
-        //     ->set(IndexManager::class, fn(Services $services): IndexManager => new IndexManager(
-        //         $this->settings,
-        //         $services->get(ElasticSearchClient::class),
-        //         $services->get(AdminNotices::class)
-        //     ))
-        //     ->deprecate('docalist-search-index-manager', IndexManager::class, '2023-11-29');
-
-        // // Search Engine
-        // $services
-        //     ->set(SearchEngine::class, function (Services $services): SearchEngine {
-        //         return new SearchEngine($this->settings);
-        //     })
-        //     ->deprecate('docalist-search-engine', SearchEngine::class, '2023-11-29');
-
-        // // Search Attributes
-        // $services
-        //     ->set(SearchAttributes::class, function (Services $services): SearchAttributes {
-        //         return $services->get(IndexManager::class)->getSearchAttributes();
-        //     })
-        //     ->deprecate('docalist-search-attributes', SearchAttributes::class, '2023-11-29');
-
-        // // Index Lookup
-        // $services
-        //     ->set(IndexLookup::class, function (Services $services): IndexLookup {
-        //         return new IndexLookup($services->getString('elasticsearch-version'));
-
-        //     })
-        //     ->deprecate('index-lookup', IndexLookup::class, '2023-11-29');
-
-        // // Search Lookup
-        // $services
-        //     ->set(SearchLookup::class, function (Services $services): SearchLookup {
-        //         return new SearchLookup();
-
-        //     })
-        //     ->deprecate('search-lookup', SearchLookup::class, '2023-11-29');
-
-        // // Query Parser
-        // $services
-        //     ->set(Parser::class, function (Services $services): Parser {
-        //         return new Parser($this->settings->getDefaultSearchFields());
-
-        //     })
-        //     ->deprecate('query-parser', SearchLookup::class, '2023-11-29');
-        // $services
-        //     ->set(SettingsPage::class, fn(Services $services): SettingsPage => new SettingsPage(
-        //         $this->settings,
-        //         $services->get(ElasticSearchClient::class),
-        //         $services->get(IndexManager::class),
-        //         $services->get(SearchAttributes::class),
-        //         $services->get(AdminNotices::class),
-        //     ));
-
 
         // Liste des indexeurs prédéfinis
         add_filter('docalist_search_get_indexers', function ($indexers) {

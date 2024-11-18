@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Docalist\Search\Lookup;
 
 use Docalist\Lookup\LookupInterface;
+use Docalist\Search\ElasticSearchClient;
 use InvalidArgumentException;
 
 /**
@@ -89,7 +90,9 @@ class IndexLookup implements LookupInterface
         ];
 
         // Exécute la requête
-        $result = docalist('elasticsearch')->post('/{index}/_search', $query);
+        /** @var ElasticSearchClient $es */
+        $es = docalist(ElasticSearchClient::class);
+        $result = $es->post('/{index}/_search', $query);
         if (! isset($result->aggregations->lookup->buckets)) {
             return [];
         }
@@ -145,7 +148,9 @@ class IndexLookup implements LookupInterface
         ];
 
         // Exécute la requête
-        $result = docalist('elasticsearch')->post('/{index}/_search?filter_path=suggest.lookup.options.text', $query);
+        /** @var ElasticSearchClient $es */
+        $es = docalist(ElasticSearchClient::class);
+        $result = $es->post('/{index}/_search?filter_path=suggest.lookup.options.text', $query);
 
         // Récupère les suggestions
         if (! isset($result->suggest->lookup[0]->options)) {
